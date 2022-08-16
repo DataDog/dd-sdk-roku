@@ -1,0 +1,9 @@
+# Roku
+dist
+
+# NPM
+node_modules
+package-lock.json
+
+# Visual Studio Code
+.vscode
