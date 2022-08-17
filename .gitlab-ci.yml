@@ -1,0 +1,114 @@
+include:
+  - 'https://gitlab-templates.ddbuild.io/slack-notifier/v1/template.yml'
+
+# SETUP
+
+variables:
+  REPO: 'dd-sdk-roku'
+  CI_IMAGE_VERSION: "1"
+  BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
+  CI_IMAGE: '$BUILD_STABLE_REGISTRY/ci/$REPO:$CI_IMAGE_VERSION'
+  GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
+  MAIN_BRANCH: 'main'
+  GIT_DEPTH: 5
+
+  DD_AGENT_HOST: "$BUILDENV_HOST_IP"
+  DD_SERVICE: "dd-sdk-roku"
+  DD_ENV_TESTS: "ci"
+  DD_INTEGRATION_JUNIT_5_ENABLED: "true"
+  DD_CIVISIBILITY_ENABLED: "true"
+  DD_INSIDE_CI: "true"
+
+stages:
+  - ci-image
+  - security
+  - analysis
+  - test
+  - publish
+  - notify
+
+
+.base-configuration:
+  tags: ['runner:main', 'size:large']
+  image: $CI_IMAGE
+
+########################################################################################################################
+# CI IMAGE
+########################################################################################################################
+
+ci-image:
+  stage: ci-image
+  extends:
+    - .base-configuration
+  when: manual
+  except: [ tags, schedules ]
+  tags: ['runner:docker', 'size:large']
+  image: $BUILD_STABLE_REGISTRY/docker:18.03.1
+  script:
+    - docker build --tag $CI_IMAGE -f Dockerfile.gitlab .
+    - docker push $CI_IMAGE
+
+########################################################################################################################
+# STATIC ANALYSIS
+########################################################################################################################
+
+analysis:woke:
+  extends:
+    - .base-configuration
+  stage: analysis
+  timeout: 30m
+  script:
+    - /usr/bin/woke --exit-1-on-failure
+
+########################################################################################################################
+# TESTS
+########################################################################################################################
+
+test:roku:
+  extends:
+    - .base-configuration
+  stage: test
+  timeout: 1h
+  script:
+    - npm test
+
+########################################################################################################################
+# PUBLISH ARTIFACTS ON NPM
+########################################################################################################################
+
+# TODO
+publish:release:
+  extends:
+    - .base-configuration
+  only:
+    - tags
+  stage: publish
+  timeout: 30m
+  script:
+    - echo "Publishing"
+
+########################################################################################################################
+# SLACK NOTIFICATIONS
+########################################################################################################################
+
+notify:publish-success:
+  extends: .slack-notifier-base
+  stage: notify
+  when: on_success
+  only:
+    - tags
+  script:
+    - ROPM_URL="https://www.npmjs.com/package/@datadog/datadog-roku/v/$CI_COMMIT_TAG"
+    - 'MESSAGE_TEXT=":package: :roku: $CI_PROJECT_NAME $CI_COMMIT_TAG published on :npm: $ROPM_URL"'
+    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+
+notify:publish-failure:
+  extends: .slack-notifier-base
+  stage: notify
+  when: on_failure
+  only:
+    - tags
+  script:
+    - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
+    - 'MESSAGE_TEXT=":test-fail: :roku: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
+    - postmessage "#mobile-rum" "$MESSAGE_TEXT"

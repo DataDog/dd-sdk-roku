@@ -1,0 +1,68 @@
+FROM registry.ddbuild.io/images/mirror/node:16.16.0-bullseye-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set timezone to UTC by default
+RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
+
+# Install JDK ?
+#RUN apt-get update \
+#    && apt-get -y install openjdk-11-jdk \
+#    && rm -rf /var/lib/apt/lists/*
+
+# Install base tools
+RUN set -x \
+ && apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y install --no-install-recommends \
+    curl \
+    git \
+    unzip \
+    wget \
+    openssh-client \
+    expect \
+ && apt-get -y clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Python 3
+RUN set -x \
+ && apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y install --no-install-recommends \
+    python3 \
+    python3-distutils \
+    python3-apt \
+ && apt-get -y clean \
+ && rm -rf /var/lib/apt/lists/*
+
+#  Install pip for aws
+RUN set -x \
+ && curl -OL https://bootstrap.pypa.io/get-pip.py \
+ && python3 get-pip.py \
+ && rm get-pip.py
+
+RUN python3 --version
+
+RUN set -x \
+ && pip install awscli
+
+
+# Woke
+ENV WOKE_VERSION "0.6.0"
+ENV WOKE_SHA256 "ea5605d4242b93d9586a21878264dd8abcf64ed92f0f6538ea831d9d3215b883"
+
+RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/woke-${WOKE_VERSION}-linux-amd64.tar.gz -o woke-linux-amd64.tar.gz \
+ && echo "${WOKE_SHA256} woke-linux-amd64.tar.gz" | sha256sum -c  \
+ && tar -xf woke-linux-amd64.tar.gz \
+ && mv woke-${WOKE_VERSION}-linux-amd64/woke /usr/bin/woke \
+ && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
+
+# Check Node and NPM version
+RUN node --version
+RUN npm --version
+
+# Install NPM global dependencies
+npm install -g brs
+npm install -g brighterscript
+
+# Done
