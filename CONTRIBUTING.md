@@ -42,7 +42,7 @@ For any urgent matters (such as outages) or issues concerning the Datadog servic
 or UI, contact our support team via https://docs.datadoghq.com/help/ for direct,
 faster assistance.
 
-You may submit bug reports concerning the Datadog SDK for Android by 
+You may submit bug reports concerning the Datadog SDK for Roku by 
 [opening a Github issue](https://github.com/DataDog/dd-sdk-roku/issues/new?labels=bug&template=bug_report.md).
 At a minimum, please provide:
 

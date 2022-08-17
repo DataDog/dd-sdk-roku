@@ -1,5 +1,9 @@
 # Roku
 dist
+out
+
+# ROPM
+roku_modules
 
 # NPM
 node_modules
@@ -7,3 +11,6 @@ package-lock.json
 
 # Visual Studio Code
 .vscode
+
+# Mac OS
+.DS_Store
