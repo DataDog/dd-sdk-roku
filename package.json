@@ -1,0 +1,35 @@
+{
+  "name": "datadog-roku",
+  "version": "1.0.0-dev",
+  "description": "Datadog SDK for Roku",
+  "keywords": [
+    "ropm",
+    "roku",
+    "datadog",
+    "brightscript",
+    "scenegraph"
+  ],
+  "author": "Datadog (https://github.com/DataDog)",
+  "contributors": [
+    "Xavier F. Gouchet <xavier.gouchet@datadoghq.com>"
+  ],
+  "homepage": "https://github.com/DataDog/dd-sdk-roku#readme",
+  "repository": "https://github.com/DataDog/dd-sdk-roku",
+  "bugs": {
+    "url": "https://github.com/DataDog/dd-sdk-roku/issues"
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "src/**/*"
+  ],
+  "scripts": {
+    "test": "roca"
+  },
+  "devDependencies": {
+    "@hulu/roca": "^0.25.0",
+    "brs": "^0.43.0"
+  },
+  "ropm": {
+    "packageRootDir": "src"
+  }
+}
