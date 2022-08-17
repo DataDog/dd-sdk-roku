@@ -1,3 +1,7 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2022-Today Datadog, Inc.
+
 include:
   - 'https://gitlab-templates.ddbuild.io/slack-notifier/v1/template.yml'
 
@@ -59,6 +63,14 @@ analysis:woke:
   timeout: 30m
   script:
     - /usr/bin/woke --exit-1-on-failure
+
+analysis:check_copyright:
+  extends:
+    - .base-configuration
+  stage: analysis
+  timeout: 30m
+  script:
+    - tools/copyright/check_copyright.sh
 
 ########################################################################################################################
 # TESTS
