@@ -1,28 +1,29 @@
 FROM registry.ddbuild.io/images/mirror/node:16.16.0-bullseye-slim
 
+####################################################################################################
+# DEBIAN SETUP
+####################################################################################################
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
-# Install JDK ?
-#RUN apt-get update \
-#    && apt-get -y install openjdk-11-jdk \
-#    && rm -rf /var/lib/apt/lists/*
+# Make sure APT is up to date
+RUN set -x && apt-get update
+RUN set -x && apt-get -y upgrade
+RUN set -x && apt-get -y install --no-install-recommends apt-utils
 
-# Install base tools
-RUN set -x \
- && apt-get update \
- && apt-get -y upgrade \
- && apt-get -y install --no-install-recommends \
-    curl \
-    git \
-    unzip \
-    wget \
-    openssh-client \
-    expect \
- && apt-get -y clean \
- && rm -rf /var/lib/apt/lists/*
+# Install CLI tools
+RUN set -x && apt-get -y install --no-install-recommends curl ca-certificates
+
+# Cleanup APT files
+RUN set -x && apt-get -y clean
+RUN set -x && rm -rf /var/lib/apt/lists/*
+
+####################################################################################################
+# PYTHON
+####################################################################################################
 
 # Install Python 3
 RUN set -x \
@@ -43,9 +44,25 @@ RUN set -x \
 
 RUN python3 --version
 
-RUN set -x \
- && pip install awscli
+#  Install aws CLI
+RUN set -x && pip install awscli
 
+####################################################################################################
+# NPM
+####################################################################################################
+
+# Check Node and NPM version
+RUN node --version
+RUN npm --version
+
+# Install NPM global dependencies
+RUN npm install -g brs
+RUN npm install -g brighterscript
+RUN npm install -g ropm
+
+####################################################################################################
+# MISC
+####################################################################################################
 
 # Woke
 ENV WOKE_VERSION "0.6.0"
@@ -57,12 +74,7 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
  && mv woke-${WOKE_VERSION}-linux-amd64/woke /usr/bin/woke \
  && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
 
-# Check Node and NPM version
-RUN node --version
-RUN npm --version
 
-# Install NPM global dependencies
-npm install -g brs
-npm install -g brighterscript
-
-# Done
+####################################################################################################
+# EOF
+####################################################################################################

@@ -14,6 +14,7 @@ You also need to have the [BRS](https://npmjs.org/package/brs) and [BrighterScri
 ```shell script
 npm install -g brs
 npm install -g brighterscript
+npm install -g ropm
 ```
 
 ### Running the tests
