@@ -72,6 +72,16 @@ analysis:check_copyright:
   script:
     - tools/copyright/check_copyright.sh
 
+analysis:lint:
+  extends:
+    - .base-configuration
+  stage: analysis
+  timeout: 30m
+  script:
+    - npm run lint
+
+# TODO add the bsc command line to try compiling the project
+
 ########################################################################################################################
 # TESTS
 ########################################################################################################################

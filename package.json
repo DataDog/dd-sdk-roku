@@ -23,10 +23,12 @@
     "src/**/*"
   ],
   "scripts": {
-    "test": "roca"
+    "test": "roca",
+    "lint": "bslint"
   },
   "devDependencies": {
     "@hulu/roca": "^0.25.0",
+    "@rokucommunity/bslint": "^0.7.3",
     "brs": "^0.43.0"
   },
   "ropm": {

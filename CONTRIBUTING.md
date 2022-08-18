@@ -9,10 +9,11 @@ To propose improvements, feel free to submit a PR or open an Issue.
 
 To setup your enviroment, first make sure you followed the official [Roku Developer environment setup](https://developer.roku.com/en-gb/docs/developer-program/getting-started/developer-setup.md).
 
-You also need to have the [BRS](https://npmjs.org/package/brs) `npm` package installed: 
+You also need to have the [BRS](https://npmjs.org/package/brs) and [BrighterScript](https://npmjs.org/package/brighterscript) `npm` packages installed: 
 
 ```shell script
 npm install -g brs
+npm install -g brighterscript
 ```
 
 ### Running the tests
