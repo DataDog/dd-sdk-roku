@@ -1,0 +1,23 @@
+{
+    "rules": {
+        "inline-if-style": "never",
+        "block-if-style": "no-then",
+        "condition-style": "group",
+        "named-function-style": "auto",
+        "anon-function-style": "auto",
+        "aa-comma-style": "no-dangling",
+        "no-print": "warn",
+        "no-todo": "warn",
+        "todo-pattern": "TODO|todo|FIXME",
+        "no-stop": "error",
+        "eol-last": "always",
+        "type-annotations": "all",
+        "assign-all-paths": "error",
+        "unsafe-path-loop": "error",
+        "unsafe-iterators": "error",
+        "unreachable-code": "error",
+        "case-sensitivity": "error",
+        "unused-variable": "warn",
+        "consistent-return": "error"
+    }
+}
