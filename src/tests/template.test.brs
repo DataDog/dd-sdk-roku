@@ -18,14 +18,15 @@ function main(args as object) as object
             m.pass() 'required otherwise the test is marked as "Pending"
         end sub)
 
-        m.it("has a another test case", sub()
-            'print "  - test 2"
-            m.fail()
-        end sub)
+        ' m.it("has a another test case", sub()
+        '     'print "  - test 2"
+        '     m.pass()
+        '     m.fail()
+        ' end sub)
 
-        m.it("has a third test case", sub()
-            'print "  - test 3"
-            m.assert.equal("foo", "bar", "whoops, these should be equal")
-        end sub)
+        ' m.it("has a third test case", sub()
+        '     'print "  - test 3"
+        '     m.assert.equal("foo", "bar", "whoops, these should be equal")
+        ' end sub)
     end sub)
 end function
