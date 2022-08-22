@@ -17,6 +17,14 @@ npm install -g brighterscript
 npm install -g ropm
 ```
 
+### Running the static analysis
+
+The whole project is covered by a set of static analysis tools, which can be launched via `npm`.
+
+```shell script
+npm run lint
+```
+
 ### Running the tests
 
 The whole project is covered by a set of tests using [Roca](https://hulu.github.io/roca/), which can be launched via `npm`.
@@ -24,6 +32,22 @@ The whole project is covered by a set of tests using [Roca](https://hulu.github.
 ```shell script
 npm test
 ```
+
+### Running the sample app
+
+A sample app is available to showcase the basic features of the SDK. You can package the app with `npm`.
+
+```shell script
+npm run make-sample
+```
+
+Then you can upload the `sample/dist/apps/DatadogSampleApp.zip` file to your Roku device, using the Development Application Installer. Alternatively, you can set the `ROKU_DEV_TARGET` environment variable to your device's IP address, the `ROKU_DEV_PASSWORD` environment variable to your device's dev password, and run one of the following `npm` command:
+
+```shell script
+npm run install-sample
+npm run run-sample
+```
+
 
 ## Submitting Issues
 

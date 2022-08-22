@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="MainScreen" extends="Scene">
+
+    <children>
+        <Label id="titleLabel" text="Datadog Sample Application" translation="[50,200]" />
+
+        <ButtonGroup id="mainButtonGroup" translation="[50,300]">
+            <Button id="writerBtn" text="Test Writer" showFocusFootprint="true" />
+            <Button id="uploaderBtn" text="Test Uploader" showFocusFootprint="true" />
+            <Button id="randomBtn" text="Foo" showFocusFootprint="true" />
+            <Button id="randomBtn" text="Bar" showFocusFootprint="true" />
+        </ButtonGroup>
+
+        <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />
+    </children>
+
+    <script type="text/brightscript" uri="pkg:/components/MainScreen.brs" />
+
+</component>
