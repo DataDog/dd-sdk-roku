@@ -27,7 +27,9 @@ npm run lint
 
 ### Running the tests
 
-The whole project is covered by a set of tests using [Roca](https://hulu.github.io/roca/), which can be launched via `npm`.
+The whole project is covered by a set of tests using Roku's official [Unit Testing Framework](https://github.com/rokudev/unit-testing-framework), which can be launched via `npm`.
+
+**Note** that to run the test you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
 
 ```shell script
 npm test
@@ -35,19 +37,27 @@ npm test
 
 ### Running the sample app
 
-A sample app is available to showcase the basic features of the SDK. You can package the app with `npm`.
+A sample app is available to showcase the basic features of the SDK. Before using the sample application, you **must** create a `sample/source/credentials.brs` file with the following lines: 
+
+```brightscript
+' Returns a valid Datadog RUM Client Token
+function getDatadogClientToken() as string
+    return "pub0123456789abcdef0123456789abcdef"
+end function
+```
+
+You can then package the app with the following `npm` command.
 
 ```shell script
 npm run make-sample
 ```
 
-Then you can upload the `sample/dist/apps/DatadogSampleApp.zip` file to your Roku device, using the Development Application Installer. Alternatively, you can set the `ROKU_DEV_TARGET` environment variable to your device's IP address, the `ROKU_DEV_PASSWORD` environment variable to your device's dev password, and run one of the following `npm` command:
+Once the app is prepared, you can upload the `sample/dist/apps/DatadogSampleApp.zip` file to your Roku device, using the Development Application Installer. Alternatively, you can set the `ROKU_DEV_TARGET` environment variable to your device's IP address, the `ROKU_DEV_PASSWORD` environment variable to your device's dev password, and run one of the following `npm` command:
 
 ```shell script
 npm run install-sample
 npm run run-sample
 ```
-
 
 ## Submitting Issues
 
