@@ -87,6 +87,8 @@ analysis:lint:
 ########################################################################################################################
 
 test:roku:
+# disabled for now as we need a device in CI to run the tests :/
+  when: manual
   extends:
     - .base-configuration
   stage: test
