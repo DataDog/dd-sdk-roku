@@ -5,13 +5,36 @@
 ' ----------------------------------------------------------------
 ' Main entry point for the test app
 ' ----------------------------------------------------------------
-sub RunUserInterface(args)
-    print "Running test app"
+sub RunUserInterface()
+    screen = CreateObject("roSGScreen")
+    m.port = CreateObject("roMessagePort")
+    screen.setMessagePort(m.port)
+    m.scene = screen.CreateScene("TestScreen")
+    screen.show()
 
+    m.scene.testResults = runTests()
+
+    while(true)
+        msg = wait(0, m.port)
+        msgType = type(msg)
+
+        if (msgType = "roSGScreenEvent")
+            if (msg.isScreenClosed())
+                return
+            end if
+        end if
+    end while
+end sub
+
+
+' ----------------------------------------------------------------
+' Runs all the tests
+' ----------------------------------------------------------------
+function runTests() as object
     Runner = TestRunner()
 
     Runner.SetFunctions([
-        TestSuite__Main
+        TestSuite__Sample
     ])
 
     ' setup logger
@@ -22,5 +45,7 @@ sub RunUserInterface(args)
     ' run all tests to get one single report
     Runner.SetFailFast(false)
 
-    Runner.Run()
-end sub
+    statResult = Runner.Logger.CreateTotalStatistic()
+    Runner.Run(statResult)
+    return statResult
+end function
