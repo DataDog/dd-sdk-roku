@@ -24,7 +24,7 @@
     "src/components/**/*"
   ],
   "scripts": {
-    "test": "roca",
+    "test": "cd test && ropm install && rm -r node_modules && make run",
     "lint": "bslint",
     "make-sample": "cd sample && ropm install && rm -r node_modules && make",
     "install-sample": "cd sample && ropm install && rm -r node_modules && make install",

@@ -15,7 +15,7 @@
 #    address of your Roku box. (e.g. export ROKU_DEV_TARGET=192.168.1.1.
 #    Set in your this variable in your shell startup (e.g. .bashrc)
 ##########################################################################
-APPNAME = DatadogSampleApp
+APPNAME = DatadogTestApp
 VERSION = 1.0.0
 
 ZIP_EXCLUDE= -x \*.pkg -x storeassets\* -x keys\* -x \*/.\*

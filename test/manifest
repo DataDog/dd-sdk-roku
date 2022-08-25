@@ -1,0 +1,60 @@
+# This is a comment
+# manifest is a key=value properties file
+
+# Required Identity
+title=Datadog_test
+major_version=1
+minor_version=0
+build_version=0
+
+# Required images (need to be bundled in the images folder)
+mm_icon_focus_sd=pkg:/images/mm_icon_focus_sd.jpg
+mm_icon_focus_hd=pkg:/images/mm_icon_focus_hd.jpg
+splash_screen_sd=pkg:/images/splash_screen_sd.jpg
+splash_screen_hd=pkg:/images/splash_screen_hd.jpg
+
+# Optional Controls params
+supports_etc_seek=0
+supports_etc_next=0
+supports_voice_roinput=0
+voice_action_launch_screen=0
+
+# Optional Splash Screen params
+splash_color=#632CA6
+splash_min_time=2000
+#splash_screen_fhd=pkg:/images/splash_fhd.jpg
+#splash_rsg_optimization=0
+
+# Optional Graphics scaling attributes
+ui_resolutions=sd,hd,fhd
+# uri_resolution_autosub=$$RES$$,SD,720p,1080p
+
+# Optional Launch requirement attributes (notify library/hardware requirements)
+# supports_input_launch=0
+# requires_audiometadata=0
+# requires_gaming_remote=0
+# requires_mkv=0
+# network_not_required=1
+# usb_media_handler=0
+
+# Optional DRM attributes
+# requires_verimatrix_drm=1
+# requires_verimatrix_version=1.0
+
+# Optional Brightscript lib dependencies
+# bs_libs_required=roku_ads_lib
+# run_as_process=1 # enables debug feature
+bs_prof_enabled=true
+
+# Brightscript compiler flags
+# bs_const=my_flag=true
+
+# Optional misc
+# hidden=1
+# playonly_aware=1 # if the remote as independent play and pause button, this will change the input event when play is pressed
+# pause_aware=1 # disable the default play/pause toggle on remote, and sends an independant pause event
+# rsg_version=1.2   
+# automatic_audio_guide_disabled=1
+# suppress_unconnected_hud=0
+# dial_title=2Dvideo
+# game=1
