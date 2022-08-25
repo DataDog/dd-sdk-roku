@@ -21,7 +21,7 @@ voice_action_launch_screen=0
 
 # Optional Splash Screen params
 splash_color=#632CA6
-splash_min_time=2000
+splash_min_time=500
 #splash_screen_fhd=pkg:/images/splash_fhd.jpg
 #splash_rsg_optimization=0
 

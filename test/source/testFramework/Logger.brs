@@ -208,7 +208,7 @@ sub Logger__PrintStatistic(statObj as object)
     end if
 
     ? "***"
-    ? "***   Total  = "; TF_Utils__AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Skipped   = "; statObj.skipped; " ; Crashes  = "; statObj.Crash;
+    ? "***   Total  = "; TF_Utils__AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Skipped   = "; statObj.skipped; " ; Crashes  = "; statObj.Crash
     ? "***   Time spent: "; statObj.Time; "ms"
     ? "***"
 

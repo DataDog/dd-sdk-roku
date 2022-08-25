@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="TestScreen" extends="Scene">
+    <interface>
+        <field id="testResults" type="assocarray" />
+    </interface>
+    <children>
+        <Label id="titleLabel" text="Datadog Test Application" translation="[50,200]" font="font:MediumBoldSystemFont" color="0xFFFFFFFF">
+            <Font size="64" />
+        </Label>
+
+        <Label id="outputAbstract" text="…" translation="[100,300]" font="font:MediumSystemFont" color="0xFFFFFFFF" />
+        <Label id="outputCorrect" text="" translation="[200,350]" font="font:MediumSystemFont" color="0x40FF40FF" />
+        <Label id="outputSkipped" text="" translation="[200,400]" font="font:MediumSystemFont" color="0x808080FF" />
+        <Label id="outputFail" text="" translation="[200,450]" font="font:MediumSystemFont" color="0xFFA840FF" />
+        <Label id="outputCrash" text="" translation="[200,500]" font="font:MediumSystemFont" color="0xFF4040FF" />
+
+    </children>
+
+    <script type="text/brightscript" uri="pkg:/components/TestScreen.brs" />
+</component>
