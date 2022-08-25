@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -43,6 +44,7 @@ function TestRunner() as object
 
     ' Internal properties
     this.SKIP_TEST_MESSAGE_PREFIX = "SKIP_TEST_MESSAGE_PREFIX__"
+    this.CRASH_TEST_MESSAGE_PREFIX = "CRASH_TEST_MESSAGE_PREFIX__"
     this.nodesTestDirectory = "pkg:/components/tests"
     if this.isNodeMode
         this.testsDirectory = this.nodesTestDirectory
@@ -155,7 +157,17 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                             UTF_fail("Failed to execute test """ + testCase.Name + """ function pointer not found")
                         end if
                     else
-                        runResult = testSuite.testCase()
+                        try
+                            runResult = testSuite.testCase()
+                        catch e
+                            runResult = m.CRASH_TEST_MESSAGE_PREFIX + e.message
+                            print "✘ ✘ ✘ ✘ ✘ ✘"
+                            print "Crash #" + e.number.ToStr() + ": " + e.message
+                            for each frame in e.backtrace
+                                print frame.function + " (" + frame.filename + ":" + frame.line_number.ToStr() + ")"
+                            end for
+                            print "✘ ✘ ✘ ✘ ✘ ✘"
+                        end try
                     end if
                 end if
 
@@ -182,9 +194,15 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                         testStatObj.result = "Skipped"
                         testStatObj.message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
                     else
-                        testStatObj.Result = "Fail"
-                        testStatObj.Error.Code = 1
-                        testStatObj.Error.Message = runResult
+                        if InStr(0, runResult, m.CRASH_TEST_MESSAGE_PREFIX) = 1
+                            testStatObj.result = "Crashed"
+                            testStatObj.Error.Code = 2
+                            testStatObj.Error.Message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
+                        else
+                            testStatObj.Result = "Fail"
+                            testStatObj.Error.Code = 1
+                            testStatObj.Error.Message = runResult
+                        end if
                     end if
                 else
                     testStatObj.Result = "Success"
@@ -193,7 +211,7 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                 testStatObj.Time = testTimer.TotalMilliseconds()
                 m.Logger.AppendTestStatistic(suiteStatObj, testStatObj)
 
-                if testStatObj.Result = "Fail" and m.failFast
+                if (testStatObj.Result = "Fail" or testStatObj.Result = "Crashed") and m.failFast
                     suiteStatObj.Result = "Fail"
                     exit for
                 end if
@@ -207,7 +225,7 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
             testSuite.TearDown()
         end if
 
-        if suiteStatObj.Result = "Fail" and m.failFast
+        if (suiteStatObj.Result = "Fail" or suiteStatObj.Result = "Crashed") and m.failFast
             exit for
         end if
     end for

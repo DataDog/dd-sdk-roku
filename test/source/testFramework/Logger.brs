@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -334,14 +335,14 @@ sub Logger__AppendTestStatistic(statSuiteObj as object, statTestObj as object)
 
         statSuiteObj.Total = statSuiteObj.Total + 1
 
-        if LCase(statTestObj.Result) = "success"
-            statSuiteObj.Correct = statSuiteObj.Correct + 1
+        if LCase(statTestObj.result) = "success"
+            statSuiteObj.Correct++
         else if LCase(statTestObj.result) = "fail"
-            statSuiteObj.Fail = statSuiteObj.Fail + 1
+            statSuiteObj.Fail++
         else if LCase(statTestObj.result) = "skipped"
             statSuiteObj.skipped++
-        else
-            statSuiteObj.crash = statSuiteObj.crash + 1
+        else if LCase(statTestObj.result) = "crashed"
+            statSuiteObj.crash++
         end if
 
         if m.echoEnabled

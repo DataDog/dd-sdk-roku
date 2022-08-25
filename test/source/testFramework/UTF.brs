@@ -10,11 +10,11 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
-' Common framework utility functions
-' *****************************************************************
+
 
 function UTF_skip(msg = "")
     return UTF_PushErrorMessage(BTS__Skip(msg))
@@ -94,6 +94,10 @@ end function
 
 function UTF_assertNotEmpty(item, msg = "")
     return UTF_PushErrorMessage(BTS__AssertNotEmpty(item, msg))
+end function
+
+function UTF_multipleAssertions(item)
+    return UTF_PushErrorMessage(BTS__MultipleAssertions(item))
 end function
 
 function UTF_PushErrorMessage(message as string) as boolean

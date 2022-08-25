@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -206,3 +207,16 @@ function IG_GetString(seed as integer) as string
 
     return item
 end function
+
+' ----------------------------------------------------------------
+' Generates random element from array.
+
+' @param data (array) An array of possible values.
+
+' @return A random value from the array.
+' ----------------------------------------------------------------
+function IG_GetOneOf(data as object) as dynamic
+    index = Rnd(data.count()) - 1
+    return data[index]
+end function
+
