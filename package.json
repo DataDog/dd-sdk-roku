@@ -29,9 +29,7 @@
     "sample": "cd sample && ropm install && rm -r node_modules && make run"
   },
   "devDependencies": {
-    "@hulu/roca": "^0.25.0",
-    "@rokucommunity/bslint": "^0.7.3",
-    "brs": "^0.43.0"
+    "@rokucommunity/bslint": "^0.7.3"
   },
   "ropm": {
     "packageRootDir": "library"

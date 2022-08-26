@@ -28,7 +28,6 @@ function FileUtilsTest__WhenMkDirs_ThenCreateDir() as string
 
     ' When
     result = datadogroku_mkdirs(path)
-    print "Result is "; result
 
     ' Then
     return m.multipleAssertions([
@@ -78,7 +77,6 @@ function FileUtilsTest__WhenMkDirs_ThenCreateParentDirs() as string
 
     ' When
     result = datadogroku_mkdirs(path)
-    print "Result is "; result
 
     ' Then
     return m.multipleAssertions([

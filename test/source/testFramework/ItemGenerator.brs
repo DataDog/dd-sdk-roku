@@ -23,6 +23,7 @@
 '     IG_GetSimpleType
 '     IG_GetBoolean
 '     IG_GetInteger
+'     IG_GetIntegerInRange
 '     IG_GetFloat
 '     IG_GetString
 
@@ -47,6 +48,7 @@ function ItemGenerator(scheme as object) as object
     this.getArray = IG_GetArray
     this.getSimpleType = IG_GetSimpleType
     this.getInteger = IG_GetInteger
+    this.getIntegerInRange = IG_GetIntegerInRange
     this.getFloat = IG_GetFloat
     this.getString = IG_GetString
     this.getBoolean = IG_GetBoolean
@@ -167,6 +169,19 @@ end function
 ' ----------------------------------------------------------------
 function IG_GetInteger(seed = 100 as integer) as integer
     return Rnd(seed)
+end function
+
+
+' ----------------------------------------------------------------
+' Generates random integer value in the given range.
+
+' @param min (integer) the lower boundary (inclusive) of the range
+' @param max (integer) the upper boundary (inclusive) of the range
+
+' @return A random integer value.
+' ----------------------------------------------------------------
+function IG_GetIntegerInRange(min = 0 as integer, max = 100 as integer) as integer
+    return Rnd(max - min + 1) + min - 1
 end function
 
 ' ----------------------------------------------------------------

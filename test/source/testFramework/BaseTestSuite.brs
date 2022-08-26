@@ -123,6 +123,7 @@ function BTS__CreateTest(name as string, func as object, setup = invalid as obje
         Func: func
         SetUp: setup
         TearDown: teardown
+        TestSuite: m
 
         perfData: {}
 
@@ -705,7 +706,7 @@ function BTS__MultipleAssertions(assertions as object) as string
     combinedMsg = ""
     for each assertion in assertions
         if (not TF_Utils__IsString(assertion))
-            return "Expected assertions to be strings but found type " + type(assertion)
+            return "Expected assertions to be strings but found type " + type(assertion) + chr(10) + FormatJson(assertions)
         end if
 
         if (assertion <> "")

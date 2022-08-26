@@ -7,6 +7,7 @@ Copyright 2022-Today Datadog, Inc.
 <component name="TestScreen" extends="Scene">
     <interface>
         <field id="testResults" type="assocarray" />
+        <field id="errorMessage" type="string" />
     </interface>
     <children>
         <Label id="titleLabel" text="Datadog Test Application" translation="[50,200]" font="font:MediumBoldSystemFont" color="0xFFFFFFFF">
