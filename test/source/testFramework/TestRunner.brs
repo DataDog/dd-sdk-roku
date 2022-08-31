@@ -160,12 +160,9 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                         try
                             runResult = testSuite.testCase()
                         catch e
-                            runResult = m.CRASH_TEST_MESSAGE_PREFIX + e.message
+                            runResult = m.CRASH_TEST_MESSAGE_PREFIX + datadogroku_errorToString(e)
                             print "✘ ✘ ✘ ✘ ✘ ✘"
-                            print "Crash #" + e.number.ToStr() + ": " + e.message
-                            for each frame in e.backtrace
-                                print frame.function + " (" + frame.filename + ":" + frame.line_number.ToStr() + ")"
-                            end for
+                            print datadogroku_errorToString(e)
                             print "✘ ✘ ✘ ✘ ✘ ✘"
                         end try
                     end if

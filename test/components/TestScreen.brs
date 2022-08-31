@@ -11,8 +11,11 @@ sub init()
     m.outputSkipped = m.top.findNode("outputSkipped")
     m.outputFail = m.top.findNode("outputFail")
     m.outputCrash = m.top.findNode("outputCrash")
+    m.outputMessage = m.top.findNode("outputMessage")
 
     m.top.observeField("testResults", "onTestResults")
+    m.top.observeField("message", "onMessage")
+    m.top.observeField("crash", "onCrash")
 end sub
 
 
@@ -37,4 +40,41 @@ sub onTestResults()
         m.outputCrash.text = testResults.crash.toStr() + " crashed"
     end if
 
+    if (testResults.crash > 0)
+        m.outputMessage.color = "0xe3554c"
+    else if (testResults.fail > 0)
+        m.outputMessage.color = "0xedb359"
+    else if (testResults.skipped > 0)
+        m.outputMessage.color = "0x9aaaba"
+    else
+        m.outputMessage.color = "0x1c2b34fa"
+    end if
+
+    output = ""
+    for each entry in testResults.outputLog
+        output = output + entry + chr(10)
+    end for
+    m.outputMessage.text = output
+    m.outputMessage.setFocus(true)
+
 end sub
+
+' ----------------------------------------------------------------
+' Callback used to display a message on screen
+' ----------------------------------------------------------------
+sub onMessage()
+    m.outputMessage.text = m.top.message
+    m.outputMessage.setFocus(true)
+end sub
+
+' ----------------------------------------------------------------
+' Callback used to display an error on screen
+' ----------------------------------------------------------------
+sub onCrash()
+    crash = m.top.crash
+
+    m.outputMessage.text = datadogroku_errorToString(crash)
+    m.outputMessage.color = "0xe3554c"
+    m.outputMessage.setFocus(true)
+end sub
+

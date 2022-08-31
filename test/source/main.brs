@@ -12,7 +12,11 @@ sub RunUserInterface()
     m.scene = screen.CreateScene("TestScreen")
     screen.show()
 
-    m.scene.testResults = runTests()
+    try
+        m.scene.testResults = runTests()
+    catch e
+        m.scene.crash = e
+    end try
 
     while(true)
         msg = wait(0, m.port)
