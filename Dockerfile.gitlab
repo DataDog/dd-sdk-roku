@@ -56,9 +56,9 @@ RUN node --version
 RUN npm --version
 
 # Install NPM global dependencies
-RUN npm install -g brs
 RUN npm install -g brighterscript
 RUN npm install -g ropm
+RUN npm install -g @rokucommunity/bslint
 
 ####################################################################################################
 # MISC

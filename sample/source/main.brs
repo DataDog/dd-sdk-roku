@@ -6,16 +6,17 @@ sub RunUserInterface()
 
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
-
-    scene = screen.CreateScene("MainScreen")
+    screen.CreateScene("MainScreen")
     screen.show()
 
     while(true)
         msg = wait(0, m.port)
         msgType = type(msg)
 
-        if msgType = "roSGScreenEvent"
-            if msg.isScreenClosed() then return
+        if (msgType = "roSGScreenEvent")
+            if (msg.isScreenClosed())
+                return
+            end if
         end if
     end while
 

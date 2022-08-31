@@ -9,27 +9,27 @@ To propose improvements, feel free to submit a PR or open an Issue.
 
 To setup your enviroment, first make sure you followed the official [Roku Developer environment setup](https://developer.roku.com/en-gb/docs/developer-program/getting-started/developer-setup.md).
 
-You also need to have the [BRS](https://npmjs.org/package/brs) and [BrighterScript](https://npmjs.org/package/brighterscript) `npm` packages installed: 
+You also need to have the [BrighterScript](https://npmjs.org/package/brighterscript), [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) and [ROPM](https://www.npmjs.com/package/ropm) `npm` packages installed: 
 
 ```shell script
-npm install -g brs
 npm install -g brighterscript
 npm install -g ropm
+npm install -g @rokucommunity/bslint
 ```
 
 ### Running the static analysis
 
-The whole project is covered by a set of static analysis tools, which can be launched via `npm`.
+The whole project is covered by a set of static analysis tools, which can be launched via a shell script.
 
 ```shell script
-npm run lint
+./tools/lint/lint.sh sample test library
 ```
 
 ### Running the tests
 
 The whole project is covered by a set of tests using Roku's official [Unit Testing Framework](https://github.com/rokudev/unit-testing-framework), which can be launched via `npm`.
 
-**Note** that to run the test you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
+**Note** in order to run the test app, you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
 
 ```shell script
 npm test
@@ -45,18 +45,10 @@ function getDatadogClientToken() as string
     return "pub0123456789abcdef0123456789abcdef"
 end function
 ```
-
-You can then package the app with the following `npm` command.
-
-```shell script
-npm run make-sample
-```
-
-Once the app is prepared, you can upload the `sample/dist/apps/DatadogSampleApp.zip` file to your Roku device, using the Development Application Installer. Alternatively, you can set the `ROKU_DEV_TARGET` environment variable to your device's IP address, the `ROKU_DEV_PASSWORD` environment variable to your device's dev password, and run one of the following `npm` command:
+**Note** in order to run the sample app, you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
 
 ```shell script
-npm run install-sample
-npm run run-sample
+npm run sample
 ```
 
 ## Submitting Issues
