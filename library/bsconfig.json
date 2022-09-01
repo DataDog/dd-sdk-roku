@@ -1,0 +1,13 @@
+{
+    "comment": "BrighterScript config for Datadog Roku Library",
+    "rootDir": ".",
+    "files": [
+        "source/**/*.*",
+        "components/*.*"
+    ],
+    "plugins": [
+        "@rokucommunity/bslint"
+    ],
+    "createPackage": false,
+    "diagnosticFilters": []
+}

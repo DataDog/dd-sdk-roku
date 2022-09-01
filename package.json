@@ -25,12 +25,9 @@
   ],
   "scripts": {
     "test": "cd test && ropm install && rm -r node_modules && make run",
-    "lint": "bslint",
     "sample": "cd sample && ropm install && rm -r node_modules && make run"
   },
-  "devDependencies": {
-    "@rokucommunity/bslint": "^0.7.3"
-  },
+  "devDependencies": {},
   "ropm": {
     "packageRootDir": "library"
   }
