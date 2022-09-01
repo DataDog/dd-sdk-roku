@@ -96,7 +96,7 @@ function getStubReturnValue(functionName as string, params as object) as dynamic
         if (stub.functionName = functionName)
             isMatch = true
             for each param in params
-                if (stub.params[param] <> params[param])
+                if (not checkParamMatch(stub.params[param], params[param]))
                     isMatch = false
                 end if
             end for

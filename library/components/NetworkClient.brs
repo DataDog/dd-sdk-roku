@@ -20,9 +20,11 @@ end sub
 ' @param url (string) the URL to be used for the transfer request
 ' @param filePath (string) the file's path
 ' @param headers (object) an AssocArray with the headers to use
+' @param payloadPrefix (string) a prefix to append before the payload
+' @param payloadPostfix (string) a postfix to append after the payload
 ' @return (integer) the HTTP response code (any response body is
 '     discarded)
 ' ----------------------------------------------------------------
-function postFromFile(url as string, filePath as string, headers as object) as integer
+function postFromFile(url as string, filePath as string, headers as object, payloadPrefix as string, payloadPostfix as string) as integer
     return -1
 end function

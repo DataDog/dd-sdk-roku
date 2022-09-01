@@ -13,13 +13,15 @@ do
     if [ -f "package.json" ]; then
         echo " - Install ROPM dependencies"
         ropm install
-        echo " - Cleanup node junk"
-        rm -r node_modules
     fi
 
     echo " - Run BrighterScript compiler/linter"
     bsc --lintConfig ../tools/lint/bslint.json
     result=$?
+
+
+    echo " - Cleanup node junk"
+    rm -r node_modules
 
     # back to root folder
     cd $cwd 

@@ -19,6 +19,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="networkClient" type="node" />
         <field id="waitPeriodMs" type="integer" value="5000" />
         <field id="mediaType" type="string" value="application/json" />
+        <field id="payloadPrefix" type="string" value="" />
+        <field id="payloadPostfix" type="string" value="" />
     </interface>
 
 </component>
