@@ -7,6 +7,16 @@
 '*****************************************************************
 
 ' ----------------------------------------------------------------
+' Computes the path where data should be stored for the given track type
+' @param trackType (string) the type of events
+' @param version (integer) the data event version
+' @return (string) true if the directory was created or already exists
+' ----------------------------------------------------------------
+function trackFolderPath(trackType as string, version = 1 as integer) as string
+    return "cachefs:/datadog/v" + version.toStr() + "/" + trackType
+end function
+
+' ----------------------------------------------------------------
 ' Create a directory (and all intermediate directories), similar
 ' to the `mkdir -p` command in linux
 ' @param path (string) the path to a folder
@@ -47,4 +57,19 @@ function mkdirs(path as string) as boolean
     end if
 
     return true
+end function
+
+' ----------------------------------------------------------------
+' Appends the given text string to a file. If the file doesn't exist
+'     then it is created.
+' @param filepath (string) the path to the file to be appended
+' @param text (string) the text to append
+' @return (string) whether the file was successfully appended
+' ----------------------------------------------------------------
+
+function AppendAsciiFile(filepath as string, text as string) as boolean
+    logInfo("Appending bytes to " + filepath)
+    byteArray = CreateObject("roByteArray")
+    byteArray.FromAsciiString(text)
+    return byteArray.AppendFile(filepath)
 end function

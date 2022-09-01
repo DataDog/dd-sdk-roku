@@ -39,7 +39,8 @@ function runTests() as object
 
     Runner.SetFunctions([
         TestSuite__FileUtils,
-        TestSuite__UploaderTask
+        TestSuite__UploaderTask,
+        TestSuite__WriterTask
     ])
 
     ' setup logger

@@ -56,12 +56,11 @@ function errorToString(error as object) as string
     for i = (frameCount - 1) to 0 step -1
         frame = error.backtrace[i]
         msg = msg + chr(10) + "#" + i.toStr() + "  Function " + frame.function
-        msg = msg + chr(10) + "   file/line: " + lastFrame.filename + "(" + lastFrame.line_number.toStr() + ")"
+        msg = msg + chr(10) + "   file/line: " + frame.filename + "(" + frame.line_number.toStr() + ")"
     end for
 
     return msg
 end function
-
 
 ' ----------------------------------------------------------------
 ' Converts an integer to hexadecimal string (without prefix)
@@ -82,3 +81,13 @@ function decToHex(number as integer) as string
         return hex
     end if
 end function
+
+' ----------------------------------------------------------------
+' Prints information about the current thread
+' @param operationName (string) the current operation (default is "")
+' ----------------------------------------------------------------
+sub logThread(operationName = "" as string)
+    node = CreateObject("roSGNode", "Node")
+    threadInfo = node.threadInfo()
+    logVerbose(operationName + " on thread " + threadInfo.currentThread.name + " (" + threadInfo.currentThread.type + ":" + threadInfo.currentThread.id + ")")
+end sub

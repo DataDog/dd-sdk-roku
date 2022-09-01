@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="WriterTask" extends="Task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+    <script type="text/brightscript" uri="pkg:/components/WriterTask.brs" />
+    <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
+    <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
+    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
+    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
+
+    <interface>
+        <field id="trackType" type="string" />
+        <field id="payloadSeparator" type="string" value="" />
+        <field id="maxBatchSize" type="integer" value="16384" /> <!-- 16Kb -->
+
+        <field id="writeEvent" type="string" />
+    </interface>
+
+</component>

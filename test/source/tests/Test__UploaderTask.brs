@@ -52,15 +52,14 @@ sub UploaderTaskTest__SetUp()
     m.testSuite.testedTask.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedTask.waitPeriodMs = m.testSuite.fakeWaitPeriodMs
     m.testSuite.testedTask.networkClient = m.testSuite.mockNetworkClient
-    sleep(10)
-    m.testSuite.testedTask.control = "RUN"
+    ' sleep(10)
 end sub
 
 
 sub UploaderTaskTest__TearDown()
     m.testSuite.testedTask.control = "STOP"
-    m.Delete("mockNetworkClient")
-    m.Delete("testedTask")
+    m.testSuite.Delete("mockNetworkClient")
+    m.testSuite.Delete("testedTask")
 end sub
 
 '----------------------------------------------------------------
