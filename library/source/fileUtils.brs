@@ -66,7 +66,6 @@ end function
 ' @param text (string) the text to append
 ' @return (string) whether the file was successfully appended
 ' ----------------------------------------------------------------
-
 function AppendAsciiFile(filepath as string, text as string) as boolean
     logInfo("Appending bytes to " + filepath)
     byteArray = CreateObject("roByteArray")
