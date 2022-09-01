@@ -19,6 +19,7 @@ end sub
 '     provided URL.
 ' @param url (string) the URL to be used for the transfer request
 ' @param filePath (string) the file's path
+' @param headers (object) an AssocArray with the headers to use
 ' @return (integer) the HTTP response code (any response body is
 '     discarded)
 ' ----------------------------------------------------------------

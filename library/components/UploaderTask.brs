@@ -59,7 +59,7 @@ sub uploadAvailableFiles()
 end sub
 
 ' ----------------------------------------------------------------
-' Verify is file is uploadable
+' Verify if the given file is uploadable
 ' @param path (string) the path of the file to upload
 ' @return (boolean) if the file is valid for upload
 ' ----------------------------------------------------------------

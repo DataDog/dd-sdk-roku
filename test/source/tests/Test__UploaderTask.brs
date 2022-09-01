@@ -4,7 +4,7 @@
 
 '*****************************************************************
 ' * UploaderTask: a background loop checking for files available for upload;
-' * When a file is ready, it s uploaded, and upon success deleted from disk.
+' * When a file is ready, it is uploaded, and upon success deleted from disk.
 '----------------------------------------------------------------
 
 '*****************************************************************
