@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -38,6 +39,7 @@
 '     BTS__AssertArrayNotCount
 '     BTS__AssertEmpty
 '     BTS__AssertNotEmpty
+'     BTS__MultipleAssertions
 
 ' ----------------------------------------------------------------
 ' Main function. Create BaseTestSuite object.
@@ -76,6 +78,7 @@ function BaseTestSuite()
     this.assertArrayNotCount = BTS__AssertArrayNotCount
     this.assertEmpty = BTS__AssertEmpty
     this.assertNotEmpty = BTS__AssertNotEmpty
+    this.multipleAssertions = BTS__MultipleAssertions
 
     ' Type Comparison Functionality
     this.eqValues = TF_Utils__EqValues
@@ -120,6 +123,7 @@ function BTS__CreateTest(name as string, func as object, setup = invalid as obje
         Func: func
         SetUp: setup
         TearDown: teardown
+        TestSuite: m
 
         perfData: {}
 
@@ -688,4 +692,38 @@ function BTS__AssertNotEmpty(item as dynamic, msg = "" as string) as string
     end if
 
     return ""
+end function
+
+' ----------------------------------------------------------------
+' Fail if the array contains at least one non empty string.
+
+' @param item (objec) An array of strings to check.
+
+' @return An error message.
+' ----------------------------------------------------------------
+function BTS__MultipleAssertions(assertions as object) as string
+    failedAssertions = 0
+    combinedMsg = ""
+    for each assertion in assertions
+        if (not TF_Utils__IsString(assertion))
+            return "Expected assertions to be strings but found type " + type(assertion) + chr(10) + FormatJson(assertions)
+        end if
+
+        if (assertion <> "")
+            failedAssertions++
+            if (failedAssertions > 1)
+                combinedMsg = combinedMsg + "; " + assertion
+            else
+                combinedMsg = assertion
+            end if
+        end if
+    end for
+
+    if (failedAssertions = 0)
+        return ""
+    else if (failedAssertions = 1)
+        return combinedMsg
+    else
+        return failedAssertions.toStr() + " failed assertions: " + combinedMsg
+    end if
 end function

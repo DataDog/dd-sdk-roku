@@ -12,7 +12,11 @@ sub RunUserInterface()
     m.scene = screen.CreateScene("TestScreen")
     screen.show()
 
-    m.scene.testResults = runTests()
+    try
+        m.scene.testResults = runTests()
+    catch e
+        m.scene.crash = e
+    end try
 
     while(true)
         msg = wait(0, m.port)
@@ -34,12 +38,13 @@ function runTests() as object
     Runner = TestRunner()
 
     Runner.SetFunctions([
-        TestSuite__Sample
+        TestSuite__FileUtils,
+        TestSuite__UploaderTask
     ])
 
     ' setup logger
-    Runner.Logger.SetVerbosity(1) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
-    Runner.Logger.SetEcho(false)
+    Runner.Logger.SetVerbosity(3) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
+    Runner.Logger.SetEcho(true)
     Runner.Logger.SetJUnit(false)
 
     ' run all tests to get one single report

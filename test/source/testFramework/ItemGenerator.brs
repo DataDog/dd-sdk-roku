@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -22,6 +23,7 @@
 '     IG_GetSimpleType
 '     IG_GetBoolean
 '     IG_GetInteger
+'     IG_GetIntegerInRange
 '     IG_GetFloat
 '     IG_GetString
 
@@ -46,6 +48,7 @@ function ItemGenerator(scheme as object) as object
     this.getArray = IG_GetArray
     this.getSimpleType = IG_GetSimpleType
     this.getInteger = IG_GetInteger
+    this.getIntegerInRange = IG_GetIntegerInRange
     this.getFloat = IG_GetFloat
     this.getString = IG_GetString
     this.getBoolean = IG_GetBoolean
@@ -168,6 +171,19 @@ function IG_GetInteger(seed = 100 as integer) as integer
     return Rnd(seed)
 end function
 
+
+' ----------------------------------------------------------------
+' Generates random integer value in the given range.
+
+' @param min (integer) the lower boundary (inclusive) of the range
+' @param max (integer) the upper boundary (inclusive) of the range
+
+' @return A random integer value.
+' ----------------------------------------------------------------
+function IG_GetIntegerInRange(min = 0 as integer, max = 100 as integer) as integer
+    return Rnd(max - min + 1) + min - 1
+end function
+
 ' ----------------------------------------------------------------
 ' Generates random float value.
 
@@ -206,3 +222,16 @@ function IG_GetString(seed as integer) as string
 
     return item
 end function
+
+' ----------------------------------------------------------------
+' Generates random element from array.
+
+' @param data (array) An array of possible values.
+
+' @return A random value from the array.
+' ----------------------------------------------------------------
+function IG_GetOneOf(data as object) as dynamic
+    index = Rnd(data.count()) - 1
+    return data[index]
+end function
+

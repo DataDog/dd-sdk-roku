@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -234,7 +235,8 @@ function Logger__CreateTotalStatistic() as object
         Correct: 0
         Fail: 0
         Skipped: 0
-        Crash: 0
+        Crash: 0,
+        OutputLog: []
     }
 
     if m.echoEnabled
@@ -261,6 +263,7 @@ function Logger__CreateSuiteStatistic(name as string) as object
         Fail: 0
         Skipped: 0
         Crash: 0
+        OutputLog: []
     }
 
     if m.echoEnabled
@@ -334,14 +337,25 @@ sub Logger__AppendTestStatistic(statSuiteObj as object, statTestObj as object)
 
         statSuiteObj.Total = statSuiteObj.Total + 1
 
-        if LCase(statTestObj.Result) = "success"
-            statSuiteObj.Correct = statSuiteObj.Correct + 1
+        testStatusSymbol = "?"
+        if LCase(statTestObj.result) = "success"
+            testStatusSymbol = "✓"
+            statSuiteObj.Correct++
         else if LCase(statTestObj.result) = "fail"
-            statSuiteObj.Fail = statSuiteObj.Fail + 1
+            testStatusSymbol = "×"
+            statSuiteObj.Fail++
         else if LCase(statTestObj.result) = "skipped"
+            testStatusSymbol = "-"
             statSuiteObj.skipped++
-        else
-            statSuiteObj.crash = statSuiteObj.crash + 1
+        else if LCase(statTestObj.result) = "crashed"
+            testStatusSymbol = "☠"
+            statSuiteObj.crash++
+        end if
+
+        if (statTestObj.Error.Message <> "")
+            statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statTestObj.name])
+            statSuiteObj.OutputLog.Append([statTestObj.Error.Message])
+            statSuiteObj.OutputLog.Append([string(16, "- ")])
         end if
 
         if m.echoEnabled
@@ -383,6 +397,10 @@ sub Logger__AppendSuiteStatistic(statTotalObj as object, statSuiteObj as object)
 
         if TF_Utils__IsInteger(statSuiteObj.Crash)
             statTotalObj.Crash = statTotalObj.Crash + statSuiteObj.Crash
+        end if
+
+        if (TF_Utils__IsArray(statSuiteObj.OutputLog))
+            statTotalObj.OutputLog.Append(statSuiteObj.OutputLog)
         end if
 
         if m.echoEnabled

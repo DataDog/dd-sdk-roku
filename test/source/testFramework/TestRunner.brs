@@ -10,6 +10,7 @@
 '*
 '*****************************************************************
 '*****************************************************************
+'* Licensed under the Apache License Version 2.0
 '* Copyright Roku 2011-2019
 '* All Rights Reserved
 '*****************************************************************
@@ -43,6 +44,7 @@ function TestRunner() as object
 
     ' Internal properties
     this.SKIP_TEST_MESSAGE_PREFIX = "SKIP_TEST_MESSAGE_PREFIX__"
+    this.CRASH_TEST_MESSAGE_PREFIX = "CRASH_TEST_MESSAGE_PREFIX__"
     this.nodesTestDirectory = "pkg:/components/tests"
     if this.isNodeMode
         this.testsDirectory = this.nodesTestDirectory
@@ -155,7 +157,14 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                             UTF_fail("Failed to execute test """ + testCase.Name + """ function pointer not found")
                         end if
                     else
-                        runResult = testSuite.testCase()
+                        try
+                            runResult = testSuite.testCase()
+                        catch e
+                            runResult = m.CRASH_TEST_MESSAGE_PREFIX + datadogroku_errorToString(e)
+                            print "✘ ✘ ✘ ✘ ✘ ✘"
+                            print datadogroku_errorToString(e)
+                            print "✘ ✘ ✘ ✘ ✘ ✘"
+                        end try
                     end if
                 end if
 
@@ -182,9 +191,15 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                         testStatObj.result = "Skipped"
                         testStatObj.message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
                     else
-                        testStatObj.Result = "Fail"
-                        testStatObj.Error.Code = 1
-                        testStatObj.Error.Message = runResult
+                        if InStr(0, runResult, m.CRASH_TEST_MESSAGE_PREFIX) = 1
+                            testStatObj.result = "Crashed"
+                            testStatObj.Error.Code = 2
+                            testStatObj.Error.Message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
+                        else
+                            testStatObj.Result = "Fail"
+                            testStatObj.Error.Code = 1
+                            testStatObj.Error.Message = runResult
+                        end if
                     end if
                 else
                     testStatObj.Result = "Success"
@@ -193,7 +208,7 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                 testStatObj.Time = testTimer.TotalMilliseconds()
                 m.Logger.AppendTestStatistic(suiteStatObj, testStatObj)
 
-                if testStatObj.Result = "Fail" and m.failFast
+                if (testStatObj.Result = "Fail" or testStatObj.Result = "Crashed") and m.failFast
                     suiteStatObj.Result = "Fail"
                     exit for
                 end if
@@ -207,99 +222,101 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
             testSuite.TearDown()
         end if
 
-        if suiteStatObj.Result = "Fail" and m.failFast
+        if (suiteStatObj.Result = "Fail" or suiteStatObj.Result = "Crashed") and m.failFast
             exit for
         end if
     end for
 
-    gthis = GetGlobalAA()
-    msg = ""
-    if gthis.notFoundFunctionPointerList <> invalid then
-        msg = Chr(10) + string(40, "---") + Chr(10)
-        if m.isNodeMode
-            fileNamesString = ""
+    #if false
+        gthis = GetGlobalAA()
+        msg = ""
+        if gthis.notFoundFunctionPointerList <> invalid then
+            msg = Chr(10) + string(40, "---") + Chr(10)
+            if m.isNodeMode
+                fileNamesString = ""
 
-            for each testSuiteObject in testSuiteNamesList
-                if GetInterface(testSuiteObject, "ifString") <> invalid then
-                    fileNamesString += testSuiteObject + ".brs, "
-                else if GetInterface(testSuiteObject, "ifAssociativeArray") <> invalid then
-                    if testSuiteObject.filePath <> invalid then
-                        fileNamesString += testSuiteObject.filePath + ", "
+                for each testSuiteObject in testSuiteNamesList
+                    if GetInterface(testSuiteObject, "ifString") <> invalid then
+                        fileNamesString += testSuiteObject + ".brs, "
+                    else if GetInterface(testSuiteObject, "ifAssociativeArray") <> invalid then
+                        if testSuiteObject.filePath <> invalid then
+                            fileNamesString += testSuiteObject.filePath + ", "
+                        end if
+                    end if
+                end for
+
+                msg += Chr(10) + "Create this function below in one of these files"
+                msg += Chr(10) + fileNamesString + Chr(10)
+
+                msg += Chr(10) + "sub init()"
+            end if
+            msg += Chr(10) + "Runner.SetFunctions([" + Chr(10) + "    testCase" + Chr(10) + "])"
+            msg += Chr(10) + "For example we think this might resolve your issue"
+            msg += Chr(10) + "Runner = TestRunner()"
+            msg += Chr(10) + "Runner.SetFunctions(["
+
+            tmpMap = {}
+            for each functionName in gthis.notFoundFunctionPointerList
+                if tmpMap[functionName] = invalid then
+                    tmpMap[functionName] = ""
+                    msg += Chr(10) + "    " + functionName
+                end if
+            end for
+
+            msg += Chr(10) + "])"
+            if m.isNodeMode then
+                msg += Chr(10) + "end sub"
+            else
+                msg += Chr(10) + "Runner.Run()"
+            end if
+        end if
+
+        if m.isNodeMode
+            if msg.Len() > 0 then
+                if totalStatObj.notFoundFunctionsMessage = invalid then totalStatObj.notFoundFunctionsMessage = ""
+                totalStatObj.notFoundFunctionsMessage += msg
+            end if
+            return totalStatObj
+        else
+            testNodes = m.getTestNodesList()
+            for each testNodeName in testNodes
+                testNode = CreateObject("roSGNode", testNodeName)
+                if testNode <> invalid
+                    testSuiteNamesList = m.GetTestSuiteNamesList(testNodeName)
+                    if CreateObject("roSGScreen").CreateScene(testNodeName) <> invalid
+                        ? "WARNING: Test cases cannot be run in main scene."
+                        for each testSuiteName in testSuiteNamesList
+                            suiteStatObj = m.Logger.CreateSuiteStatistic(testSuiteName)
+                            suiteStatObj.fail = 1
+                            suiteStatObj.total = 1
+                            m.Logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
+                        end for
+                    else
+                        params = [m, totalStatObj, testSuiteNamesList, m.GetIncludeFilter(), m.GetExcludeFilter()]
+                        tmp = testNode.callFunc("TestRunner__RunNodeTests", params)
+                        if tmp <> invalid then
+                            totalStatObj = tmp
+                        end if
                     end if
                 end if
             end for
 
-            msg += Chr(10) + "Create this function below in one of these files"
-            msg += Chr(10) + fileNamesString + Chr(10)
-
-            msg += Chr(10) + "sub init()"
+            m.Logger.PrintStatistic(totalStatObj)
         end if
-        msg += Chr(10) + "Runner.SetFunctions([" + Chr(10) + "    testCase" + Chr(10) + "])"
-        msg += Chr(10) + "For example we think this might resolve your issue"
-        msg += Chr(10) + "Runner = TestRunner()"
-        msg += Chr(10) + "Runner.SetFunctions(["
 
-        tmpMap = {}
-        for each functionName in gthis.notFoundFunctionPointerList
-            if tmpMap[functionName] = invalid then
-                tmpMap[functionName] = ""
-                msg += Chr(10) + "    " + functionName
+        if msg.Len() > 0 or totalStatObj.notFoundFunctionsMessage <> invalid then
+            title = ""
+            title += Chr(10) + "NOTE: If some your tests haven't been executed this might be due to outdated list of functions"
+            title += Chr(10) + "To resolve this issue please execute" + Chr(10) + Chr(10)
+
+            title += msg
+
+            if totalStatObj.notFoundFunctionsMessage <> invalid then
+                title += totalStatObj.notFoundFunctionsMessage
             end if
-        end for
-
-        msg += Chr(10) + "])"
-        if m.isNodeMode then
-            msg += Chr(10) + "end sub"
-        else
-            msg += Chr(10) + "Runner.Run()"
+            ? title
         end if
-    end if
-
-    if m.isNodeMode
-        if msg.Len() > 0 then
-            if totalStatObj.notFoundFunctionsMessage = invalid then totalStatObj.notFoundFunctionsMessage = ""
-            totalStatObj.notFoundFunctionsMessage += msg
-        end if
-        return totalStatObj
-    else
-        testNodes = m.getTestNodesList()
-        for each testNodeName in testNodes
-            testNode = CreateObject("roSGNode", testNodeName)
-            if testNode <> invalid
-                testSuiteNamesList = m.GetTestSuiteNamesList(testNodeName)
-                if CreateObject("roSGScreen").CreateScene(testNodeName) <> invalid
-                    ? "WARNING: Test cases cannot be run in main scene."
-                    for each testSuiteName in testSuiteNamesList
-                        suiteStatObj = m.Logger.CreateSuiteStatistic(testSuiteName)
-                        suiteStatObj.fail = 1
-                        suiteStatObj.total = 1
-                        m.Logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
-                    end for
-                else
-                    params = [m, totalStatObj, testSuiteNamesList, m.GetIncludeFilter(), m.GetExcludeFilter()]
-                    tmp = testNode.callFunc("TestRunner__RunNodeTests", params)
-                    if tmp <> invalid then
-                        totalStatObj = tmp
-                    end if
-                end if
-            end if
-        end for
-
-        m.Logger.PrintStatistic(totalStatObj)
-    end if
-
-    if msg.Len() > 0 or totalStatObj.notFoundFunctionsMessage <> invalid then
-        title = ""
-        title += Chr(10) + "NOTE: If some your tests haven't been executed this might be due to outdated list of functions"
-        title += Chr(10) + "To resolve this issue please execute" + Chr(10) + Chr(10)
-
-        title += msg
-
-        if totalStatObj.notFoundFunctionsMessage <> invalid then
-            title += totalStatObj.notFoundFunctionsMessage
-        end if
-        ? title
-    end if
+    #end if
 end function
 
 ' ----------------------------------------------------------------

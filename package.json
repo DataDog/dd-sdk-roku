@@ -20,22 +20,18 @@
   },
   "license": "Apache-2.0",
   "files": [
-    "src/source/**/*",
-    "src/components/**/*"
+    "library/source/**/*",
+    "library/components/**/*"
   ],
   "scripts": {
     "test": "cd test && ropm install && rm -r node_modules && make run",
     "lint": "bslint",
-    "make-sample": "cd sample && ropm install && rm -r node_modules && make",
-    "install-sample": "cd sample && ropm install && rm -r node_modules && make install",
-    "run-sample": "cd sample && ropm install && rm -r node_modules && make run"
+    "sample": "cd sample && ropm install && rm -r node_modules && make run"
   },
   "devDependencies": {
-    "@hulu/roca": "^0.25.0",
-    "@rokucommunity/bslint": "^0.7.3",
-    "brs": "^0.43.0"
+    "@rokucommunity/bslint": "^0.7.3"
   },
   "ropm": {
-    "packageRootDir": "src"
+    "packageRootDir": "library"
   }
 }

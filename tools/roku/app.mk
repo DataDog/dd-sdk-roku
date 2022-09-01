@@ -116,8 +116,8 @@ DEV_SERVER_TMP_FILE := /tmp/dev_server_out
 # plugin_install operations on modern versions of firmware.
 # It may be pre-specified in the DEVPASSWORD environment variable on entry,
 # otherwise the make will stop and prompt the user to enter it when needed.
-ifdef DEVPASSWORD
-	USERPASS := rokudev:$(DEVPASSWORD)
+ifdef ROKU_DEV_PASSWORD
+	USERPASS := rokudev:$(ROKU_DEV_PASSWORD)
 else
 	USERPASS := rokudev
 endif

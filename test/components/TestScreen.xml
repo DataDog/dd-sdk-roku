@@ -5,21 +5,39 @@ This product includes software developed at Datadog (https://www.datadoghq.com/)
 Copyright 2022-Today Datadog, Inc.
 -->
 <component name="TestScreen" extends="Scene">
+
     <interface>
         <field id="testResults" type="assocarray" />
+        <field id="message" type="string" />
+        <field id="crash" type="assocarray" />
     </interface>
+
     <children>
-        <Label id="titleLabel" text="Datadog Test Application" translation="[50,200]" font="font:MediumBoldSystemFont" color="0xFFFFFFFF">
-            <Font size="64" />
+        <Label id="titleLabel" text="Datadog Test Application" translation="[32,64]" color="0xFFFFFFFF">
+            <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
         </Label>
 
-        <Label id="outputAbstract" text="…" translation="[100,300]" font="font:MediumSystemFont" color="0xFFFFFFFF" />
-        <Label id="outputCorrect" text="" translation="[200,350]" font="font:MediumSystemFont" color="0x40FF40FF" />
-        <Label id="outputSkipped" text="" translation="[200,400]" font="font:MediumSystemFont" color="0x808080FF" />
-        <Label id="outputFail" text="" translation="[200,450]" font="font:MediumSystemFont" color="0xFFA840FF" />
-        <Label id="outputCrash" text="" translation="[200,500]" font="font:MediumSystemFont" color="0xFF4040FF" />
+        <Label id="outputAbstract" text="Running tests…" translation="[64,256]" color="0x1c2b34fa">
+            <Font role="font" size="32" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="outputCorrect" text="" translation="[128,320]" color="0x97dda2">
+            <Font role="font" size="32" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="outputSkipped" text="" translation="[128,384]" color="0x9aaaba">
+            <Font role="font" size="32" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="outputFail" text="" translation="[128,448]" color="0xedb359">
+            <Font role="font" size="32" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="outputCrash" text="" translation="[128,512]" color="0xe3554c">
+            <Font role="font" size="32" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
 
+        <ScrollableText id="outputMessage" text="" translation="[640,256]" width="1024" height="512" color="0x1c2b34fa" wrap="true">
+            <Font role="font" size="24" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </ScrollableText>
     </children>
 
     <script type="text/brightscript" uri="pkg:/components/TestScreen.brs" />
+    <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/internalLogger.brs" />
 </component>

@@ -1,13 +1,21 @@
 {
-    "rootDir": "src",
+    "rootDir": ".",
     "files": [
-        "manifest",
-        "source/**/*.*",
-        "components/**/*.*",
-        "images/**/*.*"
+        "library/**/*.*",
+        "test/source/tests/*.*",
+        "test/source/main.brs",
+        "test/components/*.*"
     ],
     "plugins": [
         "@rokucommunity/bslint"
     ],
-    "createPackage": false
+    "createPackage": false,
+    "diagnosticFilters": [
+        {
+            "src": "**/*.*",
+            "codes": [
+                1013
+            ]
+        }
+    ]
 }
