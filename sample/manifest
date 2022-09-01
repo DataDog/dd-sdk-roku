@@ -46,11 +46,14 @@ ui_resolutions=sd,hd,fhd
 # run_as_process=1 # enables debug feature
 bs_prof_enabled=true
 
+# Brightscript compiler flags
+# bs_const=my_flag=true
+
 # Optional misc
 # hidden=1
 # playonly_aware=1 # if the remote as independent play and pause button, this will change the input event when play is pressed
 # pause_aware=1 # disable the default play/pause toggle on remote, and sends an independant pause event
-# rsg_version=1.2
+# rsg_version=1.2   
 # automatic_audio_guide_disabled=1
 # suppress_unconnected_hud=0
 # dial_title=2Dvideo
