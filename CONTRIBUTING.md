@@ -37,23 +37,8 @@ npm test
 
 ### Running the sample app
 
-A sample app is available to showcase the basic features of the SDK. Before using the sample application, you **must** create a `sample/source/credentials.brs` file with the following lines: 
+A sample app is available to showcase the basic features of the SDK. Before using the sample application, you **must** create a `sample/credentials.json` file matching the `sample/credentials.json.template`. 
 
-```brightscript
-' ----------------------------------------------------------------
-' @return (string) a valid Datadog RUM Client Token
-' ----------------------------------------------------------------
-function getDatadogClientToken() as string
-    return "pub00000000000000000000000000000000"
-end function
-
-' ----------------------------------------------------------------
-' @return (string) a valid Datadog RUM Application ID
-' ----------------------------------------------------------------
-function getDatadogApplicationId() as string
-    return "00000000-0000-0000-0000-000000000000"
-end function
-```
 **Note** in order to run the sample app, you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
 
 ```shell script

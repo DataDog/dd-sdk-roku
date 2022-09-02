@@ -21,7 +21,6 @@ Copyright 2022-Today Datadog, Inc.
 
     <script type="text/brightscript" uri="pkg:/components/MainScreen.brs" />
 
-    <script type="text/brightscript" uri="pkg:/source/credentials.brs" />
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/datadogSdk.brs" />
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/timeUtils.brs" />
 

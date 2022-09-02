@@ -16,7 +16,7 @@ sub init()
     m.uploader = CreateObject("roSGNode", "datadogroku_UploaderTask")
     m.uploader.endpointHost = "rum.browser-intake-datadoghq.com"
     m.uploader.trackType = "rum"
-    m.uploader.clientToken = getDatadogClientToken()
+    m.uploader.clientToken = m.global.credentials.datadogClientToken
     m.uploader.control = "run"
 
     m.writer = CreateObject("roSGNode", "datadogroku_WriterTask")
@@ -46,7 +46,7 @@ sub writeViewEvent()
         date: timestamp&,
         type: "view",
         application: {
-            id: getDatadogApplicationId()
+            id: m.global.credentials.datadogApplicationId
         },
         service: "roku-channel-" + appInfo.GetID(),
         session: {

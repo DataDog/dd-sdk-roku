@@ -1,1 +1,2 @@
-source/credentials.brs
+# Secrets
+credentials.json

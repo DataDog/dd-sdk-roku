@@ -6,10 +6,16 @@
 ' Main entry point for the sample app
 ' ----------------------------------------------------------------
 sub RunUserInterface()
-
     datadogroku_logThread("RunUserInterface")
 
     screen = CreateObject("roSGScreen")
+
+    credentials = parseJson(readAsciiFile("pkg:/credentials.json"))
+    m.global = screen.getGlobalNode()
+    m.global.addFields({
+        credentials: credentials
+    })
+
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
     screen.CreateScene("MainScreen")
