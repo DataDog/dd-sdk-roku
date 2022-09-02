@@ -11,12 +11,8 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    ' Uploader's dependencies
-    m.fileSystem = CreateObject("roFileSystem")
-    m.deviceInfo = CreateObject("roDeviceInfo")
-
-    ' start the uploader's loop
     m.top.functionName = "uploaderLoop"
+    m.top.control = "run"
 end sub
 
 ' ----------------------------------------------------------------
@@ -24,6 +20,11 @@ end sub
 ' ----------------------------------------------------------------
 sub uploaderLoop()
     logVerbose("Starting Uploader loop")
+
+    ' Uploader's dependencies
+    m.fileSystem = CreateObject("roFileSystem")
+    m.deviceInfo = CreateObject("roDeviceInfo")
+
     while (true)
         logVerbose("Uploader loop sync")
         uploadAvailableFiles()
