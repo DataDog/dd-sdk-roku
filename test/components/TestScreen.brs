@@ -44,16 +44,23 @@ sub onTestResults()
         m.outputMessage.color = "0xe3554c"
     else if (testResults.fail > 0)
         m.outputMessage.color = "0xedb359"
-    else if (testResults.skipped > 0)
-        m.outputMessage.color = "0x9aaaba"
     else
-        m.outputMessage.color = "0x1c2b34fa"
+        m.outputMessage.color = "0x9aaaba"
     end if
 
     output = ""
-    for each entry in testResults.outputLog
-        output = output + entry + chr(10)
-    end for
+    if (testResults.outputLog.count() > 0)
+        for each entry in testResults.outputLog
+            output = output + entry + chr(10)
+        end for
+    else
+        for each suite in testResults.Suites
+            output = output + "✓ " + suite.name + " (" + suite.tests.count().toStr() + "): " + suite.time.toStr() + "ms" + chr(10)
+            for each test in suite.tests
+                output = output + "    ✓ " + test.name + ": " + test.time.toStr() + "ms" + chr(10)
+            end for
+        end for
+    end if
     m.outputMessage.text = output
     m.outputMessage.setFocus(true)
 

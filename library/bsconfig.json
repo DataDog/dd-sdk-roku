@@ -3,7 +3,7 @@
     "rootDir": ".",
     "files": [
         "source/**/*.*",
-        "components/*.*"
+        "components/**/*.*"
     ],
     "plugins": [
         "@rokucommunity/bslint"
