@@ -11,14 +11,17 @@ Copyright 2022-Today Datadog, Inc.
 
         <ButtonGroup id="mainButtonGroup" translation="[50,300]">
             <Button id="writerBtn" text="Test Writer" showFocusFootprint="true" />
-            <Button id="uploaderBtn" text="Test Uploader" showFocusFootprint="true" />
-            <Button id="randomBtn" text="Foo" showFocusFootprint="true" />
-            <Button id="randomBtn" text="Bar" showFocusFootprint="true" />
+            <Button id="randomBtnFoo" text="Foo" showFocusFootprint="true" />
+            <Button id="randomBtnBar" text="Bar" showFocusFootprint="true" />
+            <Button id="randomBtnBaz" text="Baz" showFocusFootprint="true" />
         </ButtonGroup>
 
         <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />
     </children>
 
     <script type="text/brightscript" uri="pkg:/components/MainScreen.brs" />
+
+    <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/datadogSdk.brs" />
+    <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/timeUtils.brs" />
 
 </component>

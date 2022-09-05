@@ -16,9 +16,9 @@ end sub
 ' ----------------------------------------------------------------
 ' @see NetworkClient.brs
 ' ----------------------------------------------------------------
-function postFromFile(url as string, filePath as string, headers as object) as integer
-    recordFunctionCall("postFromFile", { url: url, filePath: filePath, headers: headers })
-    returnValue = getStubReturnValue("postFromFile", { url: url, filePath: filePath })
+function postFromFile(url as string, filePath as string, headers as object, payloadPrefix = "" as string, payloadPostfix = "" as string) as integer
+    recordFunctionCall("postFromFile", { url: url, filePath: filePath, headers: headers, payloadPrefix: payloadPrefix, payloadPostfix: payloadPostfix })
+    returnValue = getStubReturnValue("postFromFile", { url: url, filePath: filePath, headers: headers, payloadPrefix: payloadPrefix, payloadPostfix: payloadPostfix })
     if (returnValue <> invalid)
         return returnValue
     else

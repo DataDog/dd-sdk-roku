@@ -22,7 +22,7 @@ end sub
 sub writerLoop()
     m.fileSystem = CreateObject("roFileSystem")
 
-    while true
+    while (true)
         msg = wait(0, m.port)
         msgType = type(msg)
         if (msgType = "roSGNodeEvent")

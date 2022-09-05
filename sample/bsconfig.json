@@ -2,9 +2,8 @@
     "comment": "BrighterScript config for Sample App",
     "rootDir": ".",
     "files": [
-        "source/tests/*.*",
-        "source/main.brs",
-        "components/*.*"
+        "source/**/*.*",
+        "components/**/*.*"
     ],
     "plugins": [
         "@rokucommunity/bslint"

@@ -3,14 +3,14 @@
 ' Copyright 2022-Today Datadog, Inc.
 
 '*****************************************************************
-'* NetworkClient: a wrapper around Roku's.
+'* NetworkClient: a wrapper around Roku's URL Transfer implementation.
 '*****************************************************************
 
 ' ----------------------------------------------------------------
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    m.roUrlTransfer = CreateObject("roUrlTransfer")
+    m.urlTransfer = CreateObject("roUrlTransfer")
 end sub
 
 
@@ -20,9 +20,21 @@ end sub
 ' @param url (string) the URL to be used for the transfer request
 ' @param filePath (string) the file's path
 ' @param headers (object) an AssocArray with the headers to use
+' @param payloadPrefix (string) a prefix to append before the payload
+' @param payloadPostfix (string) a postfix to append after the payload
 ' @return (integer) the HTTP response code (any response body is
 '     discarded)
 ' ----------------------------------------------------------------
-function postFromFile(url as string, filePath as string, headers as object) as integer
-    return -1
+function postFromFile(url as string, filePath as string, headers as object, payloadPrefix as string, payloadPostfix as string) as integer
+    payload = payloadPrefix + ReadAsciiFile(filePath) + payloadPostfix
+
+    m.urlTransfer.SetUrl(url)
+    m.urlTransfer.SetRequest("POST")
+    m.urlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt") ' required for SSL
+
+    for each header in headers
+        m.urlTransfer.AddHeader(header, headers[header])
+    end for
+
+    return m.urlTransfer.PostFromString(payload)
 end function

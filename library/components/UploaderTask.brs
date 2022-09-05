@@ -37,24 +37,14 @@ end sub
 ' Looks for all uploadable files, and upload them one by one
 ' ----------------------------------------------------------------
 sub uploadAvailableFiles()
-    folderPath = "cachefs:/datadog/v1/" + m.top.trackType
-    logInfo("Checking uploadable files in " + folderPath)
-
-    folderExists = m.fileSystem.Exists(folderPath)
-    if (not folderExists)
-        logInfo("Folder for track " + m.top.trackType + " doesn't exist")
-        mkdirs(folderPath)
-    end if
+    folderPath = trackFolderPath(m.top.trackType)
 
     filenames = ListDir(folderPath)
-
     for each filename in filenames
         filePath = folderPath + "/" + filename
         if (isFileValidForUpload(filename))
             responseCode = uploadFile(filePath)
             handleResponse(responseCode, filePath)
-        else
-            logVerbose("Can't upload " + filename + " yet")
         end if
     end for
 end sub
@@ -89,7 +79,7 @@ function uploadFile(path as string) as integer
     headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
     headers["DD-REQUEST-ID"] = m.deviceInfo.GetRandomUUID()
 
-    result = m.networkClient.callFunc("postFromFile", url, path, headers)
+    result = m.networkClient.callFunc("postFromFile", url, path, headers, m.top.payloadPrefix, m.top.payloadPostfix)
     return result
 end function
 
