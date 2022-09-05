@@ -1,0 +1,22 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+
+'*****************************************************************
+'* MockWriterTask: a mock for the WriterTask component.
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Initialize the component
+' ----------------------------------------------------------------
+sub init()
+    m.top.observeField("writeEvent", "onWriteEvent")
+end sub
+
+' ----------------------------------------------------------------
+' @see WriterTask.brs
+' ----------------------------------------------------------------
+sub onWriteEvent()
+    recordFieldUpdate("writeEvent", m.top.writeEvent)
+end sub

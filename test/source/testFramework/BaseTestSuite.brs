@@ -40,6 +40,8 @@
 '     BTS__AssertEmpty
 '     BTS__AssertNotEmpty
 '     BTS__MultipleAssertions
+'     BTS__AssertBetween
+'     BTS__AssertGreaterThan
 
 ' ----------------------------------------------------------------
 ' Main function. Create BaseTestSuite object.
@@ -79,6 +81,8 @@ function BaseTestSuite()
     this.assertEmpty = BTS__AssertEmpty
     this.assertNotEmpty = BTS__AssertNotEmpty
     this.multipleAssertions = BTS__MultipleAssertions
+    this.assertBetween = BTS__AssertBetween
+    this.assertGreater = BTS__AssertGreaterThan
 
     ' Type Comparison Functionality
     this.eqValues = TF_Utils__EqValues
@@ -726,4 +730,54 @@ function BTS__MultipleAssertions(assertions as object) as string
     else
         return failedAssertions.toStr() + " failed assertions: " + combinedMsg
     end if
+end function
+
+' ----------------------------------------------------------------
+' Fail if the number is not between the given bounderaies
+
+' @param item (objec) An array of strings to check.
+
+' @return An error message.
+' ----------------------------------------------------------------
+function BTS__AssertBetween(number as dynamic, min as dynamic, max as dynamic, msg = "" as string) as string
+
+    if (not TF_Utils__IsNumber(number))
+        return "Expected number to be a number (integer, longinteger, float or double)"
+    else if (not TF_Utils__IsNumber(min))
+        return "Expected min to be a number (integer, longinteger, float or double) but was " + type(min)
+    else if (not TF_Utils__IsNumber(max))
+        return "Expected max to be a number (integer, longinteger, float or double) but was " + type(max)
+    end if
+
+    if ((number < min) or (number > max))
+        if (msg = "")
+            msg = "Expected " + number.toStr() + " to be between " + min.toStr() + " and " + max.toStr()
+        end if
+        return msg
+    end if
+    return ""
+end function
+
+' ----------------------------------------------------------------
+' Fail if the number is not between the given bounderaies
+
+' @param item (objec) An array of strings to check.
+
+' @return An error message.
+' ----------------------------------------------------------------
+function BTS__AssertGreaterThan(number as dynamic, boundary as dynamic, msg = "" as string) as string
+
+    if (not TF_Utils__IsNumber(number))
+        return "Expected number to be a number (integer, longinteger, float or double) but was " + type(number)
+    else if (not TF_Utils__IsNumber(boundary))
+        return "Expected boundary to be a number (integer, longinteger, float or double) but was " + type(boundary)
+    end if
+
+    if (number <= boundary)
+        if (msg = "")
+            msg = "Expected " + number.toStr() + " to be greater than " + boundary.toStr()
+        end if
+        return msg
+    end if
+    return ""
 end function

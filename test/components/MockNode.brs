@@ -3,8 +3,7 @@
 ' Copyright 2022-Today Datadog, Inc.
 
 sub init()
-    m.calls = []
-    m.stubs = []
+    reset()
 end sub
 
 ' ----------------------------------------------------------------
@@ -13,6 +12,7 @@ end sub
 sub reset()
     m.calls = []
     m.stubs = []
+    m.fieldUpdates = []
 end sub
 
 ' ----------------------------------------------------------------
@@ -25,6 +25,18 @@ sub recordFunctionCall(functionName as string, params as object)
         functionName: functionName,
         params: params,
         consumed: false
+    })
+end sub
+
+' ----------------------------------------------------------------
+' Records a field as being updated
+' @param fieldname (string) the name of the field
+' @param value (dynamic) the value of the field
+' ----------------------------------------------------------------
+sub recordFieldUpdate(fieldName as string, value as dynamic)
+    m.fieldUpdates.Push({
+        fieldName: fieldName,
+        value: value
     })
 end sub
 
@@ -70,6 +82,20 @@ function assertFunctionCalled(functionName as string, params as object) as strin
     end for
 
     return "Expected call to " + functionName + " with params " + FormatJson(params) + wrongParams
+end function
+
+' ----------------------------------------------------------------
+' @param fieldName (string) the name of the field
+' @return (object) an array with all the updated values of the field
+' ----------------------------------------------------------------
+function getFieldUpdates(fieldName as string) as object
+    result = []
+    for each update in m.fieldUpdates
+        if (update.fieldName = fieldName)
+            result.Push(update.value)
+        end if
+    end for
+    return result
 end function
 
 ' ----------------------------------------------------------------

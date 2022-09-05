@@ -3,9 +3,9 @@
 
 # Required Identity
 title=Datadog_test
-major_version=1
-minor_version=0
-build_version=0
+major_version=4
+minor_version=8
+build_version=15
 
 # Required images (need to be bundled in the images folder)
 mm_icon_focus_sd=pkg:/images/mm_icon_focus_sd.jpg

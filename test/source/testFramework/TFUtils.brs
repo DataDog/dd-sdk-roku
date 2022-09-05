@@ -180,15 +180,17 @@ end function
 ' *************************************************
 function TF_Utils__AsString(input as dynamic) as string
     if TF_Utils__IsValid(input) = false
-        return ""
+        return "<invalid>"
     else if TF_Utils__IsString(input)
         return input
     else if TF_Utils__IsInteger(input) or TF_Utils__IsLongInteger(input) or TF_Utils__IsBoolean(input)
         return input.ToStr()
     else if TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input)
         return Str(input).Trim()
+    else if TF_Utils__IsArray(input) or TF_Utils__IsAssociativeArray(input)
+        return FormatJson(input)
     else
-        return ""
+        throw "Can't convert type " + type(input) + " to string"
     end if
 end function
 
