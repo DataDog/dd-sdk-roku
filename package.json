@@ -30,9 +30,6 @@
     "ropm-sample": "cd sample && ropm install && rm -r node_modules",
     "ropm-test": "cd test && ropm install && rm -r node_modules"
   },
-  "devDependencies": {
-    "brighterscript": "^0.56.0"
-  },
   "ropm": {
     "packageRootDir": "library"
   }

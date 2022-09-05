@@ -7,8 +7,11 @@
   "ropm": {
     "rootDir": "."
   },
-  "dependencies": {
+  "devDependencies": {
     "@rokucommunity/bslint": "^0.7.4",
+    "brighterscript": "^0.56.0"
+  },
+  "dependencies": {
     "datadog-roku": "../"
   }
 }
