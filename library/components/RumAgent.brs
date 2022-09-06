@@ -25,6 +25,7 @@ end sub
 ' Starts a view
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string)
+    logVerbose("RUM starting view " + name + " (" + url + ")")
     if (m.view <> invalid)
         stopView(m.view.name, m.view.url)
     end if
@@ -44,6 +45,8 @@ end sub
 ' Stops a view
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string)
+    logVerbose("RUM stopping view " + name + " (" + url + ")")
+
     if (m.view = invalid)
         logWarning("Trying to stop invalid view, ignoring.")
         return
@@ -68,6 +71,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendViewUpdate()
     timestamp& = getTimestamp()
+    logVerbose("Sending view update")
 
     ensureWriter()
     ensureUploader()
