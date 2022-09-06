@@ -35,7 +35,7 @@ sub UploaderTaskTest__SetUp()
     m.testSuite.fakeTrackType = IG_GetString(10)
     m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
-    m.testSuite.fakeWaitPeriodMs = 25
+    m.testSuite.fakeWaitPeriodMs = 15
     m.testSuite.fakePrefix = IG_GetString(3)
     m.testSuite.fakePostfix = IG_GetString(3)
 
@@ -46,6 +46,8 @@ sub UploaderTaskTest__SetUp()
     m.testSuite.testedTask.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedTask.waitPeriodMs = m.testSuite.fakeWaitPeriodMs
     m.testSuite.testedTask.networkClient = m.testSuite.mockNetworkClient
+    m.testSuite.testedTask.payloadPrefix = m.testSuite.fakePrefix
+    m.testSuite.testedTask.payloadPostfix = m.testSuite.fakePostfix
 end sub
 
 
@@ -72,7 +74,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_202() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 202)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -98,7 +100,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_400() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 400)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -124,7 +126,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_401() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 401)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -150,7 +152,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_403() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 403)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -176,7 +178,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_408() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 408)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -202,7 +204,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_413() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 413)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -228,7 +230,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_429() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 429)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -256,7 +258,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_4xx() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, responseCode)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -282,7 +284,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_500() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 500)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -308,7 +310,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_503() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 503)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -335,7 +337,7 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_5xx() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, responseCode)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([
@@ -359,7 +361,7 @@ function UploaderTaskTest__WhenInit_IgnoreRecentFile() as string
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", {}, 202)
 
     ' When
-    sleep(30)
+    sleep(50)
 
     ' Then
     return m.multipleAssertions([

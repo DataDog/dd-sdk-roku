@@ -26,9 +26,10 @@
   "scripts": {
     "test": "cd test && ropm install && rm -r node_modules && make run",
     "sample": "cd sample && ropm install && rm -r node_modules && make run",
-    "lint": "./tools/lint/lint.sh library test sample"
+    "lint": "./tools/lint/lint.sh library test sample",
+    "ropm-sample": "cd sample && ropm install && rm -r node_modules",
+    "ropm-test": "cd test && ropm install && rm -r node_modules"
   },
-  "devDependencies": {},
   "ropm": {
     "packageRootDir": "library"
   }

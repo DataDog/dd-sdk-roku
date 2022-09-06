@@ -10,10 +10,10 @@ Copyright 2022-Today Datadog, Inc.
         <Label id="titleLabel" text="Datadog Sample Application" translation="[50,200]" />
 
         <ButtonGroup id="mainButtonGroup" translation="[50,300]">
-            <Button id="writerBtn" text="Test Writer" showFocusFootprint="true" />
-            <Button id="randomBtnFoo" text="Foo" showFocusFootprint="true" />
-            <Button id="randomBtnBar" text="Bar" showFocusFootprint="true" />
-            <Button id="randomBtnBaz" text="Baz" showFocusFootprint="true" />
+            <Button text="Start View" showFocusFootprint="true" />
+            <Button text="Stop View" showFocusFootprint="true" />
+            <Button text="Bar" showFocusFootprint="true" />
+            <Button text="Baz" showFocusFootprint="true" />
         </ButtonGroup>
 
         <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />

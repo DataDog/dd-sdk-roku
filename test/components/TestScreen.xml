@@ -33,7 +33,7 @@ Copyright 2022-Today Datadog, Inc.
             <Font role="font" size="32" uri="pkg:/fonts/FiraSans-Regular.ttf" />
         </Label>
 
-        <ScrollableText id="outputMessage" text="" translation="[640,256]" width="1024" height="512" color="0x1c2b34fa" wrap="true">
+        <ScrollableText id="outputMessage" text="" translation="[768,192]" width="1024" height="768" color="0x1c2b34fa" wrap="true">
             <Font role="font" size="24" uri="pkg:/fonts/FiraCode-Regular.ttf" />
         </ScrollableText>
     </children>

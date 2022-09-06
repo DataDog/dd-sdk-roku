@@ -8,9 +8,12 @@ Copyright 2022-Today Datadog, Inc.
     <interface>
         <function name="reset" />
         <function name="recordFunctionCall" />
+        <function name="recordFieldUpdate" />
         <function name="stubCall" />
+
         <function name="assertFunctionCalled" />
         <function name="assertNoInteractions" />
+        <function name="getFieldUpdates" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/MockNode.brs" />
     <script type="text/brightscript" uri="pkg:/source/testFramework/TFUtils.brs" />

@@ -13,65 +13,33 @@ sub init()
     m.ButtonGroup.setFocus(true)
     m.ButtonGroup.observeField("buttonSelected", "onBtnSelected")
 
-    m.uploader = CreateObject("roSGNode", "datadogroku_UploaderTask")
-    m.uploader.endpointHost = "rum.browser-intake-datadoghq.com"
-    m.uploader.trackType = "rum"
-    m.uploader.clientToken = m.global.credentials.datadogClientToken
-    m.uploader.control = "run"
+    m.rumAgent = CreateObject("roSGNode", "datadogroku_RumAgent")
+    m.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
+    m.rumAgent.clientToken = m.global.credentials.datadogClientToken
+    m.rumAgent.applicationId = m.global.credentials.datadogApplicationId
+    m.rumAgent.service = "roku-sample"
 
-    m.writer = CreateObject("roSGNode", "datadogroku_WriterTask")
-    m.writer.trackType = "rum"
-    m.writer.payloadSeparator = chr(10)
-    m.writer.control = "run"
-
+    startView()
 end sub
 
 sub onBtnSelected()
     m.msgLabel.text = "Clicked on Button" + Str(m.ButtonGroup.buttonSelected)
 
     if (m.ButtonGroup.buttonSelected = 0)
-        writeViewEvent()
-        ' TODO handle all events
+        startView()
     else if (m.ButtonGroup.buttonSelected = 1)
-
+        stopView()
     end if
 end sub
 
-sub writeViewEvent()
-    timestamp& = datadogroku_getTimestamp()
-    appInfo = CreateObject("roAppInfo")
-    deviceInfo = CreateObject("roDeviceInfo")
+sub startView()
+    viewName = "MainScreen"
+    viewUrl = "localhost://components/MainScreen.brs"
+    m.rumAgent.callFunc("startView", viewName, viewUrl)
+end sub
 
-    viewEvent = {
-        date: timestamp&,
-        type: "view",
-        application: {
-            id: m.global.credentials.datadogApplicationId
-        },
-        service: "roku-channel-" + appInfo.GetID(),
-        session: {
-            id: deviceInfo.GetRandomUUID(),
-            type: "user",
-            has_replay: false
-        },
-        source: datadogroku_agentSource(),
-        version: appInfo.GetVersion(),
-        view: {
-            id: deviceInfo.GetRandomUUID(),
-            url: "pkg:/root",
-            name: "I am 'root",
-            time_spent: 1, '
-            action: { count: 0 },
-            error: { count: 0 },
-            resource: { count: 0 }
-        },
-        _dd: {
-            format_version: 2,
-            session: { plan: 1 },
-            document_version: 1
-        }
-    }
-    ' eventAsString = FormatJson(viewEvent)
-    ' m.writer.callFunc("writeEvent", eventAsString)
-    m.writer.writeEvent = FormatJson(viewEvent)
+sub stopView()
+    viewName = "MainScreen"
+    viewUrl = "localhost://components/MainScreen.brs"
+    m.rumAgent.callFunc("stopView", viewName, viewUrl)
 end sub

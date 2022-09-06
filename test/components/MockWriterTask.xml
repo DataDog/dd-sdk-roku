@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="MockWriterTask" extends="MockNode">
+    <interface>
+        <field id="trackType" type="string" />
+        <field id="payloadSeparator" type="string" value="" />
+        <field id="maxBatchSize" type="integer" value="16384" /> <!-- 16Kb -->
+
+        <field id="writeEvent" type="string" />
+    </interface>
+    <script type="text/brightscript" uri="pkg:/components/MockWriterTask.brs" />
+</component>

@@ -16,7 +16,7 @@
 #    Set in your this variable in your shell startup (e.g. .bashrc)
 ##########################################################################
 APPNAME = DatadogTestApp
-VERSION = 1.0.0
+VERSION = 4.8.15
 
 ZIP_EXCLUDE= -x \*.pkg -x storeassets\* -x keys\* -x \*/.\*
 
