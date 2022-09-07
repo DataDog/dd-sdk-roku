@@ -34,12 +34,12 @@ end sub
 
 sub startView()
     viewName = "MainScreen"
-    viewUrl = "localhost://components/MainScreen.brs"
+    viewUrl = "http://example.com/components/MainScreen.brs"
     m.rumAgent.callFunc("startView", viewName, viewUrl)
 end sub
 
 sub stopView()
     viewName = "MainScreen"
-    viewUrl = "localhost://components/MainScreen.brs"
+    viewUrl = "http://example.com/components/MainScreen.brs"
     m.rumAgent.callFunc("stopView", viewName, viewUrl)
 end sub
