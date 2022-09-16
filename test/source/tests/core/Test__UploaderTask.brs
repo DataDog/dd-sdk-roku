@@ -11,6 +11,7 @@ function TestSuite__UploaderTask() as object
     this.Name = "UploaderTask"
 
     this.addTest("WhenInit_UploadsExistingFile_202", UploaderTaskTest__WhenInit_UploadsExistingFile_202, UploaderTaskTest__SetUp, UploaderTaskTest__TearDown)
+    this.addTest("WhenInit_UploadsExistingFile_2xx", UploaderTaskTest__WhenInit_UploadsExistingFile_2xx, UploaderTaskTest__SetUp, UploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_400", UploaderTaskTest__WhenInit_UploadsExistingFile_400, UploaderTaskTest__SetUp, UploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_401", UploaderTaskTest__WhenInit_UploadsExistingFile_401, UploaderTaskTest__SetUp, UploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_403", UploaderTaskTest__WhenInit_UploadsExistingFile_403, UploaderTaskTest__SetUp, UploaderTaskTest__TearDown)
@@ -35,7 +36,7 @@ sub UploaderTaskTest__SetUp()
     m.testSuite.fakeTrackType = IG_GetString(10)
     m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
-    m.testSuite.fakeWaitPeriodMs = 15
+    m.testSuite.fakeWaitPeriodMs = 10
     m.testSuite.fakePrefix = IG_GetString(3)
     m.testSuite.fakePostfix = IG_GetString(3)
 
@@ -69,12 +70,39 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_202() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 202)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 202)
 
     ' When
-    sleep(50)
+    sleep(100)
+
+    ' Then
+    return m.multipleAssertions([
+        m.mockNetworkClient.callFunc("assertFunctionCalled", "postFromFile", expectedCallArgs),
+        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: an uploader and an uploadable file
+'  When: waiting for the loop to run
+'  Then: the file is uploaded and deleted
+'----------------------------------------------------------------
+function UploaderTaskTest__WhenInit_UploadsExistingFile_2xx() as string
+    ' Given
+    folderPath = datadogroku_trackFolderPath(m.fakeTrackType)
+    filePath = folderPath + "/" + IG_GetInteger(65536).toStr()
+    expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
+    expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
+    expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    responseCode = IG_GetOneOf([200, 201, IG_GetIntegerInRange(203, 299)])
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, responseCode)
+    datadogroku_mkdirs(folderPath)
+    WriteAsciiFile(filePath, IG_GetString(128))
+
+    ' When
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -95,12 +123,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_400() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 400)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 400)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -121,12 +149,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_401() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 401)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 401)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -147,12 +175,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_403() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 403)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 403)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -173,12 +201,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_408() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 408)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 408)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -199,12 +227,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_413() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 413)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 413)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -225,12 +253,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_429() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 429)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 429)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -252,13 +280,13 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_4xx() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
-    datadogroku_mkdirs(folderPath)
-    WriteAsciiFile(filePath, IG_GetString(128))
     responseCode = IG_GetOneOf([402, IG_GetIntegerInRange(404, 407), IG_GetIntegerInRange(409, 412), IG_GetIntegerInRange(414, 428), IG_GetIntegerInRange(430, 499)])
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, responseCode)
+    datadogroku_mkdirs(folderPath)
+    WriteAsciiFile(filePath, IG_GetString(128))
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -279,12 +307,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_500() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 500)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 500)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -305,12 +333,12 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_503() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 503)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, 503)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -331,13 +359,13 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_5xx() as string
     expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
-    datadogroku_mkdirs(folderPath)
-    WriteAsciiFile(filePath, IG_GetString(128))
     responseCode = IG_GetIntegerInRange(500, 599)
     m.mockNetworkClient.callFunc("stubCall", "postFromFile", expectedCallArgs, responseCode)
+    datadogroku_mkdirs(folderPath)
+    WriteAsciiFile(filePath, IG_GetString(128))
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -356,12 +384,12 @@ function UploaderTaskTest__WhenInit_IgnoreRecentFile() as string
     folderPath = datadogroku_trackFolderPath(m.fakeTrackType)
     currentTimeStamp& = datadogroku_getTimestamp()
     filePath = folderPath + "/" + currentTimeStamp&.toStr()
+    m.mockNetworkClient.callFunc("stubCall", "postFromFile", {}, 202)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
-    m.mockNetworkClient.callFunc("stubCall", "postFromFile", {}, 202)
 
     ' When
-    sleep(50)
+    sleep(100)
 
     ' Then
     return m.multipleAssertions([
@@ -377,7 +405,7 @@ end function
 '----------------------------------------------------------------
 function buildExpectedHeaders(clientToken as string) as object
     headers = {}
-    headers["Content-Type"] = "application/json"
+    headers["Content-Type"] = "text/plain;charset=UTF-8"
     headers["DD-API-KEY"] = clientToken
     headers["DD-EVP-ORIGIN"] = datadogroku_agentSource()
     headers["DD-EVP-ORIGIN-VERSION"] = datadogroku_sdkVersion()

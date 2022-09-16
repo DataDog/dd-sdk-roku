@@ -11,7 +11,7 @@
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logVerbose(message as string)
-    print "Datadog    >> "; message
+    print __logPrefix(); "    >> "; message
 end sub
 
 ' ----------------------------------------------------------------
@@ -19,7 +19,7 @@ end sub
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logInfo(message as string)
-    print "Datadog ℹℹ >> "; message
+    print __logPrefix(); " ℹℹ >> "; message
 end sub
 
 ' ----------------------------------------------------------------
@@ -27,7 +27,7 @@ end sub
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logWarning(message as string)
-    print "Datadog ⚠️  >> "; message
+    print __logPrefix(); " ⚠️  >> "; message
 end sub
 
 ' ----------------------------------------------------------------
@@ -37,7 +37,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logError(message as string, error = invalid as object)
 
-    print "Datadog ‼️  >> "; message
+    print __logPrefix(); " ‼️  >> "; message
     if (type(error) = "roAssociativeArray")
         print "              " + errorToString(error)
     end if
@@ -60,6 +60,22 @@ function errorToString(error as object) as string
     end for
 
     return msg
+end function
+
+' ----------------------------------------------------------------
+' @return (string) the prefix for all Datadog logs
+' ----------------------------------------------------------------
+function __logPrefix() as string
+    return "Datadog " + __shortTimestamp()
+end function
+
+' ----------------------------------------------------------------
+' @return (string) a short representation of the current timestamp
+' ----------------------------------------------------------------
+function __shortTimestamp() as string
+    date = CreateObject("roDateTime")
+    seconds& = date.AsSeconds()
+    return (seconds& mod 100).toStr() + "." + date.GetMilliseconds().toStr()
 end function
 
 ' ----------------------------------------------------------------

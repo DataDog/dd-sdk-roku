@@ -4,9 +4,9 @@ Unless explicitly stated otherwise all files in this repository are licensed und
 This product includes software developed at Datadog (https://www.datadoghq.com/).
 Copyright 2022-Today Datadog, Inc.
 -->
-<component name="RumAgent" extends="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+<component name="UploaderTask" extends="Task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/RumAgent.brs" />
+    <script type="text/brightscript" uri="pkg:/components/core/UploaderTask.brs" />
     <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
     <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
     <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
@@ -14,16 +14,13 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="endpointHost" type="string" />
+        <field id="trackType" type="string" />
         <field id="clientToken" type="string" />
-        <field id="applicationId" type="string" />
-        <field id="service" type="string" />
-
-        <field id="uploader" type="node" />
-        <field id="writer" type="node" />
-
-        <function name="startView" />
-        <function name="stopView" />
+        <field id="networkClient" type="node" />
+        <field id="waitPeriodMs" type="integer" value="5000" />
+        <field id="mediaType" type="string" value="application/json" />
+        <field id="payloadPrefix" type="string" value="" />
+        <field id="payloadPostfix" type="string" value="" />
     </interface>
-
 
 </component>

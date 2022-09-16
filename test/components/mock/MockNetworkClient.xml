@@ -4,6 +4,9 @@ Unless explicitly stated otherwise all files in this repository are licensed und
 This product includes software developed at Datadog (https://www.datadoghq.com/).
 Copyright 2022-Today Datadog, Inc.
 -->
-<component name="MockUploaderTask" extends="MockNode">
-    <interface></interface>
+<component name="MockNetworkClient" extends="MockNode">
+    <interface>
+        <function name="postFromFile" />
+    </interface>
+    <script type="text/brightscript" uri="pkg:/components/mock/MockNetworkClient.brs" />
 </component>

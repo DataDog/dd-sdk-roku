@@ -12,5 +12,5 @@ Copyright 2022-Today Datadog, Inc.
 
         <field id="writeEvent" type="string" />
     </interface>
-    <script type="text/brightscript" uri="pkg:/components/MockWriterTask.brs" />
+    <script type="text/brightscript" uri="pkg:/components/mock/MockWriterTask.brs" />
 </component>

@@ -716,7 +716,7 @@ function BTS__MultipleAssertions(assertions as object) as string
         if (assertion <> "")
             failedAssertions++
             if (failedAssertions > 1)
-                combinedMsg = combinedMsg + "; " + assertion
+                combinedMsg = combinedMsg + ";" + chr(10) + assertion
             else
                 combinedMsg = assertion
             end if
@@ -728,7 +728,7 @@ function BTS__MultipleAssertions(assertions as object) as string
     else if (failedAssertions = 1)
         return combinedMsg
     else
-        return failedAssertions.toStr() + " failed assertions: " + combinedMsg
+        return failedAssertions.toStr() + " failed assertions: " + chr(10) + combinedMsg
     end if
 end function
 

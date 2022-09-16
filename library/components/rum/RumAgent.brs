@@ -11,107 +11,51 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    m.deviceInfo = CreateObject("roDeviceInfo")
-    m.appInfo = CreateObject("roAppInfo")
-    m.session = {
-        ' TODO RUMM-2478 Implement session logic
-        id: m.deviceInfo.GetRandomUUID(),
-        startTime&: getTimestamp()
-    }
-    m.view = invalid
 end sub
 
 ' ----------------------------------------------------------------
 ' Starts a view
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string)
-    logVerbose("RUM starting view " + name + " (" + url + ")")
-    if (m.view <> invalid)
-        stopView(m.view.name, m.view.url)
-    end if
-
-    m.view = {
-        id: m.deviceInfo.GetRandomUUID(),
-        name: name,
-        url: url,
-        startTime&: getTimestamp(),
-        update: 0,
-        stopped: false
-    }
-    sendViewUpdate()
+    ensureSetup()
+    m.rumScope.callFunc("handleEvent", { eventType: "startView", viewName: name, viewUrl: url }, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Stops a view
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string)
-    logVerbose("RUM stopping view " + name + " (" + url + ")")
-
-    if (m.view = invalid)
-        logWarning("Trying to stop invalid view, ignoring.")
-        return
-    end if
-
-    if (m.view.url <> url)
-        logWarning("Trying to stop unknown view '" + name + "' (" + url + "), ignoring.")
-        return
-    end if
-
-    if (m.view.stopped)
-        logWarning("Trying to stop view '" + name + "' (" + url + ") but it's already stopped.")
-        return
-    end if
-
-    m.view.stopped = true
-    sendViewUpdate()
+    ensureSetup()
+    m.rumScope.callFunc("handleEvent", { eventType: "stopView", viewName: name, viewUrl: url }, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
-' Send a view event
+' Ensure all dependencies are present (from DI or generated)
 ' ----------------------------------------------------------------
-sub sendViewUpdate()
-    timestamp& = getTimestamp()
-    logVerbose("Sending view update")
-
-    ensureWriter()
+sub ensureSetup()
+    ensureRumScope()
     ensureUploader()
-
-    m.view.update++
-    timeSpentNs& = (timestamp& - m.view.startTime&) * 1000000 ' convert ms to ns
-
-    viewEvent = {
-        _dd: {
-            format_version: 2,
-            session: { plan: 1 },
-            document_version: m.view.update
-        },
-        application: {
-            id: m.top.applicationId
-        },
-        date: m.view.startTime&,
-        service: m.top.service,
-        session: {
-            has_replay: false,
-            id: m.session.id,
-            type: "user"
-        },
-        source: agentSource(),
-        type: "view",
-        version: m.appInfo.GetVersion(),
-        view: {
-            id: m.view.id,
-            url: m.view.url,
-            name: m.view.name,
-            time_spent: timeSpentNs&,
-            action: { count: 0 }, ' TODO RUMM-2435
-            error: { count: 0 }, ' TODO RUMM-2435
-            resource: { count: 0 }' TODO RUMM-2435
-        }
-    }
-
-    m.writer.writeEvent = FormatJson(viewEvent)
+    ensureWriter()
 end sub
 
+' ----------------------------------------------------------------
+' Sets the uploader node from the top node's field,
+' or instantiate one.
+' ----------------------------------------------------------------
+sub ensureRumScope()
+    if (m.rumScope = invalid)
+        logInfo("Rum Scope doesn't exist…")
+        if (m.top.rumScope <> invalid)
+            logInfo("Using injected rumScope")
+            m.rumScope = m.top.rumScope
+        else
+            logInfo("Creating new rumScope")
+            m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
+            m.rumScope.applicationId = m.applicationId
+            m.rumScope.serviceName = m.serviceName
+        end if
+    end if
+end sub
 ' ----------------------------------------------------------------
 ' Sets the uploader node from the top node's field,
 ' or instantiate one.

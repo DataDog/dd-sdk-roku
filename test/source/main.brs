@@ -41,7 +41,10 @@ function runTests() as object
         TestSuite__FileUtils,
         TestSuite__UploaderTask,
         TestSuite__WriterTask,
-        TestSuite__RumAgentView
+        TestSuite__RumAgent,
+        TestSuite__RumApplicationScope,
+        TestSuite__RumSessionScope,
+        TestSuite__RumViewScope
     ])
 
     ' setup logger

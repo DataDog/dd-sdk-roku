@@ -1,17 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- 
 Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 This product includes software developed at Datadog (https://www.datadoghq.com/).
 Copyright 2022-Today Datadog, Inc.
 -->
-<component name="UploaderTask" extends="Task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
-
-    <script type="text/brightscript" uri="pkg:/components/UploaderTask.brs" />
-    <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
-    <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
-    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
-    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
-
+<component name="MockUploaderTask" extends="MockNode">
     <interface>
         <field id="endpointHost" type="string" />
         <field id="trackType" type="string" />
@@ -22,5 +15,4 @@ Copyright 2022-Today Datadog, Inc.
         <field id="payloadPrefix" type="string" value="" />
         <field id="payloadPostfix" type="string" value="" />
     </interface>
-
 </component>

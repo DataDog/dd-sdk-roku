@@ -182,13 +182,22 @@ function TF_Utils__AsString(input as dynamic) as string
     if TF_Utils__IsValid(input) = false
         return "<invalid>"
     else if TF_Utils__IsString(input)
-        return input
+        return """" + input + """"
     else if TF_Utils__IsInteger(input) or TF_Utils__IsLongInteger(input) or TF_Utils__IsBoolean(input)
         return input.ToStr()
     else if TF_Utils__IsFloat(input) or TF_Utils__IsDouble(input)
         return Str(input).Trim()
-    else if TF_Utils__IsArray(input) or TF_Utils__IsAssociativeArray(input)
+    else if TF_Utils__IsSGNode(input)
+        return "roSGNode/" + input.subtype()
+    else if TF_Utils__IsArray(input)
         return FormatJson(input)
+    else if TF_Utils__IsAssociativeArray(input)
+        asString = "{"
+        for each key in input
+            asString += key + ": " + TF_Utils__AsString(input[key]) + ","
+        end for
+        asString += "}"
+        return asString
     else
         throw "Can't convert type " + type(input) + " to string"
     end if
@@ -401,6 +410,10 @@ function TF_Utils__BaseComparator(value1 as dynamic, value2 as dynamic) as boole
         return TF_Utils__EqArray(value1, value2)
     else if value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray"
         return TF_Utils__EqAssocArray(value1, value2)
+    else if value1Type = "roDeviceInfo" and value2Type = "roDeviceInfo"
+        return true
+    else if value1Type = "roAppInfo" and value2Type = "roAppInfo"
+        return true
     else if Type(box(value1), 3) = Type(box(value2), 3)
         return value1 = value2
     else
