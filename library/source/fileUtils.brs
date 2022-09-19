@@ -81,13 +81,9 @@ end function
 function strToLong(s as string) as longinteger
     value& = 0
     length = Len(s)
-    remaining = s
-
-    while (Len(remaining) > 0)
-        char = Left(remaining, 1)
-        remaining = Right(remaining, Len(remaining) - 1)
+    for i = 1 to (length)
+        char = Mid(s, i, 1)
         value& = (value& * 10) + StrToI(char)
-    end while
-
+    end for
     return value&
 end function
