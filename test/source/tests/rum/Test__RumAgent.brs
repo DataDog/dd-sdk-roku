@@ -12,6 +12,7 @@ function TestSuite__RumAgent() as object
 
     this.addTest("WhenStartView_ThenDelegateToRumScope", RumAgentTest__WhenStartView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStopView_ThenDelegateToRumScope", RumAgentTest__WhenStopView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddError_ThenDelegateToRumScope", RumAgentTest__WhenAddError_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     return this
 end function
@@ -28,8 +29,6 @@ sub RumAgentTest__SetUp()
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeServiceName = IG_GetString(32)
-    m.testSuite.fakeViewName = IG_GetString(32)
-    m.testSuite.fakeViewUrl = IG_GetString(32)
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_RumAgent")
@@ -57,14 +56,15 @@ end sub
 '----------------------------------------------------------------
 function RumAgentTest__WhenStartView_ThenDelegateToRumScope() as string
     ' Given
-
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
 
     ' When
-    m.testedNode.callFunc("startView", m.fakeViewName, m.fakeViewUrl)
+    m.testedNode.callFunc("startView", fakeViewName, fakeViewUrl)
     sleep(30)
 
     ' Then
-    expectedArgs = { event: { eventType: "startView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }, writer: m.mockWriter }
+    expectedArgs = { event: { eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
     return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
 end function
 
@@ -75,14 +75,33 @@ end function
 '----------------------------------------------------------------
 function RumAgentTest__WhenStopView_ThenDelegateToRumScope() as string
     ' Given
-
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
 
     ' When
-    m.testedNode.callFunc("stopView", m.fakeViewName, m.fakeViewUrl)
+    m.testedNode.callFunc("stopView", fakeViewName, fakeViewUrl)
     sleep(30)
 
     ' Then
-    expectedArgs = { event: { eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }, writer: m.mockWriter }
+    expectedArgs = { event: { eventType: "stopView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
+    return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the addError method
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddError_ThenDelegateToRumScope() as string
+    ' Given
+    fakeException = { number: IG_GetInteger(128), message: IG_GetString(128), backtrace: [] }
+
+    ' When
+    m.testedNode.callFunc("addError", fakeException)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "addError", exception: fakeException }, writer: m.mockWriter }
     return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
 end function
 

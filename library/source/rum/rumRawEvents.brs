@@ -1,0 +1,46 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'*****************************************************************
+'* Utilities to generate internal RUM events
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' @param viewName (string) the view name (human-readable)
+' @param viewUrl (string) the view url (developer identifier)
+' @return (object) an event describing the start of a view
+' ----------------------------------------------------------------
+function startViewEvent(viewName as string, viewUrl as string) as object
+    return {
+        eventType: "startView",
+        viewName: viewName,
+        viewUrl: viewUrl
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param viewName (string) the view name (human-readable)
+' @param viewUrl (string) the view url (developer identifier)
+' @return (object) an event describing the stop of a view
+' ----------------------------------------------------------------
+function stopViewEvent(viewName as string, viewUrl as string) as object
+    return {
+        eventType: "stopView",
+        viewName: viewName,
+        viewUrl: viewUrl
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param exception (object) the caught exception
+' @return (object) an event describing the stop of a view
+' ----------------------------------------------------------------
+function addErrorEvent(exception as object) as object
+    return {
+        eventType: "addError",
+        exception: exception
+    }
+end function
+
+

@@ -15,18 +15,31 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Starts a view
+' @param name (string) the view name (human-readable)
+' @param url (string) the view url (developer identifier)
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string)
     ensureSetup()
-    m.rumScope.callFunc("handleEvent", { eventType: "startView", viewName: name, viewUrl: url }, m.writer)
+    m.rumScope.callFunc("handleEvent", startViewEvent(name, url), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Stops a view
+' @param name (string) the view name (human-readable)
+' @param url (string) the view url (developer identifier)
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string)
     ensureSetup()
-    m.rumScope.callFunc("handleEvent", { eventType: "stopView", viewName: name, viewUrl: url }, m.writer)
+    m.rumScope.callFunc("handleEvent", stopViewEvent(name, url), m.writer)
+end sub
+
+' ----------------------------------------------------------------
+' Adds an error
+' @param exception (object) the caught exception object
+' ----------------------------------------------------------------
+sub addError(exception as object)
+    ensureSetup()
+    m.rumScope.callFunc("handleEvent", addErrorEvent(exception), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -56,6 +69,7 @@ sub ensureRumScope()
         end if
     end if
 end sub
+
 ' ----------------------------------------------------------------
 ' Sets the uploader node from the top node's field,
 ' or instantiate one.
