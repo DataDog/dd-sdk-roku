@@ -51,8 +51,8 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive() as boolean
-    ' TODO
-    return invalid
+    ' TODO test this behavior
+    return true
 end function
 
 ' ----------------------------------------------------------------

@@ -52,5 +52,6 @@ end function
 sub ensureSessionScope()
     if (m.top.sessionScope = invalid)
         m.top.sessionScope = CreateObject("roSGNode", "RumSessionScope")
+        m.top.sessionScope.parentScope = m.top
     end if
 end sub

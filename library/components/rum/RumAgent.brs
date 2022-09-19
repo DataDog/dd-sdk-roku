@@ -64,8 +64,8 @@ sub ensureRumScope()
         else
             logInfo("Creating new rumScope")
             m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
-            m.rumScope.applicationId = m.applicationId
-            m.rumScope.serviceName = m.serviceName
+            m.rumScope.applicationId = m.top.applicationId
+            m.rumScope.serviceName = m.top.serviceName
         end if
     end if
 end sub
