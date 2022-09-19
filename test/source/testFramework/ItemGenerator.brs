@@ -173,10 +173,6 @@ end function
 
 ' ----------------------------------------------------------------
 ' Generates random integer value from 1 to specified seed value.
-
-' @param seed (integer) A seed value for Rnd function.
-' Default value: 100.
-
 ' @return A random integer value.
 ' ----------------------------------------------------------------
 function IG_GetLongInteger() as longinteger
