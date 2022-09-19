@@ -49,16 +49,47 @@ end sub
 ' @return (string) the string representation of the error with its backtrace
 ' ----------------------------------------------------------------
 function errorToString(error as object) as string
-    frameCount = error.backtrace.count()
-    lastFrame = error.backtrace[frameCount - 1]
+    msg = ""
+    if (error.message <> invalid)
+        msg += error.message
+    end if
 
-    msg = error.message + " (runtime error &h" + decToHex(error.number) + ") in " + lastFrame.filename + "(" + lastFrame.line_number.toStr() + ")"
+    if (error.number <> invalid)
+        msg += " (runtime error &h" + decToHex(error.number) + ")"
+    end if
+
+    if (error.backtrace <> invalid)
+        frameCount = error.backtrace.count()
+        lastFrame = error.backtrace[frameCount - 1]
+        msg = msg + " in " + lastFrame.filename + "(" + lastFrame.line_number.toStr() + ")"
+        msg = msg + chr(10) + backtraceToString(error.backtrace)
+        return msg
+    end if
+    return msg
+end function
+
+' ----------------------------------------------------------------
+' Returns an exception's backtrace as a multiline String matching the standard Roku output
+' @param backtrace (object) the exception backtrace array
+' @return (string) the string representation of the backtrace
+' ----------------------------------------------------------------
+function backtraceToString(backtrace as object) as dynamic
+    if (backtrace = invalid)
+        return invalid
+    end if
+
+    frameCount = backtrace.count()
+    msg = ""
+    first = true
     for i = (frameCount - 1) to 0 step -1
-        frame = error.backtrace[i]
-        msg = msg + chr(10) + "#" + i.toStr() + "  Function " + frame.function
+        frame = backtrace[i]
+        if (not first)
+            msg = msg + chr(10)
+        end if
+        msg = msg + "#" + i.toStr() + "  Function " + frame.function
         msg = msg + chr(10) + "   file/line: " + frame.filename + "(" + frame.line_number.toStr() + ")"
+        first = false
     end for
-
     return msg
 end function
 

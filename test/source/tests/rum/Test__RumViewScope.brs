@@ -15,6 +15,8 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleStopViewEventTwice_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStopUnknownView_ThenDoNothing", RumViewScopeTest__WhenStopUnknownView_ThenDoNothing, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     return this
 end function
@@ -234,5 +236,116 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent() as stri
         m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
         m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
         ' TODO RUMM-2435 assert action count, resource count, error count
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addError)
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    fakeMessage = IG_GetString(128)
+    fakeErrorNumber = IG_GetInteger(256)
+    fakeBacktrace = IG_GetBacktrace()
+    fakeException = { number: fakeErrorNumber, message: fakeMessage, backtrace: fakeBacktrace }
+    fakeEvent = { mock: "event", eventType: "addError", exception: fakeException }
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    errorEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(errorEvent),
+        m.assertEqual(errorEvent.application.id, fakeApplicationId),
+        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertEqual(errorEvent.service, fakeServiceName),
+        m.assertEqual(errorEvent.session.has_replay, false),
+        m.assertNotEmpty(errorEvent.session.id),
+        m.assertEqual(errorEvent.session.type, "user"),
+        m.assertEqual(errorEvent.source, "roku"),
+        m.assertEqual(errorEvent.type, "error"),
+        m.assertEqual(errorEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(errorEvent.view.id),
+        m.assertEqual(errorEvent.view.name, m.fakeViewName),
+        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(errorEvent.error.id),
+        m.assertEqual(errorEvent.error.message, fakeMessage),
+        m.assertEqual(errorEvent.error.source, "source"),
+        m.assertEqual(errorEvent.error.source_type, "roku"),
+        m.assertEqual(errorEvent.error.stack, datadogroku_backtraceToString(fakeBacktrace)),
+        m.assertEqual(errorEvent.error.is_crash, false),
+        m.assertEqual(errorEvent.error.type, "&h" + datadogroku_decToHex(fakeErrorNumber)),
+
+        ' TODO RUMM-2435 assert parent action id
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addError) with missing exception fields
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "addError", exception: {} }
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    errorEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(errorEvent),
+        m.assertEqual(errorEvent.application.id, fakeApplicationId),
+        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertEqual(errorEvent.service, fakeServiceName),
+        m.assertEqual(errorEvent.session.has_replay, false),
+        m.assertNotEmpty(errorEvent.session.id),
+        m.assertEqual(errorEvent.session.type, "user"),
+        m.assertEqual(errorEvent.source, "roku"),
+        m.assertEqual(errorEvent.type, "error"),
+        m.assertEqual(errorEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(errorEvent.view.id),
+        m.assertEqual(errorEvent.view.name, m.fakeViewName),
+        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(errorEvent.error.id),
+        m.assertEqual(errorEvent.error.message, "Unknown exception"),
+        m.assertEqual(errorEvent.error.source, "source"),
+        m.assertEqual(errorEvent.error.source_type, "roku"),
+        m.assertEqual(errorEvent.error.stack, invalid),
+        m.assertEqual(errorEvent.error.is_crash, false),
+        m.assertEqual(errorEvent.error.type, "unknown"),
+        ' TODO RUMM-2435 assert parent action id
     ])
 end function

@@ -96,6 +96,7 @@ function Mock__assertFunctionCalled(functionName as string, params as object) as
             for each param in params
                 if (not checkParamMatch(params[param], call.params[param]))
                     wrongParams += chr(10) + " - " + functionName + "() was called with params " + TF_Utils__AsString(call.params)
+                    wrongParams += chr(10) + " - - > first mismatched param: " + param
                     isMatch = false
                 end if
             end for
@@ -174,26 +175,20 @@ end function
 ' @return (boolean) true if both values match each other
 ' ----------------------------------------------------------------
 function checkParamMatch(expected as dynamic, actual as dynamic) as boolean
-
-
     if (expected = invalid)
         return actual = invalid
-    end if
-
-    if (actual = invalid)
+    else if (actual = invalid)
         return expected = invalid
-    end if
-
-    if (TF_Utils__IsString(expected) and TF_Utils__IsString(actual))
+    else if (TF_Utils__IsString(expected) and TF_Utils__IsString(actual))
         return expected = actual
-    end if
-
-    if (TF_Utils__IsSGNode(expected) and TF_Utils__IsSGNode(actual))
+    else if (TF_Utils__IsSGNode(expected) and TF_Utils__IsSGNode(actual))
         return expected.subtype() = actual.subtype()
-    end if
-
-    if (TF_Utils__IsAssociativeArray(expected) and TF_Utils__IsAssociativeArray(actual))
+    else if (TF_Utils__IsArray(expected) and TF_Utils__IsArray(actual))
+        return checkArrayMatch(expected, actual)
+    else if (TF_Utils__IsAssociativeArray(expected) and TF_Utils__IsAssociativeArray(actual))
         return checkAssocArrayMatch(expected, actual)
+    else if (TF_Utils__IsInteger(expected) and TF_Utils__IsInteger(actual))
+        return expected = actual
     end if
 
     expectedType = type(expected)
@@ -213,6 +208,31 @@ function checkAssocArrayMatch(expected as object, actual as object) as boolean
         expectedValue = expected[key]
         actualValue = actual[key]
         if (not checkParamMatch(expectedValue, actualValue))
+            print "-->> assoc array mismatch for key " + key + " <" + TF_Utils__AsString(expectedValue) + "> != <" + TF_Utils__AsString(actualValue) + "> "
+            return false
+        end if
+    end for
+    return true
+end function
+
+' ----------------------------------------------------------------
+' Verifies whether the two Arrays actually match
+' @param expected (object) the expected value to test
+' @param actual (object) the actual value used
+' @return (boolean) true if objects values match each other
+' ----------------------------------------------------------------
+function checkArrayMatch(expected as object, actual as object) as boolean
+    if (expected.count() <> actual.count())
+        return false
+    end if
+
+    count = expected.count()
+
+    for i = 0 to count - 1
+        expectedValue = expected[i]
+        actualValue = actual[i]
+        if (not checkParamMatch(expectedValue, actualValue))
+            print "-->> array mismatch at index " + i + " <" + TF_Utils__AsString(expectedValue) + "> != <" + TF_Utils__AsString(actualValue) + "> "
             return false
         end if
     end for
