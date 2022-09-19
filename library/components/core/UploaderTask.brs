@@ -55,9 +55,7 @@ end sub
 ' @return (boolean) if the file is valid for upload
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
-    ' Roku's String.toInt() method only convert to integer (32bits) but timestamps are long
-    ' Weirdly, ParseJson will return the proper value
-    fileTimestamp& = ParseJson(filename)
+    fileTimestamp& = strToLong(filename)
     uploadTimestamp& = fileTimestamp& + 30000
     currentTimestamp& = getTimestamp()
     return (uploadTimestamp& < currentTimestamp&)

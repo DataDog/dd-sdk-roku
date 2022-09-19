@@ -80,7 +80,7 @@ function getWriteableFile(eventSize as integer) as string
     filenames.Sort("r")
     if (filenames.count() > 0)
         lastFilename = filenames[0]
-        fileTimestamp& = ParseJson(lastFilename)
+        fileTimestamp& = strToLong(lastFilename)
         uploadTimestamp& = fileTimestamp& + 25000
         if ((uploadTimestamp& > currentTimestamp&))
             lastFilePath = folderPath + "/" + lastFilename

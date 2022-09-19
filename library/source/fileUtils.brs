@@ -72,3 +72,22 @@ function AppendAsciiFile(filepath as string, text as string) as boolean
     byteArray.FromAsciiString(text)
     return byteArray.AppendFile(filepath)
 end function
+
+' ----------------------------------------------------------------
+' Converts the given string into a long value
+' @param s (string) a string with only a number in decimal format
+' @return (longinteger) the value as a long integer
+' ----------------------------------------------------------------
+function strToLong(s as string) as longinteger
+    value& = 0
+    length = Len(s)
+    remaining = s
+
+    while (Len(remaining) > 0)
+        char = Left(remaining, 1)
+        remaining = Right(remaining, Len(remaining) - 1)
+        value& = (value& * 10) + StrToI(char)
+    end while
+
+    return value&
+end function
