@@ -14,6 +14,8 @@ function TestSuite__FileUtils() as object
     this.addTest("WhenTrackFolderPath_ThenComputePath", FileUtilsTest__WhenTrackFolderPath_ThenComputePath)
     this.addTest("WhenAppendAsciiFile_ThenAppendsToExistingFile", FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToExistingFile)
     this.addTest("WhenAppendAsciiFile_ThenAppendsToEmptyFile", FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToEmptyFile)
+    this.addTest("WhenStrToLong_ThenReturnsLong", FileUtilsTest__WhenStrToLong_ThenReturnsLong)
+    this.addTest("WhenStrToLongOnString_ThenReturnsLong", FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong)
 
     return this
 end function
@@ -183,4 +185,50 @@ function FileUtilsTest__WhenAppendAsciiFile_ThenCreateNewFile() as string
         m.assertEqual(result, true)
         m.assertEqual(ReadAsciiFile(filepath), appendedText)
     ])
+end function
+
+'----------------------------------------------------------------
+' Checks that strToLong parses long properly
+'----------------------------------------------------------------
+function FileUtilsTest__WhenStrToLong_ThenReturnsLong() as string
+    assertions = []
+
+    for i = 0 to 100
+        ' Given
+        input& = IG_GetLongInteger()
+        input$ = input&.toStr()
+
+        ' When
+        result& = datadogroku_strToLong(input$)
+
+        ' Then
+        assertions.Push(m.assertEqual(result&, input&))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Checks that strToLong parses not long safely
+'----------------------------------------------------------------
+function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
+    assertions = []
+
+    for i = 0 to 100
+        ' Given
+        input$ = IG_GetString(128)
+
+        ' When
+        try
+            result& = datadogroku_strToLong(input$)
+            crashed = false
+        catch e
+            crashed = true
+        end try
+
+        ' Then
+        assertions.Push(m.assertFalse(crashed))
+    end for
+
+    return m.multipleAssertions(assertions)
 end function

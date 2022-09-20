@@ -171,6 +171,17 @@ function IG_GetInteger(seed = 100 as integer) as integer
     return Rnd(seed)
 end function
 
+' ----------------------------------------------------------------
+' Generates random integer value from 1 to specified seed value.
+' @return A random integer value.
+' ----------------------------------------------------------------
+function IG_GetLongInteger() as longinteger
+    maxInt& = 2147483647
+    result& = IG_GetInteger(maxInt&)
+    result& *= maxInt&
+    result& += IG_GetInteger(maxInt&)
+    return result&
+end function
 
 ' ----------------------------------------------------------------
 ' Generates random integer value in the given range.
