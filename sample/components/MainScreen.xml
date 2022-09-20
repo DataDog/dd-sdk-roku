@@ -12,7 +12,7 @@ Copyright 2022-Today Datadog, Inc.
         <ButtonGroup id="mainButtonGroup" translation="[50,300]">
             <Button text="Start View" showFocusFootprint="true" />
             <Button text="Stop View" showFocusFootprint="true" />
-            <Button text="Bar" showFocusFootprint="true" />
+            <Button text="Add Error" showFocusFootprint="true" />
             <Button text="Baz" showFocusFootprint="true" />
         </ButtonGroup>
 
@@ -20,6 +20,7 @@ Copyright 2022-Today Datadog, Inc.
     </children>
 
     <script type="text/brightscript" uri="pkg:/components/MainScreen.brs" />
+    <script type="text/brightscript" uri="pkg:/source/exploding.brs" />
 
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/datadogSdk.brs" />
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/timeUtils.brs" />

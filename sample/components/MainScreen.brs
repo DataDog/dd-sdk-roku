@@ -19,6 +19,8 @@ sub init()
     m.rumAgent.applicationId = m.global.credentials.datadogApplicationId
     m.rumAgent.serviceName = "roku-sample"
 
+    m.errorIdx = 0
+
     startView()
 end sub
 
@@ -29,6 +31,8 @@ sub onBtnSelected()
         startView()
     else if (m.ButtonGroup.buttonSelected = 1)
         stopView()
+    else if (m.ButtonGroup.buttonSelected = 2)
+        sendError()
     end if
 end sub
 
@@ -42,4 +46,16 @@ sub stopView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
     m.rumAgent.callFunc("stopView", viewName, viewUrl)
+end sub
+
+sub sendError()
+    m.errorIdx++
+    try
+        print "About to explode"
+        explodingMethod(m.errorIdx)
+    catch error
+        print "Caught something"
+        print error
+        m.rumAgent.callFunc("addError", error)
+    end try
 end sub

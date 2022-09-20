@@ -220,7 +220,7 @@ function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
 
         ' When
         try
-            result& = datadogroku_strToLong(input$)
+            datadogroku_strToLong(input$)
             crashed = false
         catch e
             crashed = true

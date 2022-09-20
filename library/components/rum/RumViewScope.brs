@@ -41,6 +41,8 @@ sub handleEvent(event as object, writer as object)
         stopView(event.viewName, event.viewUrl, writer)
     else if (event.eventType = "startView")
         stopView(m.top.viewName, m.top.viewUrl, writer)
+    else if (event.eventType = "addError")
+        addError(event.exception, writer)
     end if
 end sub
 
@@ -49,8 +51,8 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive() as boolean
-    ' TODO
-    return invalid
+    ' TODO test this behavior
+    return true
 end function
 
 ' ----------------------------------------------------------------
@@ -76,6 +78,64 @@ sub stopView(name as string, url as string, writer as object)
     sendViewUpdate(writer)
 end sub
 
+' ----------------------------------------------------------------
+' Send an error event
+' @param exception (object) the exception
+' @param writer (object) the writer node (see WriterTask.brs)
+' ----------------------------------------------------------------
+sub addError(exception as object, writer as object)
+    timestamp& = getTimestamp()
+    logVerbose("Sending an error")
+
+    context = getRumContext()
+
+    if (exception.number = invalid)
+        errorType = "unknown"
+    else
+        errorType = "&h" + decToHex(exception.number)
+    end if
+    if (exception.message = invalid)
+        errorMsg = "Unknown exception"
+    else
+        errorMsg = exception.message
+    end if
+
+    errorEvent = {
+        _dd: {
+            format_version: 2,
+            session: { plan: 1 }
+        },
+        application: {
+            id: context.applicationId
+        },
+        date: timestamp&,
+        error: {
+            id: CreateObject("roDeviceInfo").GetRandomUUID(),
+            is_crash: false,
+            message: errorMsg,
+            source: "source",
+            source_type: agentSource(),
+            stack: backtraceToString(exception.backtrace),
+            type: errorType
+        },
+        service: context.serviceName,
+        session: {
+            has_replay: false,
+            id: context.sessionId,
+            type: "user"
+        },
+        source: agentSource(),
+        type: "error",
+        version: context.applicationVersion,
+        view: {
+            id: m.viewId,
+            url: m.top.viewUrl,
+            name: m.top.viewName
+        }
+    }
+
+    writer.writeEvent = FormatJson(errorEvent)
+end sub
 
 ' ----------------------------------------------------------------
 ' Send a view event

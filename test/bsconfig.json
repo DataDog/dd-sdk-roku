@@ -10,6 +10,7 @@
     ],
     "createPackage": false,
     "diagnosticFilters": [
+        "components/roku_modules/**/*.*",
         "source/roku_modules/**/*.*",
         "source/testFramework/*.brs"
     ]

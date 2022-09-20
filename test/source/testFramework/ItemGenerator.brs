@@ -246,3 +246,28 @@ function IG_GetOneOf(data as object) as dynamic
     return data[index]
 end function
 
+' ----------------------------------------------------------------
+' Generates a random backtrace.
+' @return the backtrace array.
+' ----------------------------------------------------------------
+function IG_GetBacktrace() as object
+    size = IG_GetInteger(32)
+    backtrace = []
+    for i = 1 to size
+        backtrace.Push(IG_GetBacktraceFrame())
+    end for
+    return backtrace
+end function
+
+' ----------------------------------------------------------------
+' Generates a random backtrace frame.
+' @return the backtrace frame object.
+' ----------------------------------------------------------------
+function IG_GetBacktraceFrame() as object
+    return {
+        function: IG_GetString(32),
+        filename: IG_GetString(32),
+        line_number: IG_GetInteger(128)
+    }
+end function
+
