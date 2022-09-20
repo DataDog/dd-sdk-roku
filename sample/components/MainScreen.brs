@@ -17,7 +17,7 @@ sub init()
     m.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
     m.rumAgent.clientToken = m.global.credentials.datadogClientToken
     m.rumAgent.applicationId = m.global.credentials.datadogApplicationId
-    m.rumAgent.service = "roku-sample"
+    m.rumAgent.serviceName = "roku-sample"
 
     startView()
 end sub

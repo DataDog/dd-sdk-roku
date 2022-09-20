@@ -353,7 +353,7 @@ sub Logger__AppendTestStatistic(statSuiteObj as object, statTestObj as object)
         end if
 
         if (statTestObj.Error.Message <> "")
-            statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statTestObj.name])
+            statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statSuiteObj.Name + " - " + statTestObj.name])
             statSuiteObj.OutputLog.Append([statTestObj.Error.Message])
             statSuiteObj.OutputLog.Append([string(16, "- ")])
         end if

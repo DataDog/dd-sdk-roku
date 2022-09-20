@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="RumAgent" extends="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+    <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.brs" />
+    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
+
+    <interface>
+        <field id="endpointHost" type="string" />
+        <field id="clientToken" type="string" />
+        <field id="applicationId" type="string" />
+        <field id="serviceName" type="string" />
+
+        <!-- Dependency Injection -->
+        <field id="uploader" type="node" />
+        <field id="writer" type="node" />
+        <field id="rumScope" type="node" />
+
+        <function name="startView" />
+        <function name="stopView" />
+    </interface>
+
+</component>

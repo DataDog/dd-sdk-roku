@@ -2,14 +2,37 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-sub init()
-    reset()
-end sub
+'*****************************************************************
+' Mock
+' Handles all mock related logic
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Mock constructor
+' ----------------------------------------------------------------
+function Mock() as object
+    instance = {
+        calls: [],
+        stubs: [],
+        fieldUpdates: []
+    }
+
+    instance.reset = Mock__reset
+    instance.recordFunctionCall = Mock__recordFunctionCall
+    instance.recordFieldUpdate = Mock__recordFieldUpdate
+    instance.stubCall = Mock__stubCall
+    instance.assertFunctionCalled = Mock__assertFunctionCalled
+    instance.assertNoInteractions = Mock__assertNoInteractions
+    instance.getFieldUpdates = Mock__getFieldUpdates
+    instance.getStubReturnValue = Mock__getStubReturnValue
+
+    return instance
+end function
 
 ' ----------------------------------------------------------------
 ' Resets all stubs and recorded calls
 ' ----------------------------------------------------------------
-sub reset()
+sub Mock__reset()
     m.calls = []
     m.stubs = []
     m.fieldUpdates = []
@@ -20,7 +43,8 @@ end sub
 ' @param functionName (string) the name of the function called
 ' @param params (object) the parameters for the function
 ' ----------------------------------------------------------------
-sub recordFunctionCall(functionName as string, params as object)
+sub Mock__recordFunctionCall(functionName as string, params as object)
+    datadogroku_logInfo("Recording Function Call on mock: " + functionName)
     m.calls.Push({
         functionName: functionName,
         params: params,
@@ -33,7 +57,7 @@ end sub
 ' @param fieldname (string) the name of the field
 ' @param value (dynamic) the value of the field
 ' ----------------------------------------------------------------
-sub recordFieldUpdate(fieldName as string, value as dynamic)
+sub Mock__recordFieldUpdate(fieldName as string, value as dynamic)
     m.fieldUpdates.Push({
         fieldName: fieldName,
         value: value
@@ -47,13 +71,14 @@ end sub
 '     parameter is not given, it means any value will be a match
 ' @param returnValue (dynamic) the value to return
 ' ----------------------------------------------------------------
-sub stubCall(functionName as string, params as object, returnValue as dynamic)
+sub Mock__stubCall(functionName as string, params as object, returnValue as dynamic)
     m.stubs.Push({
         functionName: functionName,
         params: params,
         returnValue: returnValue
     })
 end sub
+
 
 ' ----------------------------------------------------------------
 ' Verifies if the given function was actually called
@@ -63,14 +88,14 @@ end sub
 ' @return (string) an empty string if there is a match, or an error
 '     message
 ' ----------------------------------------------------------------
-function assertFunctionCalled(functionName as string, params as object) as string
+function Mock__assertFunctionCalled(functionName as string, params as object) as string
     wrongParams = ""
     for each call in m.calls
         if (call.functionName = functionName and not call.consumed)
             isMatch = true
             for each param in params
                 if (not checkParamMatch(params[param], call.params[param]))
-                    wrongParams += chr(10) + " - " + functionName + "() was called with params " + FormatJson(call.params)
+                    wrongParams += chr(10) + " - " + functionName + "() was called with params " + TF_Utils__AsString(call.params)
                     isMatch = false
                 end if
             end for
@@ -81,14 +106,30 @@ function assertFunctionCalled(functionName as string, params as object) as strin
         end if
     end for
 
-    return "Expected call to " + functionName + " with params " + FormatJson(params) + wrongParams
+    if (wrongParams = "")
+        wrongParams = chr(10) + " - " + functionName + "() was never called"
+    end if
+    return "Expected call to " + functionName + " with params " + TF_Utils__AsString(params) + wrongParams
+end function
+
+' ----------------------------------------------------------------
+' Verifies that the current mock was never called
+' @return (string) an empty string if there was no calls, or an error
+'     message
+' ----------------------------------------------------------------
+function Mock__assertNoInteractions() as string
+    if (m.calls.count() = 0)
+        return ""
+    end if
+
+    return "Expected no interactions with mock but mock was called " + m.calls.count().toStr() + " times"
 end function
 
 ' ----------------------------------------------------------------
 ' @param fieldName (string) the name of the field
 ' @return (object) an array with all the updated values of the field
 ' ----------------------------------------------------------------
-function getFieldUpdates(fieldName as string) as object
+function Mock__getFieldUpdates(fieldName as string) as object
     result = []
     for each update in m.fieldUpdates
         if (update.fieldName = fieldName)
@@ -99,30 +140,20 @@ function getFieldUpdates(fieldName as string) as object
 end function
 
 ' ----------------------------------------------------------------
-' Verifies that the current mock was never called
-' @return (string) an empty string if there was no calls, or an error
-'     message
-' ----------------------------------------------------------------
-function assertNoInteractions() as string
-    if (m.calls.count() = 0)
-        return ""
-    end if
-
-    return "Expected no interactions with mock but mock was called " + m.calls.count().toStr() + " times"
-end function
-
-' ----------------------------------------------------------------
 ' Returns a previously stubbed value if the parameters match
 ' @param functionName (string) the name of the function called
 ' @param params (object) the parameters for the call
 ' @return (dynamic) the previously stubbed value, or invalid
 ' ----------------------------------------------------------------
-function getStubReturnValue(functionName as string, params as object) as dynamic
+function Mock__getStubReturnValue(functionName as string, params as object) as dynamic
+    wrongParams = ""
     for each stub in m.stubs
         if (stub.functionName = functionName)
             isMatch = true
             for each param in params
                 if (not checkParamMatch(stub.params[param], params[param]))
+                    wrongParams += chr(10) + " - " + functionName + "() was stubbed with params " + TF_Utils__AsString(stub.params)
+                    wrongParams += chr(10) + " - - > first mismatched param: " + param
                     isMatch = false
                 end if
             end for
@@ -131,6 +162,8 @@ function getStubReturnValue(functionName as string, params as object) as dynamic
             end if
         end if
     end for
+
+    datadogroku_logWarning("No stub match found for" + functionName + "(" + TF_Utils__AsString(params) + "):" + wrongParams)
     return invalid
 end function
 
@@ -141,6 +174,8 @@ end function
 ' @return (boolean) true if both values match each other
 ' ----------------------------------------------------------------
 function checkParamMatch(expected as dynamic, actual as dynamic) as boolean
+
+
     if (expected = invalid)
         return actual = invalid
     end if
@@ -151,6 +186,10 @@ function checkParamMatch(expected as dynamic, actual as dynamic) as boolean
 
     if (TF_Utils__IsString(expected) and TF_Utils__IsString(actual))
         return expected = actual
+    end if
+
+    if (TF_Utils__IsSGNode(expected) and TF_Utils__IsSGNode(actual))
+        return expected.subtype() = actual.subtype()
     end if
 
     if (TF_Utils__IsAssociativeArray(expected) and TF_Utils__IsAssociativeArray(actual))
@@ -177,7 +216,5 @@ function checkAssocArrayMatch(expected as object, actual as object) as boolean
             return false
         end if
     end for
-
     return true
 end function
-
