@@ -9,7 +9,7 @@ include:
 
 variables:
   REPO: 'dd-sdk-roku'
-  CI_IMAGE_VERSION: "1"
+  CI_IMAGE_VERSION: "2"
   BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
   CI_IMAGE: '$BUILD_STABLE_REGISTRY/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
@@ -79,7 +79,14 @@ analysis:lint:
   script:
     - tools/lint/lint.sh library test sample 
 
-# TODO add the bsc command line to try compiling the project
+analysis:sca:
+  extends:
+    - .base-configuration
+  stage: analysis
+  timeout: 30m
+  script:
+    - export ROKU_SCA="/usr/bin/roku-sca/bin/sca-cmd"
+    - tools/sca/sca.sh test sample 
 
 ########################################################################################################################
 # TESTS
