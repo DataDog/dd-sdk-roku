@@ -4,19 +4,29 @@
 
 ' ----------------------------------------------------------------
 ' Main entry point for the test app
+' @param args (dynamic) arguments passed by the OS when starting the channel
 ' ----------------------------------------------------------------
-sub RunUserInterface()
+sub RunUserInterface(args as dynamic)
+    if (args.mediaType <> invalid) and (args.contentId <> invalid)
+        datadogroku_logInfo("Test app launched with deeplink: " + args.contentId + "/" + args.mediaType)
+    end if
+
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
     m.scene = screen.CreateScene("TestScreen")
     screen.show()
+    screen.signalBeacon("AppLaunchComplete")
 
     try
         m.scene.testResults = runTests()
     catch e
         m.scene.crash = e
     end try
+
+    ' Handle roInput (deeplink changes at runtime)
+    input = CreateObject("roInput")
+    input.setMessagePort(m.port)
 
     while(true)
         msg = wait(0, m.port)
@@ -26,6 +36,8 @@ sub RunUserInterface()
             if (msg.isScreenClosed())
                 return
             end if
+        else if (msgType = "roInputEvent")
+            print "Received input event"; msg.getInfo()
         end if
     end while
 end sub
