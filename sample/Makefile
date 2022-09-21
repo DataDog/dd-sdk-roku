@@ -18,6 +18,6 @@
 APPNAME = DatadogSampleApp
 VERSION = 1.0.0
 
-ZIP_EXCLUDE= -x \*.pkg -x storeassets\* -x keys\* -x \*/.\*
+ZIP_EXCLUDE= -x \*.pkg -x \*.zip -x storeassets\* -x keys\* -x \*/.\* -x package.json -x package-lock.json -x out/\* -x .gitignore
 
 include ../tools/roku/app.mk
