@@ -7,7 +7,7 @@ cwd=`pwd`
 
 for var in "$@"
 do
-    echo "---- Linting folder $var"
+    echo "---- Static code analysis for folder $var"
     cd $var
 
     if [ -f "package.json" ]; then
@@ -18,9 +18,18 @@ do
     echo " - Cleanup node junk"
     rm -r node_modules
 
-    echo " - Run BrighterScript compiler/linter"
-    bsc --lintConfig ../tools/lint/bslint.json
+    echo " - Make application"
+    export DISTDIR="out/" 
+    export DISTZIP="app-$var" 
+    make
+
+    echo " - Static Channel Analysis"
+    $ROKU_SCA -e=error "out/app-$var.zip" 
     result=$?
+
+    echo " - Cleanup environment"
+    unset DISTDIR
+    unset DISTZIP
 
     # back to root folder
     cd $cwd 

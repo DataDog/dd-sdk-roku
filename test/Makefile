@@ -18,6 +18,6 @@
 APPNAME = DatadogTestApp
 VERSION = 4.8.15
 
-ZIP_EXCLUDE= -x \*.pkg -x storeassets\* -x keys\* -x \*/.\*
+ZIP_EXCLUDE= -x \*.pkg -x \*.zip -x storeassets\* -x keys\* -x \*/.\* -x package.json -x package-lock.json -x out/\*
 
 include ../tools/roku/app.mk

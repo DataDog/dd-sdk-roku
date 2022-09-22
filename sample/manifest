@@ -30,7 +30,7 @@ ui_resolutions=sd,hd,fhd
 # uri_resolution_autosub=$$RES$$,SD,720p,1080p
 
 # Optional Launch requirement attributes (notify library/hardware requirements)
-# supports_input_launch=0
+supports_input_launch=1
 # requires_audiometadata=0
 # requires_gaming_remote=0
 # requires_mkv=0

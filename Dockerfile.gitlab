@@ -10,16 +10,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
 # Make sure APT is up to date
-RUN set -x && apt-get update
-RUN set -x && apt-get -y upgrade
+RUN apt-get update
+RUN apt-get -y upgrade
 RUN set -x && apt-get -y install --no-install-recommends apt-utils
 
 # Install CLI tools
-RUN set -x && apt-get -y install --no-install-recommends curl ca-certificates
-
-# Cleanup APT files
-RUN set -x && apt-get -y clean
-RUN set -x && rm -rf /var/lib/apt/lists/*
+RUN set -x && apt-get -y install --no-install-recommends \
+    curl \
+    ca-certificates \
+    make \
+    unzip \
+    zip \
+ && apt-get -y clean\
+ && rm -rf /var/lib/apt/lists/*
 
 ####################################################################################################
 # PYTHON
@@ -48,6 +51,18 @@ RUN python3 --version
 RUN set -x && pip install awscli
 
 ####################################################################################################
+# JAVA
+####################################################################################################
+
+RUN set -x \
+ && apt-get update \
+ && apt-get -y upgrade \
+ && apt-get -y install --no-install-recommends \
+    openjdk-17-jdk \
+ && apt-get -y clean \
+ && rm -rf /var/lib/apt/lists/*
+
+####################################################################################################
 # NPM
 ####################################################################################################
 
@@ -74,6 +89,17 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
  && mv woke-${WOKE_VERSION}-linux-amd64/woke /usr/bin/woke \
  && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
 
+
+####################################################################################################
+# ROKU
+####################################################################################################
+
+ENV ROKU_SCA_SHA256 "679d3e8d349cd1cb2029b7ae4792faa930bb7cbecb054f2e56352c5ffe599a0b"
+RUN curl -L http://devtools.web.roku.com/static-channel-analysis/sca-cmd.zip -o sca-cmd.zip \
+ && echo "${ROKU_SCA_SHA256} sca-cmd.zip" | sha256sum -c  \
+ && unzip sca-cmd.zip \
+ && mv sca-cmd /usr/bin/roku-sca \
+ && rm -Rf sca-cmd sca-cmd.zip
 
 ####################################################################################################
 # EOF
