@@ -43,6 +43,15 @@ sub addError(exception as object)
 end sub
 
 ' ----------------------------------------------------------------
+' Adds a resource
+' @param resource (object) the tracked resource object (as retrieved from the roSystemLog)
+' ----------------------------------------------------------------
+sub addResource(resource as object)
+    ensureSetup()
+    m.rumScope.callFunc("handleEvent", addResourceEvent(resource), m.writer)
+end sub
+
+' ----------------------------------------------------------------
 ' Ensure all dependencies are present (from DI or generated)
 ' ----------------------------------------------------------------
 sub ensureSetup()

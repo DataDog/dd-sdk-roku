@@ -9,7 +9,7 @@
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
-' @return (object) an event describing the start of a view
+' @return (object) an event describing an startView action
 ' ----------------------------------------------------------------
 function startViewEvent(viewName as string, viewUrl as string) as object
     return {
@@ -22,7 +22,7 @@ end function
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
-' @return (object) an event describing the stop of a view
+' @return (object) an event describing an stopView action
 ' ----------------------------------------------------------------
 function stopViewEvent(viewName as string, viewUrl as string) as object
     return {
@@ -34,7 +34,7 @@ end function
 
 ' ----------------------------------------------------------------
 ' @param exception (object) the caught exception
-' @return (object) an event describing the stop of a view
+' @return (object) an event describing an addError action
 ' ----------------------------------------------------------------
 function addErrorEvent(exception as object) as object
     return {
@@ -43,4 +43,13 @@ function addErrorEvent(exception as object) as object
     }
 end function
 
-
+' ----------------------------------------------------------------
+' @param resource (object) the resource object
+' @return (object) an event describing an addResource action
+' ----------------------------------------------------------------
+function addResourceEvent(resource as object) as object
+    return {
+        eventType: "addResource",
+        resource: resource
+    }
+end function
