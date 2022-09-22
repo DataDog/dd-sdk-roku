@@ -60,7 +60,7 @@ function runTests() as object
     ])
 
     ' setup logger
-    Runner.Logger.SetVerbosity(3) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
+    Runner.Logger.SetVerbosity(0) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
     Runner.Logger.SetEcho(true)
     Runner.Logger.SetJUnit(false)
 

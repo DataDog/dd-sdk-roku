@@ -17,3 +17,25 @@ function getTimestamp() as longinteger
     timestamp& = (seconds& * 1000) + millis&
     return timestamp&
 end function
+
+'----------------------------------------------------------------
+' Converts a duration in seconds (double) into a duration in milliseconds (longinteger)
+' @param seconds (double) a duration in seconds
+' @return (longinteger) the duration in milliseconds
+'----------------------------------------------------------------
+function secToMillis(seconds as double) as longinteger
+    ratio& = 1000
+    result& = seconds * ratio&
+    return result&
+end function
+
+'----------------------------------------------------------------
+' Converts a duration in seconds (double) into a duration in nanoseconds (longinteger)
+' @param seconds (double) a duration in seconds
+' @return (longinteger) the duration in nanoseconds
+'----------------------------------------------------------------
+function secToNanos(seconds as double) as longinteger
+    ratio& = 1000000000
+    result& = seconds * ratio&
+    return result&
+end function
