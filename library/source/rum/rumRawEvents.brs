@@ -9,7 +9,7 @@
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
-' @return (object) an event describing an startView action
+' @return (object) an event describing a startView action
 ' ----------------------------------------------------------------
 function startViewEvent(viewName as string, viewUrl as string) as object
     return {
@@ -22,7 +22,7 @@ end function
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
-' @return (object) an event describing an stopView action
+' @return (object) an event describing a stopView action
 ' ----------------------------------------------------------------
 function stopViewEvent(viewName as string, viewUrl as string) as object
     return {

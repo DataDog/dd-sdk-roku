@@ -152,7 +152,7 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Handles a resource event
-' @param url (string) the url of the Resource
+' @param resource (object) resource object
 ' @param writer (object) the writer node (see WriterTask.brs)
 ' ----------------------------------------------------------------
 sub addResource(resource as object, writer as object)
@@ -167,7 +167,7 @@ sub addResource(resource as object, writer as object)
     if (status = "ok" and url <> invalid and transferTime <> invalid)
         sendResource(url, transferTime, method, resource.httpCode, resource.bytesDownloaded, writer)
     else
-        sendresourceError(status, url, method, writer)
+        sendResourceError(status, url, method, writer)
     end if
 end sub
 
@@ -232,7 +232,7 @@ end sub
 ' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
 ' @param writer (object) the writer node (see WriterTask.brs)
 ' ----------------------------------------------------------------
-sub sendresourceError(status as string, url as dynamic, method as dynamic, writer as object)
+sub sendResourceError(status as string, url as dynamic, method as dynamic, writer as object)
     timestamp& = getTimestamp()
     logVerbose("Sending a resource error")
 
