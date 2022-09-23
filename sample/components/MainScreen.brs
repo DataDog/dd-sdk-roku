@@ -33,6 +33,8 @@ sub onBtnSelected()
         stopView()
     else if (m.ButtonGroup.buttonSelected = 2)
         sendError()
+    else if (m.ButtonGroup.buttonSelected = 3)
+        sendResource()
     end if
 end sub
 
@@ -58,4 +60,11 @@ sub sendError()
         print error
         m.rumAgent.callFunc("addError", error)
     end try
+end sub
+
+sub sendResource()
+    task = createObject("roSGNode", "RequestTask")
+    task.setField("query", "datadog")
+    task.setField("rumAgent", m.rumAgent)
+    task.control = "RUN"
 end sub

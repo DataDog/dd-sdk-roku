@@ -19,6 +19,17 @@ function getTimestamp() as longinteger
 end function
 
 '----------------------------------------------------------------
+' Converts a duration in milliseconds (longinteger) into a duration in seconds (double)
+' @param milliseconds (longinteger) a duration in milliseconds
+' @return (double) the duration in seconds
+'----------------------------------------------------------------
+function millisToSec(milliseconds as longinteger) as double
+    ratio# = 1000
+    result# = milliseconds / ratio#
+    return result#
+end function
+
+'----------------------------------------------------------------
 ' Converts a duration in seconds (double) into a duration in milliseconds (longinteger)
 ' @param seconds (double) a duration in seconds
 ' @return (longinteger) the duration in milliseconds
