@@ -12,8 +12,8 @@ Copyright 2022-Today Datadog, Inc.
         <ButtonGroup id="mainButtonGroup" translation="[50,300]">
             <Button text="Start View" showFocusFootprint="true" />
             <Button text="Stop View" showFocusFootprint="true" />
-            <Button text="Add Error" showFocusFootprint="true" />
-            <Button text="Baz" showFocusFootprint="true" />
+            <Button text="Trigger Error" showFocusFootprint="true" />
+            <Button text="Trigger Resource" showFocusFootprint="true" />
         </ButtonGroup>
 
         <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />

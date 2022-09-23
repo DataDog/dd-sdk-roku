@@ -416,6 +416,8 @@ function TF_Utils__BaseComparator(value1 as dynamic, value2 as dynamic) as boole
         return true
     else if Type(box(value1), 3) = Type(box(value2), 3)
         return value1 = value2
+    else if TF_Utils__IsNumber(value1) and TF_Utils__IsNumber(value2)
+        return value1 = value2
     else
         return false
     end if

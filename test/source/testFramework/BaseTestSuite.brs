@@ -742,7 +742,7 @@ end function
 function BTS__AssertBetween(number as dynamic, min as dynamic, max as dynamic, msg = "" as string) as string
 
     if (not TF_Utils__IsNumber(number))
-        return "Expected number to be a number (integer, longinteger, float or double)"
+        return "Expected number to be a number (integer, longinteger, float or double) but was " + type(number)
     else if (not TF_Utils__IsNumber(min))
         return "Expected min to be a number (integer, longinteger, float or double) but was " + type(min)
     else if (not TF_Utils__IsNumber(max))

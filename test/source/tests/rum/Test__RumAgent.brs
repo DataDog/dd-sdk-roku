@@ -13,6 +13,7 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenStartView_ThenDelegateToRumScope", RumAgentTest__WhenStartView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStopView_ThenDelegateToRumScope", RumAgentTest__WhenStopView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddError_ThenDelegateToRumScope", RumAgentTest__WhenAddError_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     return this
 end function
@@ -105,5 +106,20 @@ function RumAgentTest__WhenAddError_ThenDelegateToRumScope() as string
     return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
 end function
 
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the addResource method
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddResource_ThenDelegateToRumScope() as string
+    ' Given
+    fakeResource = { url: IG_GetString(128), method: IG_GetString(5), transferTime: IG_GetFloat() }
 
+    ' When
+    m.testedNode.callFunc("addResource", fakeResource)
+    sleep(30)
 
+    ' Then
+    expectedArgs = { event: { eventType: "addResource", resource: fakeResource }, writer: m.mockWriter }
+    return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
+end function

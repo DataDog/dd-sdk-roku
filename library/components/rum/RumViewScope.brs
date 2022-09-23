@@ -43,6 +43,8 @@ sub handleEvent(event as object, writer as object)
         stopView(m.top.viewName, m.top.viewUrl, writer)
     else if (event.eventType = "addError")
         addError(event.exception, writer)
+    else if (event.eventType = "addResource")
+        addResource(event.resource, writer)
     end if
 end sub
 
@@ -79,16 +81,11 @@ sub stopView(name as string, url as string, writer as object)
 end sub
 
 ' ----------------------------------------------------------------
-' Send an error event
+' Handles an error event
 ' @param exception (object) the exception
 ' @param writer (object) the writer node (see WriterTask.brs)
 ' ----------------------------------------------------------------
 sub addError(exception as object, writer as object)
-    timestamp& = getTimestamp()
-    logVerbose("Sending an error")
-
-    context = getRumContext()
-
     if (exception.number = invalid)
         errorType = "unknown"
     else
@@ -100,11 +97,27 @@ sub addError(exception as object, writer as object)
         errorMsg = exception.message
     end if
 
+    sendError(errorMsg, errorType, exception.backtrace, writer)
+end sub
+
+' ----------------------------------------------------------------
+' Sends an error event
+' @param message (string) the error message
+' @param errorType (string) the error type
+' @param backtrace (dynamic) the error backtrace array, or invalid
+' @param writer (object) the writer node (see WriterTask.brs)
+' ----------------------------------------------------------------
+sub sendError(message as string, errorType as string, backtrace as dynamic, writer as object)
+    timestamp& = getTimestamp()
+    logVerbose("Sending an error")
+
+    context = getRumContext()
     errorEvent = {
         _dd: {
             format_version: 2,
             session: { plan: 1 }
         },
+        ' TODO RUMM-2435 parent action id
         application: {
             id: context.applicationId
         },
@@ -112,11 +125,141 @@ sub addError(exception as object, writer as object)
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID(),
             is_crash: false,
-            message: errorMsg,
+            message: message,
             source: "source",
             source_type: agentSource(),
-            stack: backtraceToString(exception.backtrace),
+            stack: backtraceToString(backtrace),
             type: errorType
+        },
+        service: context.serviceName,
+        session: {
+            has_replay: false,
+            id: context.sessionId,
+            type: "user"
+        },
+        source: agentSource(),
+        type: "error",
+        version: context.applicationVersion,
+        view: {
+            id: m.viewId,
+            url: m.top.viewUrl,
+            name: m.top.viewName
+        }
+    }
+
+    writer.writeEvent = FormatJson(errorEvent)
+end sub
+
+' ----------------------------------------------------------------
+' Handles a resource event
+' @param resource (object) resource object
+' @param writer (object) the writer node (see WriterTask.brs)
+' ----------------------------------------------------------------
+sub addResource(resource as object, writer as object)
+    status = resource.status
+    if (status = invalid or status = "")
+        status = "ok"
+    end if
+
+    url = resource.url
+    transferTime = resource.transferTime
+    method = resource.method
+    if (status = "ok" and url <> invalid and transferTime <> invalid)
+        sendResource(url, transferTime, method, resource.httpCode, resource.bytesDownloaded, writer)
+    else
+        sendResourceError(status, url, method, writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Sends a resource event
+' @param url (string) the resource url
+' @param transferTime (double) the duration of the transfer (in seconds)
+' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
+' @param httpCode (dynamic) the HTTP status code as integer (200, 404, …) or invalid
+' @param bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
+' @param writer (object) the writer node (see WriterTask.brs)
+' ----------------------------------------------------------------
+sub sendResource(url as string, transferTime as double, method as dynamic, httpCode as dynamic, bytesDownloaded as dynamic, writer as object)
+    timestamp& = getTimestamp()
+    logVerbose("Sending a resource")
+
+    context = getRumContext()
+    startTimestampMs& = timestamp& - secToMillis(transferTime)
+
+    resourceEvent = {
+        _dd: {
+            format_version: 2,
+            session: { plan: 1 }
+        },
+        ' TODO RUMM-2435 parent action id
+        application: {
+            id: context.applicationId
+        },
+        date: startTimestampMs&,
+        resource: {
+            id: CreateObject("roDeviceInfo").GetRandomUUID(),
+            type: "native",
+            url: url,
+            method: method,
+            status_code: httpCode,
+            size: bytesDownloaded,
+            duration: secToNanos(transferTime)
+        },
+        service: context.serviceName,
+        session: {
+            has_replay: false,
+            id: context.sessionId,
+            type: "user"
+        },
+        source: agentSource(),
+        type: "resource",
+        version: context.applicationVersion,
+        view: {
+            id: m.viewId,
+            url: m.top.viewUrl,
+            name: m.top.viewName
+        }
+    }
+
+    writer.writeEvent = FormatJson(resourceEvent)
+end sub
+
+' ----------------------------------------------------------------
+' Sends an error event corresponding to a failed network request
+' @param status (string) the error message
+' @param url (string) the resource url
+' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
+' @param writer (object) the writer node (see WriterTask.brs)
+' ----------------------------------------------------------------
+sub sendResourceError(status as string, url as dynamic, method as dynamic, writer as object)
+    timestamp& = getTimestamp()
+    logVerbose("Sending a resource error")
+
+    context = getRumContext()
+    errorEvent = {
+        _dd: {
+            format_version: 2,
+            session: { plan: 1 }
+        },
+        ' TODO RUMM-2435 parent action id
+        application: {
+            id: context.applicationId
+        },
+        date: timestamp&,
+        error: {
+            id: CreateObject("roDeviceInfo").GetRandomUUID(),
+            is_crash: false,
+            message: "Failed to perform request",
+            resource: {
+                method: method,
+                type: "native",
+                url: url
+            },
+            source: "network",
+            source_type: agentSource(),
+            stack: invalid,
+            type: status
         },
         service: context.serviceName,
         session: {
