@@ -3,7 +3,7 @@
 ' Copyright 2022-Today Datadog, Inc.
 
 ' ****************************************************************
-' * RumSessionScope: handles the Session level,
+' * RumApplicationScope: handles the Application level,
 ' * delegates most to the children
 ' ****************************************************************
 
@@ -11,22 +11,20 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
+    m.applicationVersion = CreateObject("roAppInfo").GetVersion()
 end sub
 
 ' ----------------------------------------------------------------
 ' Returns the current context from this scope
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
-function getRumContext() as object
-    if (m.top.parentScope <> invalid)
-        rumContext = m.top.parentScope.callFunc("getRumContext")
-    else
-        rumContext = {}
-    end if
-
-    rumContext.sessionId = m.sessionId
-    return rumContext
+function getRumContext(_ph as dynamic) as object
+    return {
+        applicationId: m.top.applicationId,
+        serviceName: m.top.serviceName,
+        applicationVersion: m.applicationVersion
+    }
 end function
 
 ' ----------------------------------------------------------------
@@ -35,39 +33,27 @@ end function
 ' @param writer (object) the writer node (see WriterTask.brs)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    ' TODO RUMM-2478 update session
-
-    if (m.top.activeView <> invalid)
-        m.top.activeView.callFunc("handleEvent", event, writer)
-        if (not m.top.activeView.callFunc("isActive"))
-            m.top.activeView = invalid
-        end if
-    end if
-
-    if (event.eventType = "startView")
-        m.top.activeView = CreateObject("roSGNode", "RumViewScope")
-        m.top.activeView.viewName = event.viewName
-        m.top.activeView.viewUrl = event.viewUrl
-        m.top.activeView.parentScope = m.top
-        m.top.activeView.callFunc("handleEvent", {}, writer)
-    end if
+    ensureSessionScope()
+    m.top.sessionScope@.handleEvent(event, writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Returns information about whether the current scope can handle more events or not
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
-function isActive() as boolean
+function isActive(_ph as dynamic) as boolean
     ' TODO
     return invalid
 end function
 
 ' ----------------------------------------------------------------
-' Updates the internal session info based on Datadog logic
+' Sets the internal session scope from the top node's field,
+' or instantiate one.
 ' ----------------------------------------------------------------
-sub updateSession()
-    ' TODO RUMM-2478 Implement session update logic
-    if (m.sessionId = invalid)
-        m.sessionId = m.deviceInfo.GetRandomUUID()
+sub ensureSessionScope()
+    if (m.top.sessionScope = invalid)
+        m.top.sessionScope = CreateObject("roSGNode", "RumSessionScope")
+        m.top.sessionScope.parentScope = m.top
     end if
 end sub

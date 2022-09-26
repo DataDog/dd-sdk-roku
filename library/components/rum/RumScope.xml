@@ -6,8 +6,7 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="RumScope" extends="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/rum/RumScope.brs" />
-    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
+    <script type="text/brightscript" uri="pkg:/components/rum/RumScope.bs" />
 
     <interface>
         <field id="writer" type="node" />
@@ -18,5 +17,5 @@ Copyright 2022-Today Datadog, Inc.
         <function name="handleEvent" />
         <function name="isActive" />
     </interface>
-    
+
 </component>

@@ -2,11 +2,16 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/internalLogger.bs"
+import "pkg:/source/datadogSdk.bs"
+import "pkg:/source/timeUtils.bs"
+
 ' ****************************************************************
 ' * RumViewScope: handles the View level
 ' *  - send view updates when required
 ' *  - TODO handle children scopes
 ' ****************************************************************
+
 ' ----------------------------------------------------------------
 ' Initialize the component
 ' ----------------------------------------------------------------
@@ -19,11 +24,12 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Returns the current context from this scope
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
-function getRumContext() as object
+function getRumContext(_ph as dynamic) as object
     if (m.top.parentScope <> invalid)
-        rumContext = m.top.parentScope.callFunc("getRumContext")
+        rumContext = m.top.parentScope@.getRumContext()
     else
         rumContext = {}
     end if
@@ -50,9 +56,10 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Returns information about whether the current scope can handle more events or not
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
-function isActive() as boolean
+function isActive(_ph as dynamic) as boolean
     ' TODO test this behavior
     return true
 end function
@@ -111,7 +118,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
     timestamp& = getTimestamp()
     logVerbose("Sending an error")
 
-    context = getRumContext()
+    context = getRumContext(invalid)
     errorEvent = {
         _dd: {
             format_version: 2,
@@ -184,7 +191,7 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
     timestamp& = getTimestamp()
     logVerbose("Sending a resource")
 
-    context = getRumContext()
+    context = getRumContext(invalid)
     startTimestampMs& = timestamp& - secToMillis(transferTime)
 
     resourceEvent = {
@@ -236,7 +243,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
     timestamp& = getTimestamp()
     logVerbose("Sending a resource error")
 
-    context = getRumContext()
+    context = getRumContext(invalid)
     errorEvent = {
         _dd: {
             format_version: 2,
@@ -288,7 +295,7 @@ sub sendViewUpdate(writer as object)
     timestamp& = getTimestamp()
     logVerbose("Sending view update")
 
-    context = getRumContext()
+    context = getRumContext(invalid)
 
     m.documentVersionUpdate++
     timeSpentNs& = (timestamp& - m.startTimestamp&) * 1000000 ' convert ms to ns

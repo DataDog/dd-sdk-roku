@@ -2,6 +2,11 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/datadogSdk.bs"
+import "pkg:/source/internalLogger.bs"
+import "pkg:/source/fileUtils.bs"
+import "pkg:/source/timeUtils.bs"
+
 '*****************************************************************
 ' * UploaderTask: a background loop checking for files available for upload;
 ' * When a file is ready, it s uploaded, and upon success deleted from disk.
@@ -79,7 +84,7 @@ function uploadFile(path as string) as integer
     headers["DD-REQUEST-ID"] = requestId
 
     logVerbose("Network request " + requestId + " from " + path + " to " + url)
-    result = m.networkClient.callFunc("postFromFile", url, path, headers, m.top.payloadPrefix, m.top.payloadPostfix)
+    result = m.networkClient@.postFromFile(url, path, headers, m.top.payloadPrefix, m.top.payloadPostfix)
     return result
 end function
 

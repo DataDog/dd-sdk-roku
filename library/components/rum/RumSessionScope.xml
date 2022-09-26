@@ -6,6 +6,6 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="RumSessionScope" extends="RumScope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/rum/RumSessionScope.brs" />
+    <script type="text/brightscript" uri="pkg:/components/rum/RumSessionScope.bs" />
 
 </component>

@@ -2,6 +2,9 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/rum/rumRawEvents.bs"
+import "pkg:/source/internalLogger.bs"
+
 '*****************************************************************
 ' * RumAgent: a background component listening for internal events
 ' *     to write relevant RUM Event to Datadog.
@@ -20,7 +23,7 @@ end sub
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string)
     ensureSetup()
-    m.rumScope.callFunc("handleEvent", startViewEvent(name, url), m.writer)
+    m.rumScope@.handleEvent(startViewEvent(name, url), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -30,7 +33,7 @@ end sub
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string)
     ensureSetup()
-    m.rumScope.callFunc("handleEvent", stopViewEvent(name, url), m.writer)
+    m.rumScope@.handleEvent(stopViewEvent(name, url), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -39,7 +42,7 @@ end sub
 ' ----------------------------------------------------------------
 sub addError(exception as object)
     ensureSetup()
-    m.rumScope.callFunc("handleEvent", addErrorEvent(exception), m.writer)
+    m.rumScope@.handleEvent(addErrorEvent(exception), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -48,7 +51,7 @@ end sub
 ' ----------------------------------------------------------------
 sub addResource(resource as object)
     ensureSetup()
-    m.rumScope.callFunc("handleEvent", addResourceEvent(resource), m.writer)
+    m.rumScope@.handleEvent(addResourceEvent(resource), m.writer)
 end sub
 
 ' ----------------------------------------------------------------

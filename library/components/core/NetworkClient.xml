@@ -6,8 +6,8 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="NetworkClient" extends="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/core/NetworkClient.brs" />
-    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
+    <script type="text/brightscript" uri="pkg:/components/core/NetworkClient.bs" />
+    <script type="text/brightscript" uri="pkg:/source/internalLogger.bs" />
 
     <interface>
         <function name="postFromFile" />

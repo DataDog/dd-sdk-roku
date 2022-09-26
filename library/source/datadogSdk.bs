@@ -20,4 +20,3 @@ end function
 function agentSource() as string
     return "roku"
 end function
-
