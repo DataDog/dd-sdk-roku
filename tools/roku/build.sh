@@ -3,11 +3,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022-Today Datadog, Inc.
 
+# usage: build.sh folder
+
 cwd=`pwd` 
 
 for var in "$@"
 do
-    echo "---- Static code analysis for folder $var"
+    echo "---- Linting folder $var"
     cd $var
 
     if [ -f "package.json" ]; then
@@ -15,21 +17,13 @@ do
         ropm install
     fi
 
-    echo " - Cleanup node junk"
-    rm -r node_modules
-
-    echo " - Make application"
-    export DISTDIR="out/" 
-    export DISTZIP="app-$var" 
-    make
-
-    echo " - Static Channel Analysis"
-    $ROKU_SCA -e=error "out/app-$var.zip" 
+    echo " - Run BrighterScript compiler/linter"
+    bsc --lintConfig ../tools/lint/bslint.json
     result=$?
 
-    echo " - Cleanup environment"
-    unset DISTDIR
-    unset DISTZIP
+    # Needs to happen after calling bsc as it needs bslint in node_modules
+    echo " - Cleanup node junk"
+    rm -r node_modules
 
     # back to root folder
     cd $cwd 

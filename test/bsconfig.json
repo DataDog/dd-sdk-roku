@@ -3,12 +3,15 @@
     "rootDir": ".",
     "files": [
         "source/**/*.*",
-        "components/**/*.*"
+        "components/**/*.*",
+        "images/**/*.*",
+        "fonts/**/*.*",
+        "manifest"
     ],
     "plugins": [
         "@rokucommunity/bslint"
     ],
-    "createPackage": false,
+    "createPackage": true,
     "diagnosticFilters": [
         "components/roku_modules/**/*.*",
         "source/roku_modules/**/*.*",
