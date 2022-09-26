@@ -41,13 +41,13 @@ end sub
 sub startView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
-    m.rumAgent.callFunc("startView", viewName, viewUrl)
+    m.rumAgent@.startView(viewName, viewUrl)
 end sub
 
 sub stopView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
-    m.rumAgent.callFunc("stopView", viewName, viewUrl)
+    m.rumAgent@.stopView(viewName, viewUrl)
 end sub
 
 sub sendError()
@@ -58,7 +58,7 @@ sub sendError()
     catch error
         print "Caught something"
         print error
-        m.rumAgent.callFunc("addError", error)
+        m.rumAgent@.addError(error)
     end try
 end sub
 

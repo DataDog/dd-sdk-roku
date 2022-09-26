@@ -19,7 +19,7 @@ Copyright 2022-Today Datadog, Inc.
         <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />
     </children>
 
-    <script type="text/brightscript" uri="pkg:/components/MainScreen.brs" />
+    <script type="text/brightscript" uri="pkg:/components/MainScreen.bs" />
     <script type="text/brightscript" uri="pkg:/source/exploding.brs" />
 
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/datadogSdk.brs" />

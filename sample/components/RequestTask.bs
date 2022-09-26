@@ -14,7 +14,7 @@ sub performRequest()
     else
         requestUrl = "https://www.google.com/notasearch?q=" + m.top.query
     end if
-    
+
     request = CreateObject("roUrlTransfer")
     request.SetUrl(requestUrl)
     request.RetainBodyOnError(true)
@@ -48,7 +48,7 @@ sub performRequest()
                         httpCode: httpCode,
                         status: status
                     }
-                    m.top.rumAgent.callFunc("addResource", resource)
+                    m.top.rumAgent@.addResource(resource)
                 end if
             end if
         end if

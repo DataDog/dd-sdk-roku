@@ -8,7 +8,7 @@
 ' ----------------------------------------------------------------
 sub RunUserInterface(args as dynamic)
     datadogroku_logThread("RunUserInterface")
-    if (args.mediaType <> invalid) and (args.contentId <> invalid)
+    if ((args.mediaType <> invalid) and (args.contentId <> invalid))
         datadogroku_logInfo("Sample app launched with deeplink: " + args.contentId + "/" + args.mediaType)
     end if
 
@@ -23,9 +23,9 @@ sub RunUserInterface(args as dynamic)
     m.port = CreateObject("roMessagePort")
 
     screen.setMessagePort(m.port)
-    screen.CreateScene("MainScreen")
+    scene = screen.CreateScene("MainScreen")
     screen.show()
-    screen.signalBeacon("AppLaunchComplete")
+    scene.signalBeacon("AppLaunchComplete")
 
     ' Handle roInput (deeplink changes at runtime)
     input = CreateObject("roInput")
