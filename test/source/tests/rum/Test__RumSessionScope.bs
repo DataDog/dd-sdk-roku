@@ -54,10 +54,10 @@ function RumSessionScopeTest__WhenGetContext_ThenReturnsContext() as string
         serviceName: fakeServiceName,
         applicationVersion: fakeVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", { _ph: invalid }, fakeParentContext)
 
     ' When
-    context = m.testedScope.callFunc("getRumContext")
+    context = m.testedScope@.getRumContext()
 
     ' Then
     return m.multipleAssertions([
@@ -81,7 +81,7 @@ function RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope() as 
     fakeWriter = { mock: "writer" }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, fakeWriter)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
     activeView = m.testedScope.activeView
@@ -101,18 +101,18 @@ end function
 function RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope() as string
     ' Given
     mockScope = CreateObject("roSGNode", "MockRumScope")
-    mockScope.callFunc("stubCall", "isActive", {}, true)
+    mockScope@.stubCall("isActive", {}, true)
     m.testedScope.activeView = mockScope
     fakeEvent = { mock: "event", eventType: "any" }
     fakeWriter = { mock: "writer" }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, fakeWriter)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
     return m.multipleAssertions([
         m.assertEqual(m.testedScope.activeView.subtype(), "MockRumScope"),
-        mockScope.callFunc("assertFunctionCalled", "handleEvent", { event: fakeEvent, writer: fakeWriter })
+        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
     ])
 end function
 
@@ -128,14 +128,14 @@ function RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt() as string
     m.testedScope.activeView = mockScope
     fakeEvent = { mock: "event", eventType: "any" }
     fakeWriter = { mock: "writer" }
-    mockScope.callFunc("stubCall", "isActive", {}, false)
+    mockScope@.stubCall("isActive", {}, false)
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, fakeWriter)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
     return m.multipleAssertions([
         m.assertEqual(m.testedScope.activeView, invalid),
-        mockScope.callFunc("assertFunctionCalled", "handleEvent", { event: fakeEvent, writer: fakeWriter })
+        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
     ])
 end function

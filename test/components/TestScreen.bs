@@ -2,6 +2,8 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+
 sub init()
     m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
     m.top.setFocus(true)

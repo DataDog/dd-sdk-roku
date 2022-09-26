@@ -2,7 +2,6 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-
 '*****************************************************************
 '* MockRumScope: a mock for a Rum*Scope component.
 '*****************************************************************
@@ -15,9 +14,10 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Returns the current context from this scope
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
-function getRumContext() as object
+function getRumContext(_ph as dynamic) as object
     recordFunctionCall("getRumContext", {})
     returnValue = getStubReturnValue("getRumContext", {})
     if (returnValue <> invalid)
@@ -36,12 +36,12 @@ sub handleEvent(event as object, writer as object)
     recordFunctionCall("handleEvent", { event: event, writer: writer })
 end sub
 
-
 ' ----------------------------------------------------------------
 ' Returns information about whether the current scope can handle more events or not
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
-function isActive() as boolean
+function isActive(_ph as dynamic) as boolean
     recordFunctionCall("isActive", {})
     return getStubReturnValue("isActive", {})
 end function

@@ -61,12 +61,12 @@ function RumAgentTest__WhenStartView_ThenDelegateToRumScope() as string
     fakeViewUrl = IG_GetString(32)
 
     ' When
-    m.testedNode.callFunc("startView", fakeViewName, fakeViewUrl)
+    m.testedNode@.startView(fakeViewName, fakeViewUrl)
     sleep(30)
 
     ' Then
     expectedArgs = { event: { eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
-    return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
 '----------------------------------------------------------------
@@ -80,12 +80,12 @@ function RumAgentTest__WhenStopView_ThenDelegateToRumScope() as string
     fakeViewUrl = IG_GetString(32)
 
     ' When
-    m.testedNode.callFunc("stopView", fakeViewName, fakeViewUrl)
+    m.testedNode@.stopView(fakeViewName, fakeViewUrl)
     sleep(30)
 
     ' Then
     expectedArgs = { event: { eventType: "stopView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
-    return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
 '----------------------------------------------------------------
@@ -98,12 +98,12 @@ function RumAgentTest__WhenAddError_ThenDelegateToRumScope() as string
     fakeException = { number: IG_GetInteger(128), message: IG_GetString(128), backtrace: [] }
 
     ' When
-    m.testedNode.callFunc("addError", fakeException)
+    m.testedNode@.addError(fakeException)
     sleep(30)
 
     ' Then
     expectedArgs = { event: { eventType: "addError", exception: fakeException }, writer: m.mockWriter }
-    return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
 '----------------------------------------------------------------
@@ -116,10 +116,10 @@ function RumAgentTest__WhenAddResource_ThenDelegateToRumScope() as string
     fakeResource = { url: IG_GetString(128), method: IG_GetString(5), transferTime: IG_GetFloat() }
 
     ' When
-    m.testedNode.callFunc("addResource", fakeResource)
+    m.testedNode@.addResource(fakeResource)
     sleep(30)
 
     ' Then
     expectedArgs = { event: { eventType: "addResource", resource: fakeResource }, writer: m.mockWriter }
-    return m.mockRumScope.callFunc("assertFunctionCalled", "handleEvent", expectedArgs)
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function

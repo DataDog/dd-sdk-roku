@@ -64,10 +64,10 @@ function RumViewScopeTest__WhenGetContext_ThenReturnsContext() as string
         serviceName: fakeServiceName,
         sessionId: fakeSessionId
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
 
     ' When
-    context = m.testedScope.callFunc("getRumContext")
+    context = m.testedScope@.getRumContext()
 
     ' Then
     return m.multipleAssertions([
@@ -95,14 +95,14 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate() as stri
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     if (updates.count() = 0)
         return "Expected writeEvent to be updated"
     end if
@@ -145,15 +145,15 @@ function RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent() as 
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     viewEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),
@@ -186,10 +186,10 @@ function RumViewScopeTest__WhenStopUnknownView_ThenDoNothing() as string
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName + IG_GetString(8), viewUrl: m.fakeViewUrl + IG_GetString(8) }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 0)
     ])
@@ -212,14 +212,14 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent() as stri
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "startView", viewName: IG_GetString(32), viewUrl: IG_GetString(32) }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     viewEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),
@@ -259,7 +259,7 @@ function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as strin
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeMessage = IG_GetString(128)
     fakeErrorNumber = IG_GetInteger(256)
     fakeBacktrace = IG_GetBacktrace()
@@ -268,10 +268,10 @@ function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as strin
 
     ' When
     errorTimestamp& = datadogroku_getTimestamp()
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     errorEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),
@@ -317,15 +317,15 @@ function RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent() as 
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "addError", exception: {} }
 
     ' When
     errorTimestamp& = datadogroku_getTimestamp()
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     errorEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),
@@ -370,7 +370,7 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
     fakeMethod = IG_GetOneOf(["GET", "POST", "HEAD", "PUT"])
     fakeHttpCode = IG_GetInteger(600)
@@ -383,10 +383,10 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
 
     ' When
     errorTimestamp& = datadogroku_getTimestamp()
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     resourceEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),
@@ -433,7 +433,7 @@ function RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent(
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
 
     fakeResourceUrl = IG_GetString(128)
     fakeDurationNs& = IG_GetInteger()
@@ -444,10 +444,10 @@ function RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent(
 
     ' When
     errorTimestamp& = datadogroku_getTimestamp()
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     resourceEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),
@@ -494,7 +494,7 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion
     }
-    m.mockParentScope.callFunc("stubCall", "getRumContext", {}, fakeParentContext)
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
     fakeMethod = IG_GetOneOf(["GET", "POST", "HEAD", "PUT"])
     fakeStatus = IG_GetOneOf([
@@ -516,10 +516,10 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
 
     ' When
     errorTimestamp& = datadogroku_getTimestamp()
-    m.testedScope.callFunc("handleEvent", fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    updates = m.mockWriter.callFunc("getFieldUpdates", "writeEvent")
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
     errorEvent = ParseJson(updates[0])
     return m.multipleAssertions([
         m.assertEqual(updates.count(), 1),

@@ -49,7 +49,7 @@ function RumApplicationScopeTest__WhenHandleEvent_ThenCreatesSessionScope() as s
     fakeWriter = { mock: "writer" }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, fakeWriter)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
     sessionScope = m.testedScope.sessionScope
@@ -65,7 +65,7 @@ function RumApplicationScopeTest__WhenGetContext_ThenReturnsContext() as string
     ' Given
 
     ' When
-    context = m.testedScope.callFunc("getRumContext")
+    context = m.testedScope@.getRumContext()
 
     ' Then
     return m.multipleAssertions([
@@ -88,10 +88,10 @@ function RumApplicationScopeTest__WhenHandleEvent_ThenDelegateToSessionScope() a
     fakeWriter = { mock: "writer" }
 
     ' When
-    m.testedScope.callFunc("handleEvent", fakeEvent, fakeWriter)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
     return m.multipleAssertions([
-        mockScope.callFunc("assertFunctionCalled", "handleEvent", { event: fakeEvent, writer: fakeWriter })
+        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
     ])
 end function

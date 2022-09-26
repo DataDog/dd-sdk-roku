@@ -5,6 +5,8 @@ This product includes software developed at Datadog (https://www.datadoghq.com/)
 Copyright 2022-Today Datadog, Inc.
 -->
 <component name="MockNode" extends="Node">
+    <script type="text/brightscript" uri="pkg:/components/mock/MockNode.bs" />
+
     <interface>
         <function name="reset" />
         <function name="recordFunctionCall" />
@@ -15,8 +17,4 @@ Copyright 2022-Today Datadog, Inc.
         <function name="assertNoInteractions" />
         <function name="getFieldUpdates" />
     </interface>
-    <script type="text/brightscript" uri="pkg:/components/mock/MockNode.brs" />
-    <script type="text/brightscript" uri="pkg:/source/mock/Mock.brs" />
-    <script type="text/brightscript" uri="pkg:/source/testFramework/TFUtils.brs" />
-    <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/internalLogger.brs" />
 </component>

@@ -2,14 +2,19 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/mock/Mock.brs"
+import "pkg:/source/testFramework/TFUtils.brs"
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+
 sub init()
     m.mock = Mock()
 end sub
 
 ' ----------------------------------------------------------------
 ' Resets all stubs and recorded calls
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' ----------------------------------------------------------------
-sub reset()
+sub reset(_ph as dynamic)
     m.mock.reset()
 end sub
 
@@ -64,10 +69,11 @@ end function
 
 ' ----------------------------------------------------------------
 ' Verifies that the current mock was never called
+' @param _ph (dynamic) no-op argument to avoid random crash on older Roku devices
 ' @return (string) an empty string if there was no calls, or an error
 '     message
 ' ----------------------------------------------------------------
-function assertNoInteractions() as string
+function assertNoInteractions(_ph as dynamic) as string
     return m.mock.assertNoInteractions()
 end function
 
