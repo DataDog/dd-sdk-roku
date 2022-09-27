@@ -19,10 +19,15 @@ npm install -g @rokucommunity/bslint
 
 ### Running the static analysis
 
-The whole project is covered by a set of static analysis tools, which can be launched via a shell script.
+The whole project is covered by a set of static analysis tools, which can be launched via `npm` :
+- [Brighterscript](https://npmjs.org/package/brighterscript) transpilation to Brightscript and packaging for the `sample` and `test` channels;
+- [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) for linting rules;
+- [Static Channel Analysis](http://devtools.web.roku.com/#static-channel-analysis-tool) ensuring we follow Roku official guidelines.
 
 ```shell script
-./tools/lint/lint.sh sample test library
+npm run lint
+npm run sca-test
+npm run sca-sample
 ```
 
 ### Running the tests
