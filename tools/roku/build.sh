@@ -9,7 +9,7 @@ cwd=`pwd`
 
 for var in "$@"
 do
-    echo "---- Linting folder $var"
+    echo "---- Building folder $var"
     cd $var
 
     if [ -f "package.json" ]; then

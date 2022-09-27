@@ -13,5 +13,6 @@
     "stagingFolderPath": "../dist",
     "diagnosticFilters": [
         "source/roku_modules/**/*.*"
-    ]
+    ],
+    "lintConfig": "tools/lint/bslint.json"
 }

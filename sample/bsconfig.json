@@ -17,5 +17,6 @@
         "components/roku_modules/**/*.*",
         "source/roku_modules/**/*.*",
         "source/exploding.brs"
-    ]
+    ],
+    "lintConfig": "tools/lint/bslint.json"
 }

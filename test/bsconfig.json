@@ -16,5 +16,6 @@
         "components/roku_modules/**/*.*",
         "source/roku_modules/**/*.*",
         "source/testFramework/*.brs"
-    ]
+    ],
+    "lintConfig": "tools/lint/bslint.json"
 }
