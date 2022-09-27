@@ -69,16 +69,13 @@ end sub
 ' ----------------------------------------------------------------
 sub ensureRumScope()
     if (m.rumScope = invalid)
-        logInfo("Rum Scope doesn't exist…")
         if (m.top.rumScope <> invalid)
-            logInfo("Using injected rumScope")
             m.rumScope = m.top.rumScope
         else
-            logInfo("Creating new rumScope")
             m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
-            m.rumScope.applicationId = m.top.applicationId
-            m.rumScope.serviceName = m.top.serviceName
         end if
+        m.rumScope.applicationId = m.top.applicationId
+        m.rumScope.serviceName = m.top.serviceName
     end if
 end sub
 

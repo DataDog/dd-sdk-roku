@@ -19,12 +19,7 @@ end sub
 ' ----------------------------------------------------------------
 function getRumContext(_ph as dynamic) as object
     recordFunctionCall("getRumContext", {})
-    returnValue = getStubReturnValue("getRumContext", {})
-    if (returnValue <> invalid)
-        return returnValue
-    else
-        return {}
-    end if
+    return getStubReturnValue("getRumContext", {}) ?? {}
 end function
 
 ' ----------------------------------------------------------------
