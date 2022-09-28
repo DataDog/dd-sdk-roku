@@ -3,6 +3,7 @@
 ' Copyright 2022-Today Datadog, Inc.
 
 import "pkg:/source/internalLogger.bs"
+import "pkg:/source/rum/rumRawEvents.bs"
 
 ' ****************************************************************
 ' * RumSessionScope: handles the Session level,
@@ -47,7 +48,7 @@ sub handleEvent(event as object, writer as object)
         end if
     end if
 
-    if (event.eventType = "startView")
+    if (event.eventType = RawEvent.startView)
         m.top.activeView = CreateObject("roSGNode", "RumViewScope")
         m.top.activeView.viewName = event.viewName
         m.top.activeView.viewUrl = event.viewUrl

@@ -6,6 +6,17 @@
 '* Utilities to generate internal RUM events
 '*****************************************************************
 
+
+' ----------------------------------------------------------------
+' RawEvent: enum listing all the possible events handled by RUM scopes
+' ----------------------------------------------------------------
+enum RawEvent
+    startView = "startView"
+    stopView = "stopView"
+    addError = "addError"
+    addResource = "addResource"
+end enum
+
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
@@ -13,7 +24,7 @@
 ' ----------------------------------------------------------------
 function startViewEvent(viewName as string, viewUrl as string) as object
     return {
-        eventType: "startView",
+        eventType: RawEvent.startView,
         viewName: viewName,
         viewUrl: viewUrl
     }
@@ -26,7 +37,7 @@ end function
 ' ----------------------------------------------------------------
 function stopViewEvent(viewName as string, viewUrl as string) as object
     return {
-        eventType: "stopView",
+        eventType: RawEvent.stopView,
         viewName: viewName,
         viewUrl: viewUrl
     }
@@ -38,7 +49,7 @@ end function
 ' ----------------------------------------------------------------
 function addErrorEvent(exception as object) as object
     return {
-        eventType: "addError",
+        eventType: RawEvent.addError,
         exception: exception
     }
 end function
@@ -49,7 +60,7 @@ end function
 ' ----------------------------------------------------------------
 function addResourceEvent(resource as object) as object
     return {
-        eventType: "addResource",
+        eventType: RawEvent.addResource,
         resource: resource
     }
 end function

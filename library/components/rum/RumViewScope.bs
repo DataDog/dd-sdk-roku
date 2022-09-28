@@ -5,6 +5,7 @@
 import "pkg:/source/internalLogger.bs"
 import "pkg:/source/datadogSdk.bs"
 import "pkg:/source/timeUtils.bs"
+import "pkg:/source/rum/rumRawEvents.bs"
 
 ' ****************************************************************
 ' * RumViewScope: handles the View level
@@ -43,13 +44,13 @@ end function
 ' @param writer (object) the writer node (see WriterTask.brs)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    if (event.eventType = "stopView")
+    if (event.eventType = RawEvent.stopView)
         stopView(event.viewName, event.viewUrl, writer)
-    else if (event.eventType = "startView")
+    else if (event.eventType = RawEvent.startView)
         stopView(m.top.viewName, m.top.viewUrl, writer)
-    else if (event.eventType = "addError")
+    else if (event.eventType = RawEvent.addError)
         addError(event.exception, writer)
-    else if (event.eventType = "addResource")
+    else if (event.eventType = RawEvent.addResource)
         addResource(event.resource, writer)
     end if
 end sub
