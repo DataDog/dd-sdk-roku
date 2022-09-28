@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<component name="RumViewScope" extends="RumScope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+    <interface>
+        <field id="viewName" type="string" />
+        <field id="viewUrl" type="string" />
+    </interface>
+    <script type="text/brightscript" uri="pkg:/components/rum/RumViewScope.brs" />
+    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
+    <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />
+    <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
+</component>
