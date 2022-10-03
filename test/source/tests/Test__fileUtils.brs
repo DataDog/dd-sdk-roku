@@ -217,9 +217,9 @@ function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
         input$ = IG_GetString(128)
 
         ' When
+        crashed = false
         try
             datadogroku_strToLong(input$)
-            crashed = false
         catch e
             crashed = true
         end try

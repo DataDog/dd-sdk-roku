@@ -9,9 +9,8 @@ sub performRequest()
 
     m.port = CreateObject("roMessagePort")
 
+    requestUrl = "https://www.google.com/search?q=" + m.top.query
     if (Rnd(2) = 1)
-        requestUrl = "https://www.google.com/search?q=" + m.top.query
-    else
         requestUrl = "https://www.google.com/notasearch?q=" + m.top.query
     end if
 
@@ -36,10 +35,9 @@ sub performRequest()
                     transferTime# = datadogroku_millisToSec(durationMs&)
 
                     httpCode = msg.GetResponseCode()
+                    status = "ok"
                     if (httpCode < 0)
                         status = msg.GetFailureReason()
-                    else
-                        status = "ok"
                     end if
                     resource = {
                         url: requestUrl,

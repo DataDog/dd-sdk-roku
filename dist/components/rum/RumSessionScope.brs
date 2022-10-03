@@ -21,10 +21,9 @@ end sub
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
 function getRumContext(_ph as dynamic) as object
+    rumContext = {}
     if (m.top.parentScope <> invalid)
         rumContext = m.top.parentScope.callfunc("getRumContext", invalid)
-    else
-        rumContext = {}
     end if
     rumContext.sessionId = m.sessionId
     return rumContext
