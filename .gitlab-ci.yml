@@ -9,7 +9,7 @@ include:
 
 variables:
   REPO: 'dd-sdk-roku'
-  CI_IMAGE_VERSION: "2"
+  CI_IMAGE_VERSION: "3"
   BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
   CI_IMAGE: '$BUILD_STABLE_REGISTRY/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
@@ -30,7 +30,6 @@ stages:
   - test
   - publish
   - notify
-
 
 .base-configuration:
   tags: ['runner:main', 'size:large']
@@ -77,16 +76,33 @@ analysis:lint:
   stage: analysis
   timeout: 30m
   script:
-    - tools/lint/lint.sh library test sample 
+    - npm run lint
 
-analysis:sca:
+analysis:sca-test:
   extends:
     - .base-configuration
   stage: analysis
   timeout: 30m
   script:
     - export ROKU_SCA="/usr/bin/roku-sca/bin/sca-cmd"
-    - tools/sca/sca.sh test sample 
+    - npm run sca-test
+
+analysis:sca-sample:
+  extends:
+    - .base-configuration
+  stage: analysis
+  timeout: 30m
+  script:
+    - export ROKU_SCA="/usr/bin/roku-sca/bin/sca-cmd"
+    - npm run sca-sample
+
+analysis:check-dist:
+  extends:
+    - .base-configuration
+  stage: analysis
+  timeout: 30m
+  script:
+    - npm run check-dist
 
 ########################################################################################################################
 # TESTS

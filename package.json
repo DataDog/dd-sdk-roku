@@ -20,17 +20,18 @@
   },
   "license": "Apache-2.0",
   "files": [
-    "library/source/**/*",
-    "library/components/**/*"
+    "dist/source/**/*",
+    "dist/components/**/*"
   ],
   "scripts": {
-    "test": "cd test && ropm install && rm -r node_modules && make run",
-    "sample": "cd sample && ropm install && rm -r node_modules && make run",
-    "lint": "./tools/lint/lint.sh library test sample",
-    "ropm-sample": "cd sample && ropm install && rm -r node_modules",
-    "ropm-test": "cd test && ropm install && rm -r node_modules"
+    "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip",
+    "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip",
+    "lint": "./tools/roku/build.sh library test sample",
+    "sca-test": "./tools/roku/build.sh library test && ./tools/roku/sca.sh test/out/test.zip",
+    "sca-sample": "./tools/roku/build.sh library sample && ./tools/roku/sca.sh sample/out/sample.zip",
+    "check-dist": "./tools/roku/build.sh library && git add dist && git diff --exit-code HEAD -- dist"
   },
   "ropm": {
-    "packageRootDir": "library"
+    "packageRootDir": "dist"
   }
 }

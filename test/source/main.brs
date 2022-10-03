@@ -7,7 +7,7 @@
 ' @param args (dynamic) arguments passed by the OS when starting the channel
 ' ----------------------------------------------------------------
 sub RunUserInterface(args as dynamic)
-    if (args.mediaType <> invalid) and (args.contentId <> invalid)
+    if ((args.mediaType <> invalid) and (args.contentId <> invalid))
         datadogroku_logInfo("Test app launched with deeplink: " + args.contentId + "/" + args.mediaType)
     end if
 
@@ -16,7 +16,7 @@ sub RunUserInterface(args as dynamic)
     screen.setMessagePort(m.port)
     m.scene = screen.CreateScene("TestScreen")
     screen.show()
-    screen.signalBeacon("AppLaunchComplete")
+    m.scene.signalBeacon("AppLaunchComplete")
 
     try
         m.scene.testResults = runTests()
@@ -41,7 +41,6 @@ sub RunUserInterface(args as dynamic)
         end if
     end while
 end sub
-
 
 ' ----------------------------------------------------------------
 ' Runs all the tests

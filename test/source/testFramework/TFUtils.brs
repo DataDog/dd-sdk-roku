@@ -15,7 +15,6 @@
 '* All Rights Reserved
 '*****************************************************************
 
-
 ' *************************************************
 ' TF_Utils__IsXmlElement - check if value contains XMLElement interface
 ' @param value As Dynamic

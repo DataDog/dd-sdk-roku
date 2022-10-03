@@ -15,7 +15,6 @@
 '* All Rights Reserved
 '*****************************************************************
 
-
 function UTF_skip(msg = "")
     return UTF_PushErrorMessage(BTS__Skip(msg))
 end function

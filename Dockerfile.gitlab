@@ -18,6 +18,7 @@ RUN set -x && apt-get -y install --no-install-recommends apt-utils
 RUN set -x && apt-get -y install --no-install-recommends \
     curl \
     ca-certificates \
+    git \
     make \
     unzip \
     zip \
@@ -88,7 +89,6 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
  && tar -xf woke-linux-amd64.tar.gz \
  && mv woke-${WOKE_VERSION}-linux-amd64/woke /usr/bin/woke \
  && rm -Rf woke-${WOKE_VERSION}-linux-amd64 woke-${WOKE_VERSION}-linux-amd64.tar.gz
-
 
 ####################################################################################################
 # ROKU

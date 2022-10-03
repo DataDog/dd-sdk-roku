@@ -293,7 +293,7 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                         end for
                     else
                         params = [m, totalStatObj, testSuiteNamesList, m.GetIncludeFilter(), m.GetExcludeFilter()]
-                        tmp = testNode.callFunc("TestRunner__RunNodeTests", params)
+                        tmp = testNode@."TestRunner__RunNodeTests", params)
                         if tmp <> invalid then
                             totalStatObj = tmp
                         end if

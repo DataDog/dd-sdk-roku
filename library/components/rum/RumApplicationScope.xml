@@ -6,7 +6,7 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="RumApplicationScope" extends="RumScope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/rum/RumApplicationScope.brs" />
+    <script type="text/brightscript" uri="pkg:/components/rum/RumApplicationScope.bs" />
 
     <interface>
         <field id="applicationId" type="string" />

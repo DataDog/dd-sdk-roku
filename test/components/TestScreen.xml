@@ -5,6 +5,7 @@ This product includes software developed at Datadog (https://www.datadoghq.com/)
 Copyright 2022-Today Datadog, Inc.
 -->
 <component name="TestScreen" extends="Scene">
+    <script type="text/brightscript" uri="pkg:/components/TestScreen.bs" />
 
     <interface>
         <field id="testResults" type="assocarray" />
@@ -37,7 +38,4 @@ Copyright 2022-Today Datadog, Inc.
             <Font role="font" size="24" uri="pkg:/fonts/FiraCode-Regular.ttf" />
         </ScrollableText>
     </children>
-
-    <script type="text/brightscript" uri="pkg:/components/TestScreen.brs" />
-    <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/internalLogger.brs" />
 </component>

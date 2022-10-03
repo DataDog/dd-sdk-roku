@@ -41,7 +41,6 @@ function FileUtilsTest__WhenMkDirs_ThenCreateDir() as string
     ])
 end function
 
-
 '----------------------------------------------------------------
 ' Checks that mkdirs does nothing if folder already exists
 '----------------------------------------------------------------
@@ -207,7 +206,6 @@ function FileUtilsTest__WhenStrToLong_ThenReturnsLong() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Checks that strToLong parses not long safely
 '----------------------------------------------------------------
@@ -219,9 +217,9 @@ function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
         input$ = IG_GetString(128)
 
         ' When
+        crashed = false
         try
             datadogroku_strToLong(input$)
-            crashed = false
         catch e
             crashed = true
         end try

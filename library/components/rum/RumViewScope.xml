@@ -6,9 +6,7 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="RumViewScope" extends="RumScope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/rum/RumViewScope.brs" />
-    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
-    <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
+    <script type="text/brightscript" uri="pkg:/components/rum/RumViewScope.bs" />
 
     <interface>
         <field id="viewName" type="string" />

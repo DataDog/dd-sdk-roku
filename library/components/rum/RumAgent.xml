@@ -6,9 +6,7 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="RumAgent" extends="Node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.brs" />
-    <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />
-    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
+    <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.bs" />
 
     <interface>
         <field id="endpointHost" type="string" />

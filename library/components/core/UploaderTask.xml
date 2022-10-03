@@ -6,11 +6,7 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="UploaderTask" extends="Task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
-    <script type="text/brightscript" uri="pkg:/components/core/UploaderTask.brs" />
-    <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
-    <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
-    <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
-    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
+    <script type="text/brightscript" uri="pkg:/components/core/UploaderTask.bs" />
 
     <interface>
         <field id="endpointHost" type="string" />
