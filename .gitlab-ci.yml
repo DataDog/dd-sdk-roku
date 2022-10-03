@@ -9,7 +9,7 @@ include:
 
 variables:
   REPO: 'dd-sdk-roku'
-  CI_IMAGE_VERSION: "2"
+  CI_IMAGE_VERSION: "3"
   BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
   CI_IMAGE: '$BUILD_STABLE_REGISTRY/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'

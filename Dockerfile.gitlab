@@ -18,6 +18,7 @@ RUN set -x && apt-get -y install --no-install-recommends apt-utils
 RUN set -x && apt-get -y install --no-install-recommends \
     curl \
     ca-certificates \
+    git \
     make \
     unzip \
     zip \
