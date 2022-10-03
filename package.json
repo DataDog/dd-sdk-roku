@@ -28,7 +28,8 @@
     "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip",
     "lint": "./tools/roku/build.sh library test sample",
     "sca-test": "./tools/roku/build.sh library test && ./tools/roku/sca.sh test/out/test.zip",
-    "sca-sample": "./tools/roku/build.sh library sample && ./tools/roku/sca.sh sample/out/sample.zip"
+    "sca-sample": "./tools/roku/build.sh library sample && ./tools/roku/sca.sh sample/out/sample.zip",
+    "check-dist": "./tools/roku/build.sh library && git add dist && git diff --exit-code HEAD -- dist"
   },
   "ropm": {
     "packageRootDir": "dist"
