@@ -79,7 +79,6 @@ sub Mock__stubCall(functionName as string, params as object, returnValue as dyna
     })
 end sub
 
-
 ' ----------------------------------------------------------------
 ' Verifies if the given function was actually called
 ' @param functionName (string) the name of the function to check

@@ -13,7 +13,6 @@ sub init()
     m.urlTransfer = CreateObject("roUrlTransfer")
 end sub
 
-
 ' ----------------------------------------------------------------
 ' POST method to send the contents of the specified file to the
 '     provided URL.

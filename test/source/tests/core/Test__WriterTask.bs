@@ -22,14 +22,12 @@ function TestSuite__WriterTask() as object
     return this
 end function
 
-
 sub WriterTaskTest__SetUp()
     ' Mocks
 
     ' Fake data
     fakeTrackType = IG_GetString(10)
     m.testSuite.fakeSeparator = IG_GetString(2)
-
 
     m.testSuite.folderPath = datadogroku_trackFolderPath(fakeTrackType)
     datadogroku_mkdirs(m.testSuite.folderPath)
@@ -40,7 +38,6 @@ sub WriterTaskTest__SetUp()
     m.testSuite.testedTask.payloadSeparator = m.testSuite.fakeSeparator
 
 end sub
-
 
 sub WriterTaskTest__TearDown()
     m.testSuite.testedTask.control = "STOP"

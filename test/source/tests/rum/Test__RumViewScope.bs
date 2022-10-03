@@ -24,7 +24,6 @@ function TestSuite__RumViewScope() as object
     return this
 end function
 
-
 sub RumViewScopeTest__SetUp()
     ' Mocks
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
@@ -41,7 +40,6 @@ sub RumViewScopeTest__SetUp()
     m.testSuite.testedScope.viewName = m.testSuite.fakeViewName
     m.testSuite.testedScope.viewUrl = m.testSuite.fakeViewUrl
 end sub
-
 
 sub RumViewScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")

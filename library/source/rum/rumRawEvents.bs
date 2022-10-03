@@ -6,7 +6,6 @@
 '* Utilities to generate internal RUM events
 '*****************************************************************
 
-
 ' ----------------------------------------------------------------
 ' RawEvent: enum listing all the possible events handled by RUM scopes
 ' ----------------------------------------------------------------

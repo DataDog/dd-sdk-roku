@@ -111,7 +111,6 @@ To create a pull request:
 6. **Submit the pull request** from your fork back to this 
     [repository](https://github.com/DataDog/dd-sdk-roku) .
 
-
 The pull request will be run through our CI pipeline, and a project member will
 review the changes with you. At a minimum, to be accepted and merged, pull
 requests must:

@@ -35,7 +35,6 @@ function mkdirs(path as string) as boolean
         return true
     end if
 
-
     ' Early exit, path contains invalid chars
     folderPath = CreateObject("roPath", path)
     if (not folderPath.IsValid())
@@ -55,7 +54,7 @@ function mkdirs(path as string) as boolean
     ' Create dir
     if (not CreateDirectory(path))
         logWarning("Failed to create directory " + path)
-        return true
+        return false
     end if
 
     return true

@@ -17,7 +17,6 @@ function TestSuite__RumApplicationScope() as object
     return this
 end function
 
-
 sub RumApplicationScopeTest__SetUp()
     ' Mocks
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
@@ -31,7 +30,6 @@ sub RumApplicationScopeTest__SetUp()
     m.testSuite.testedScope.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedScope.serviceName = m.testSuite.fakeServiceName
 end sub
-
 
 sub RumApplicationScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")

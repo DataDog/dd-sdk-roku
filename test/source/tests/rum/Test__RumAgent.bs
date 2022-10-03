@@ -18,7 +18,6 @@ function TestSuite__RumAgent() as object
     return this
 end function
 
-
 sub RumAgentTest__SetUp()
     ' Mocks
     m.testSuite.mockUploader = CreateObject("roSGNode", "MockUploaderTask")
@@ -41,7 +40,6 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.writer = m.testSuite.mockWriter
     m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
 end sub
-
 
 sub RumAgentTest__TearDown()
     m.testSuite.Delete("mockUploader")

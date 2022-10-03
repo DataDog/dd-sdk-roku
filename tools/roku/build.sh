@@ -17,7 +17,7 @@ do
         ropm install
     fi
 
-    echo " - Run BrighterScript compiler/linter"
+    echo " - Run BrighterScript compiler/linter (version ‘$(bsc --version)’)"
     bsc --lintConfig ../tools/lint/bslint.json
     result=$?
 

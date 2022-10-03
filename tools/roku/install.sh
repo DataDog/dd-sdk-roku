@@ -56,7 +56,6 @@ if (( $result > 0 )); then
 fi
 echo "   Dev server for '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET) is ready."
 
-
 echo "---- Uninstalling previous app"
 HTTP_STATUS=`curl --user "$ROKU_DEV_USERNAME:$ROKU_DEV_PASSWORD" --digest --silent --show-error -F "mysubmit=Delete" -F "archive=" --output $DEV_SERVER_TMP_FILE --write-out "%{http_code}" http://$ROKU_DEV_TARGET/plugin_install`
 result=$?

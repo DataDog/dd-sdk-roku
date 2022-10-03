@@ -19,7 +19,6 @@ function TestSuite__RumSessionScope() as object
     return this
 end function
 
-
 sub RumSessionScopeTest__SetUp()
     ' Mocks
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
@@ -31,7 +30,6 @@ sub RumSessionScopeTest__SetUp()
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
 end sub
-
 
 sub RumSessionScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")
@@ -115,7 +113,6 @@ function RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope() as st
         mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
     ])
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a RumSessionScope

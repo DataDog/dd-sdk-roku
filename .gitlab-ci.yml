@@ -31,7 +31,6 @@ stages:
   - publish
   - notify
 
-
 .base-configuration:
   tags: ['runner:main', 'size:large']
   image: $CI_IMAGE

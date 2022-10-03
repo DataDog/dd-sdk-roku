@@ -20,7 +20,6 @@ sub init()
     m.top.observeField("crash", "onCrash")
 end sub
 
-
 ' ----------------------------------------------------------------
 ' Callback used to display the test results on screen
 ' ----------------------------------------------------------------

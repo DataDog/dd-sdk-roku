@@ -27,7 +27,6 @@ function TestSuite__UploaderTask() as object
     return this
 end function
 
-
 sub UploaderTaskTest__SetUp()
     ' Mocks
     m.testSuite.mockNetworkClient = CreateObject("roSGNode", "MockNetworkClient")
@@ -50,7 +49,6 @@ sub UploaderTaskTest__SetUp()
     m.testSuite.testedTask.payloadPrefix = m.testSuite.fakePrefix
     m.testSuite.testedTask.payloadPostfix = m.testSuite.fakePostfix
 end sub
-
 
 sub UploaderTaskTest__TearDown()
     m.testSuite.testedTask.control = "STOP"
@@ -266,7 +264,6 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_429() as string
         m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
     ])
 end function
-
 
 '----------------------------------------------------------------
 ' Given: an uploader and an uploadable file but too large (4xx)

@@ -41,7 +41,6 @@ function FileUtilsTest__WhenMkDirs_ThenCreateDir() as string
     ])
 end function
 
-
 '----------------------------------------------------------------
 ' Checks that mkdirs does nothing if folder already exists
 '----------------------------------------------------------------
@@ -206,7 +205,6 @@ function FileUtilsTest__WhenStrToLong_ThenReturnsLong() as string
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Checks that strToLong parses not long safely
