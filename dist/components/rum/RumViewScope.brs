@@ -39,7 +39,7 @@ end function
 ' ----------------------------------------------------------------
 ' Handles an internal event
 ' @param event (object) the event to handle
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
     if (event.eventType = "stopView")
@@ -67,7 +67,7 @@ end function
 ' Handles a stopView event
 ' @param name (string) the name of the stopped view
 ' @param url (string) the url of the stopped view
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string, writer as object)
     logVerbose("RUM stopping view " + name + " (" + url + ")")
@@ -86,7 +86,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Handles an error event
 ' @param exception (object) the exception
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addError(exception as object, writer as object)
     if (exception.number = invalid)
@@ -107,7 +107,7 @@ end sub
 ' @param message (string) the error message
 ' @param errorType (string) the error type
 ' @param backtrace (dynamic) the error backtrace array, or invalid
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendError(message as string, errorType as string, backtrace as dynamic, writer as object)
     timestamp& = getTimestamp()
@@ -155,7 +155,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Handles a resource event
 ' @param resource (object) resource object
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addResource(resource as object, writer as object)
     status = resource.status
@@ -179,7 +179,7 @@ end sub
 ' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
 ' @param httpCode (dynamic) the HTTP status code as integer (200, 404, …) or invalid
 ' @param bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendResource(url as string, transferTime as double, method as dynamic, httpCode as dynamic, bytesDownloaded as dynamic, writer as object)
     timestamp& = getTimestamp()
@@ -230,7 +230,7 @@ end sub
 ' @param status (string) the error message
 ' @param url (string) the resource url
 ' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendResourceError(status as string, url as dynamic, method as dynamic, writer as object)
     timestamp& = getTimestamp()
@@ -282,7 +282,7 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Send a view event
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendViewUpdate(writer as object)
     timestamp& = getTimestamp()

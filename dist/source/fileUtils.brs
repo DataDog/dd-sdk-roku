@@ -46,7 +46,7 @@ function mkdirs(path as string) as boolean
     ' Create dir
     if (not CreateDirectory(path))
         logWarning("Failed to create directory " + path)
-        return true
+        return false
     end if
     return true
 end function
