@@ -10,6 +10,7 @@
         <field id="rumScope" type="node" />
         <function name="startView" />
         <function name="stopView" />
+        <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
     </interface>

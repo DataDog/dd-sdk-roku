@@ -36,6 +36,17 @@ function stopViewEvent(viewName as string, viewUrl as string) as object
 end function
 
 ' ----------------------------------------------------------------
+' @param action (object) the action to track
+' @return (object) an event describing an addAction action
+' ----------------------------------------------------------------
+function addActionEvent(action as object) as object
+    return {
+        eventType: "addAction"
+        action: action
+    }
+end function
+
+' ----------------------------------------------------------------
 ' @param exception (object) the caught exception
 ' @return (object) an event describing an addError action
 ' ----------------------------------------------------------------

@@ -1,8 +1,8 @@
 ' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
-'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/datadogSdk.bs"
+'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/rum/rumRawEvents.bs"
 ' ****************************************************************
@@ -32,6 +32,8 @@ function getRumContext(_ph as dynamic) as object
         rumContext = m.top.parentScope.callfunc("getRumContext", invalid)
     end if
     rumContext.viewId = m.viewId
+    rumContext.viewName = m.top.viewName
+    rumContext.viewUrl = m.top.viewUrl
     return rumContext
 end function
 
@@ -41,6 +43,16 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
+    if (m.top.activeAction <> invalid)
+        logVerbose("Delegate to child")
+        m.top.activeAction.callfunc("handleEvent", event, writer)
+        if (not m.top.activeAction.callfunc("isActive", invalid))
+            logVerbose("No child anymore")
+            m.top.activeAction = invalid
+        else
+            logVerbose("Child still active")
+        end if
+    end if
     if (event.eventType = "stopView")
         stopView(event.viewName, event.viewUrl, writer)
     else if (event.eventType = "startView")
@@ -49,6 +61,8 @@ sub handleEvent(event as object, writer as object)
         addError(event.exception, writer)
     else if (event.eventType = "addResource")
         addResource(event.resource, writer)
+    else if (event.eventType = "addAction")
+        addAction(event.action, writer)
     end if
 end sub
 
@@ -58,8 +72,7 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
-    ' TODO test this behavior
-    return true
+    return not m.stopped
 end function
 
 ' ----------------------------------------------------------------
@@ -168,6 +181,19 @@ sub addResource(resource as object, writer as object)
     else
         sendResourceError(status, url, method, writer)
     end if
+end sub
+
+' ----------------------------------------------------------------
+' Handles an action event
+' @param action (object) action object
+' @param writer (object) the writer node (see WriterTask.brs)
+' ----------------------------------------------------------------
+sub addAction(action as object, writer as object)
+    ' TODO RUMM-2586 handle mutliple consecutive actions
+    m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
+    m.top.activeAction.target = action.target
+    m.top.activeAction.actionType = action.type
+    m.top.activeAction.parentScope = m.top
 end sub
 
 ' ----------------------------------------------------------------
