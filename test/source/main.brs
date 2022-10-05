@@ -55,11 +55,12 @@ function runTests() as object
         TestSuite__RumAgent,
         TestSuite__RumApplicationScope,
         TestSuite__RumSessionScope,
-        TestSuite__RumViewScope
+        TestSuite__RumViewScope,
+        TestSuite__RumActionScope
     ])
 
     ' setup logger
-    Runner.Logger.SetVerbosity(0) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
+    Runner.Logger.SetVerbosity(1) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
     Runner.Logger.SetEcho(true)
     Runner.Logger.SetJUnit(false)
 
