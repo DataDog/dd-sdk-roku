@@ -8,4 +8,8 @@ Copyright 2022-Today Datadog, Inc.
 
     <script type="text/brightscript" uri="pkg:/components/rum/RumSessionScope.bs" />
 
+    <interface>
+        <field id="activeView" type="node" />
+    </interface>
+
 </component>

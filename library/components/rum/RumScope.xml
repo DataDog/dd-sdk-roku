@@ -11,7 +11,6 @@ Copyright 2022-Today Datadog, Inc.
     <interface>
         <field id="writer" type="node" />
         <field id="parentScope" type="node" />
-        <field id="activeView" type="node" />
 
         <function name="getRumContext" />
         <function name="handleEvent" />
