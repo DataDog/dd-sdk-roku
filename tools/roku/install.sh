@@ -3,7 +3,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022-Today Datadog, Inc.
 
-# usage: install.sh path/to/app.zip
+# usage: install.sh path/to/app.zip [-listen]
 
 echo "---- Checking environment"
 
@@ -82,4 +82,8 @@ if (( $HTTP_STATUS == 200 )); then
 else
     echo "ERROR: Device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET) answered $HTTP_STATUS.";
     exit 1
+fi
+
+if (($2 == "-listen")); then
+    telnet $ROKU_DEV_TARGET 8085
 fi
