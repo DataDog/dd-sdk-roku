@@ -2,6 +2,11 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/exploding.brs"
+import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+
 sub init()
     m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
     m.top.setFocus(true)
@@ -24,8 +29,17 @@ sub init()
     startView()
 end sub
 
+function onKeyEvent(key as string, press as boolean) as boolean
+    datadogroku_logVerbose("onKeyEvent(" + key + ", " + press.toStr() + ")")
+    if (not press)
+        addAction(key)
+    end if
+    return false
+end function
+
 sub onBtnSelected()
     m.msgLabel.text = "Clicked on Button" + Str(m.ButtonGroup.buttonSelected)
+    addAction("Button#" + m.ButtonGroup.buttonSelected.toStr())
 
     if (m.ButtonGroup.buttonSelected = 0)
         startView()
@@ -67,4 +81,11 @@ sub sendResource()
     task.setField("query", "datadog")
     task.setField("rumAgent", m.rumAgent)
     task.control = "RUN"
+end sub
+
+sub addAction(target as string)
+    m.rumAgent@.addAction({
+        target: target,
+        type: "click"
+    })
 end sub
