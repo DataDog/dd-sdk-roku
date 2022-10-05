@@ -22,6 +22,7 @@ Copyright 2022-Today Datadog, Inc.
         <!-- Events -->
         <function name="startView" />
         <function name="stopView" />
+        <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
     </interface>

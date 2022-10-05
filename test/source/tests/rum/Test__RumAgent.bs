@@ -12,6 +12,7 @@ function TestSuite__RumAgent() as object
 
     this.addTest("WhenStartView_ThenDelegateToRumScope", RumAgentTest__WhenStartView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStopView_ThenDelegateToRumScope", RumAgentTest__WhenStopView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddAction_ThenDelegateToRumScope", RumAgentTest__WhenAddAction_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddError_ThenDelegateToRumScope", RumAgentTest__WhenAddError_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
@@ -83,6 +84,24 @@ function RumAgentTest__WhenStopView_ThenDelegateToRumScope() as string
 
     ' Then
     expectedArgs = { event: { eventType: "stopView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the addAction method
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddAction_ThenDelegateToRumScope() as string
+    ' Given
+    fakeAction = { target: IG_GetString(128), type: IG_GetString(128) }
+
+    ' When
+    m.testedNode@.addAction(fakeAction)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "addAction", action: fakeAction }, writer: m.mockWriter }
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 

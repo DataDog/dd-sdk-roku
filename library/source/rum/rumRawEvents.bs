@@ -14,6 +14,7 @@ enum RawEvent
     stopView = "stopView"
     addError = "addError"
     addResource = "addResource"
+    addAction = "addAction"
 end enum
 
 ' ----------------------------------------------------------------
@@ -39,6 +40,17 @@ function stopViewEvent(viewName as string, viewUrl as string) as object
         eventType: RawEvent.stopView,
         viewName: viewName,
         viewUrl: viewUrl
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param action (object) the action to track
+' @return (object) an event describing an addAction action
+' ----------------------------------------------------------------
+function addActionEvent(action as object) as object
+    return {
+        eventType: RawEvent.addAction,
+        action: action
     }
 end function
 
