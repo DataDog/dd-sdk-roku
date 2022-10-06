@@ -22,6 +22,9 @@ sub init()
     m.startTimestamp& = getTimestamp()
     m.stopped = false
     m.documentVersionUpdate = 0
+    m.actionCount = 0
+    m.errorCount = 0
+    m.resourceCount = 0
 end sub
 
 ' ----------------------------------------------------------------
@@ -175,6 +178,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         }
     }
 
+    m.errorCount++
     writer.writeEvent = FormatJson(errorEvent)
 end sub
 
@@ -202,6 +206,7 @@ sub addAction(action as object, writer as object)
     m.top.activeAction.target = action.target
     m.top.activeAction.actionType = action.type
     m.top.activeAction.parentScope = m.top
+    m.actionCount++
 end sub
 
 ' ----------------------------------------------------------------
@@ -261,6 +266,7 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
         }
     }
 
+    m.resourceCount++
     writer.writeEvent = FormatJson(resourceEvent)
 end sub
 
@@ -363,9 +369,9 @@ sub sendViewUpdate(writer as object)
             url: m.top.viewUrl,
             name: m.top.viewName,
             time_spent: timeSpentNs&,
-            action: { count: 0 }, ' TODO RUMM-2435
-            error: { count: 0 }, ' TODO RUMM-2435
-            resource: { count: 0 }' TODO RUMM-2435
+            action: { count: m.actionCount },
+            error: { count: m.errorCount },
+            resource: { count: m.resourceCount }
         }
     }
 
