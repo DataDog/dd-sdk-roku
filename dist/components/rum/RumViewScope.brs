@@ -5,6 +5,7 @@
 'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/rum/rumRawEvents.bs"
+'import "pkg:/source/rum/rumHelper.bs"
 ' ****************************************************************
 ' * RumViewScope: handles the View level
 ' *  - send view updates when required
@@ -19,6 +20,9 @@ sub init()
     m.startTimestamp& = getTimestamp()
     m.stopped = false
     m.documentVersionUpdate = 0
+    m.actionCount = 0
+    m.errorCount = 0
+    m.resourceCount = 0
 end sub
 
 ' ----------------------------------------------------------------
@@ -124,6 +128,10 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
     timestamp& = getTimestamp()
     logVerbose("Sending an error")
     context = getRumContext(invalid)
+    actionId = invalid
+    if (m.top.activeAction <> invalid)
+        actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
+    end if
     errorEvent = {
         _dd: {
             format_version: 2
@@ -131,7 +139,9 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
                 plan: 1
             }
         }
-        ' TODO RUMM-2435 parent action id
+        action: {
+            id: actionId
+        }
         application: {
             id: context.applicationId
         }
@@ -160,6 +170,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
             name: m.top.viewName
         }
     }
+    m.errorCount++
     writer.writeEvent = FormatJson(errorEvent)
 end sub
 
@@ -169,17 +180,10 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addResource(resource as object, writer as object)
-    status = resource.status
-    if (status = invalid or status = "")
-        status = "ok"
-    end if
-    url = resource.url
-    transferTime = resource.transferTime
-    method = resource.method
-    if (status = "ok" and url <> invalid and transferTime <> invalid)
-        sendResource(url, transferTime, method, resource.httpCode, resource.bytesDownloaded, writer)
+    if (isValidResource(resource))
+        sendResource(resource.url, resource.transferTime, resource.method, resource.httpCode, resource.bytesDownloaded, writer)
     else
-        sendResourceError(status, url, method, writer)
+        sendResourceError(resource.status, resource.url, resource.method, writer)
     end if
 end sub
 
@@ -194,6 +198,7 @@ sub addAction(action as object, writer as object)
     m.top.activeAction.target = action.target
     m.top.activeAction.actionType = action.type
     m.top.activeAction.parentScope = m.top
+    m.actionCount++
 end sub
 
 ' ----------------------------------------------------------------
@@ -209,6 +214,10 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
     timestamp& = getTimestamp()
     logVerbose("Sending a resource")
     context = getRumContext(invalid)
+    actionId = invalid
+    if (m.top.activeAction <> invalid)
+        actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
+    end if
     startTimestampMs& = timestamp& - secToMillis(transferTime)
     resourceEvent = {
         _dd: {
@@ -217,7 +226,9 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
                 plan: 1
             }
         }
-        ' TODO RUMM-2435 parent action id
+        action: {
+            id: actionId
+        }
         application: {
             id: context.applicationId
         }
@@ -246,6 +257,7 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
             name: m.top.viewName
         }
     }
+    m.resourceCount++
     writer.writeEvent = FormatJson(resourceEvent)
 end sub
 
@@ -260,6 +272,10 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
     timestamp& = getTimestamp()
     logVerbose("Sending a resource error")
     context = getRumContext(invalid)
+    actionId = invalid
+    if (m.top.activeAction <> invalid)
+        actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
+    end if
     errorEvent = {
         _dd: {
             format_version: 2
@@ -267,7 +283,9 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
                 plan: 1
             }
         }
-        ' TODO RUMM-2435 parent action id
+        action: {
+            id: actionId
+        }
         application: {
             id: context.applicationId
         }
@@ -341,14 +359,14 @@ sub sendViewUpdate(writer as object)
             name: m.top.viewName
             time_spent: timeSpentNs&
             action: {
-                count: 0
-            } ' TODO RUMM-2435
+                count: m.actionCount
+            }
             error: {
-                count: 0
-            } ' TODO RUMM-2435
+                count: m.errorCount
+            }
             resource: {
-                count: 0
-            } ' TODO RUMM-2435
+                count: m.resourceCount
+            }
         }
     }
     writer.writeEvent = FormatJson(viewEvent)

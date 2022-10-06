@@ -7,6 +7,7 @@
     <script type="text/brightscript" uri="pkg:/components/rum/RumActionScope.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />
+    <script type="text/brightscript" uri="pkg:/source/rum/rumHelper.brs" />
     <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
     <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
 </component>
