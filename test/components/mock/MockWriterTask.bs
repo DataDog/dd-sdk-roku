@@ -14,7 +14,7 @@ sub init()
 end sub
 
 ' ----------------------------------------------------------------
-' @see WriterTask.brs
+' @see WriterTask component
 ' ----------------------------------------------------------------
 sub onWriteEvent()
     recordFieldUpdate("writeEvent", m.top.writeEvent)

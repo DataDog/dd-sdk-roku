@@ -35,7 +35,7 @@ end function
 ' ----------------------------------------------------------------
 ' Handles an internal event
 ' @param event (object) the event to handle
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
     timestamp& = getTimestamp()

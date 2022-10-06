@@ -34,7 +34,7 @@ end function
 ' @param milliseconds (longinteger) a duration in milliseconds
 ' @return (longinteger) the duration in nanoseconds
 ' ----------------------------------------------------------------
-function millisToNanos(milliseconds as longinteger) as double
+function millisToNanos(milliseconds as longinteger) as longinteger
     ratio& = 1000000
     result& = milliseconds * ratio&
     return result&

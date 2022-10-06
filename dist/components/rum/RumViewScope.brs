@@ -186,7 +186,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Handles an action event
 ' @param action (object) action object
-' @param writer (object) the writer node (see WriterTask.brs)
+' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, writer as object)
     ' TODO RUMM-2586 handle mutliple consecutive actions
