@@ -38,6 +38,15 @@ sub stopView(name as string, url as string)
 end sub
 
 ' ----------------------------------------------------------------
+' Adds an action
+' @param action (object) the action to track
+' ----------------------------------------------------------------
+sub addAction(action as object)
+    ensureSetup()
+    m.rumScope@.handleEvent(addActionEvent(action), m.writer)
+end sub
+
+' ----------------------------------------------------------------
 ' Adds an error
 ' @param exception (object) the caught exception object
 ' ----------------------------------------------------------------

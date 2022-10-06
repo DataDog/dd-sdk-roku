@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@rokucommunity/bslint": "^0.7.4",
-    "brighterscript": "^0.58.0"
+    "brighterscript": "^0.59.0"
   },
   "dependencies": {
     "datadog-roku": "../"

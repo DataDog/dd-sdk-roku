@@ -6,7 +6,7 @@
         "named-function-style": "auto",
         "anon-function-style": "auto",
         "aa-comma-style": "no-dangling",
-        "no-print": "off",
+        "no-print": "warn",
         "no-todo": "info",
         "todo-pattern": "TODO|todo|FIXME",
         "no-stop": "error",

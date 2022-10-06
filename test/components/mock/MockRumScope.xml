@@ -8,11 +8,28 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/mock/MockRumScope.bs" />
 
     <interface>
+        <!-- RumScope -->
         <field id="writer" type="node" />
         <field id="parentScope" type="node" />
-
         <function name="getRumContext" />
         <function name="handleEvent" />
         <function name="isActive" />
+
+        <!-- Application -->
+        <field id="applicationId" type="string" />
+        <field id="serviceName" type="string" />
+        <field id="sessionScope" type="node" />
+
+        <!-- Session -->
+        <field id="activeView" type="node" />
+
+        <!-- View -->
+        <field id="viewName" type="string" />
+        <field id="viewUrl" type="string" />
+        <field id="activeAction" type="node" />
+
+        <!-- Action -->
+        <field id="target" type="string" />
+        <field id="actionType" type="string" />
     </interface>
 </component>

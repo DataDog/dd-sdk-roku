@@ -24,8 +24,8 @@
     "dist/components/**/*"
   ],
   "scripts": {
-    "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip",
-    "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip",
+    "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip -listen",
+    "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip -listen",
     "lint": "./tools/roku/build.sh library test sample",
     "sca-test": "./tools/roku/build.sh library test && ./tools/roku/sca.sh test/out/test.zip",
     "sca-sample": "./tools/roku/build.sh library sample && ./tools/roku/sca.sh sample/out/sample.zip",

@@ -11,6 +11,8 @@ function TestSuite__RumViewScope() as object
     this.Name = "RumViewScope"
 
     this.addTest("WhenGetContext_ThenReturnsContext", RumViewScopeTest__WhenGetContext_ThenReturnsContext, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenIsActive_ThenReturnsTrue", RumViewScopeTest__WhenIsActive_ThenReturnsTrue, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumViewScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEvent_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventTwice_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -20,6 +22,9 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleAddResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddFailedResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddActionEvent_ThenCreateChildScope", RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEvent_ThenDelegateToActiveActionScope", RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventActionNotActive_ThenDiscardIt", RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     return this
 end function
@@ -55,11 +60,13 @@ end sub
 function RumViewScopeTest__WhenGetContext_ThenReturnsContext() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
+    fakeVersion = IG_GetString(16)
     fakeServiceName = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
         serviceName: fakeServiceName,
+        applicationVersion: fakeVersion,
         sessionId: fakeSessionId
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
@@ -71,9 +78,44 @@ function RumViewScopeTest__WhenGetContext_ThenReturnsContext() as string
     return m.multipleAssertions([
         m.assertEqual(context.applicationId, fakeApplicationId),
         m.assertEqual(context.serviceName, fakeServiceName),
+        m.assertEqual(context.applicationVersion, fakeVersion),
         m.assertEqual(context.sessionId, fakeSessionId),
-        m.assertNotEmpty(context.viewId)
+        m.assertNotEmpty(context.viewId),
+        m.assertEqual(context.viewName, m.fakeViewName)
+        m.assertEqual(context.viewUrl, m.fakeViewUrl)
     ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: calling isActive
+'  Then: returns a true
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenIsActive_ThenReturnsTrue() as string
+    ' Given
+
+    ' When
+    isActive = m.testedScope@.isActive()
+
+    ' Then
+    return m.assertEqual(isActive, true)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: calling stop then isActive
+'  Then: returns a false
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenStoppedIsActive_ThenReturnsFalse() as string
+    ' Given
+    fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    isActive = m.testedScope@.isActive()
+
+    ' Then
+    return m.assertEqual(isActive, false)
 end function
 
 '----------------------------------------------------------------
@@ -234,7 +276,7 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent() as stri
         m.assertEqual(viewEvent.version, fakeApplicationVersion),
         m.assertNotEmpty(viewEvent.view.id),
         m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
+        m.assertBetween(viewEvent.view.time_spent, 1000000, 20000000),
         m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
         ' TODO RUMM-2435 assert action count, resource count, error count
     ])
@@ -545,5 +587,76 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
         m.assertEqual(errorEvent.error.resource.method, fakeMethod),
         m.assertEqual(errorEvent.error.resource.url, fakeResourceUrl)
         ' TODO RUMM-2435 assert parent action id
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addAction)
+'  Then: create a child action scope
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as string
+    ' Given
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["custom", "click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    actionScope = m.testedScope.activeAction
+    return m.multipleAssertions([
+        m.assertEqual(type(actionScope), "roSGNode"),
+        m.assertEqual(actionScope.subType(), "datadogroku_RumActionScope"),
+        m.assertEqual(actionScope.target, fakeAction.target),
+        m.assertEqual(actionScope.actionType, fakeAction.type)
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: calling handleEvent (type=any)
+'  Then: delegates the event to the child scope
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope() as string
+    ' Given
+    mockScope = CreateObject("roSGNode", "MockRumScope")
+    mockScope@.stubCall("isActive", {}, true)
+    m.testedScope.activeAction = mockScope
+    fakeEvent = { mock: "event", eventType: "any" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+
+    ' Then
+    return m.multipleAssertions([
+        m.assertEqual(m.testedScope.activeAction.subtype(), "MockRumScope"),
+        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: calling handleEvent (type=any)
+'  Then: delegates the event to the child scope
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt() as string
+    ' Given
+    mockScope = CreateObject("roSGNode", "MockRumScope")
+    mockScope@.stubCall("isActive", {}, false)
+    m.testedScope.activeAction = mockScope
+    fakeEvent = { mock: "event", eventType: "any" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    datadogroku_logVerbose("Back from handleEvent " + TF_Utils__AsString(m.testedScope.activeAction))
+    sleep(50)
+
+    ' Then
+    return m.multipleAssertions([
+        m.assertEqual(m.testedScope.activeAction, invalid),
+        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
     ])
 end function
