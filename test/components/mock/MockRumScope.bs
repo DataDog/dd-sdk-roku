@@ -38,5 +38,5 @@ end sub
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
     recordFunctionCall("isActive", {})
-    return getStubReturnValue("isActive", {})
+    return getStubReturnValue("isActive", {}) ?? false
 end function

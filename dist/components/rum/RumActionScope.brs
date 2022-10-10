@@ -4,6 +4,7 @@
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/datadogSdk.bs"
 'import "pkg:/source/rum/rumRawEvents.bs"
+'import "pkg:/source/rum/rumHelper.bs"
 ' ****************************************************************
 ' * RumActionScope: handles an Action's scope
 ' ****************************************************************
@@ -16,6 +17,8 @@ sub init()
     m.actionId = CreateObject("roDeviceInfo").GetRandomUUID()
     m.stopped = false
     m.lastEventTimestamp& = m.startTimestamp&
+    m.errorCount = 0
+    m.resourceCount = 0
 end sub
 
 ' ----------------------------------------------------------------
@@ -39,17 +42,32 @@ end function
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
     timestamp& = getTimestamp()
+    threshold& = m.lastEventTimestamp& + 100
     parentStopping = false
     if (event.eventType = "addError")
-        ' TODO RUMM-2435 track linked error
-        m.lastEventTimestamp& = getTimestamp()
+        if (timestamp& <= (threshold&))
+            m.errorCount++
+            m.lastEventTimestamp& = timestamp&
+            return
+        end if
     else if (event.eventType = "addResource")
-        ' TODO RUMM-2435 track linked resource
-        m.lastEventTimestamp& = getTimestamp()
+        if (isValidResource(event.resource))
+            transferTime& = secToMillis(event.resource.transferTime)
+            resourceStartTimestamp& = timestamp& - transferTime&
+            if (resourceStartTimestamp& <= (threshold&))
+                m.resourceCount++
+                m.lastEventTimestamp& = timestamp&
+                return
+            end if
+        else if (timestamp& <= (threshold&))
+            m.errorCount++
+            m.lastEventTimestamp& = timestamp&
+            return
+        end if
     else if (event.eventType = "startView" or event.eventType = "stopView")
         parentStopping = true
     end if
-    timeout = timestamp& > (m.lastEventTimestamp& + 100)
+    timeout = timestamp& > (threshold&)
     if (timeout or parentStopping)
         sendAction(writer)
         m.stopped = true
@@ -70,7 +88,6 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendAction(writer as object)
-    timestamp& = getTimestamp()
     logVerbose("Sending an action")
     duration& = millisToNanos(m.lastEventTimestamp& - m.startTimestamp&)
     context = getRumContext(invalid)
@@ -83,7 +100,13 @@ sub sendAction(writer as object)
         }
         action: {
             id: m.actionId
+            error: {
+                count: m.errorCount
+            }
             loading_time: duration&
+            resource: {
+                count: m.resourceCount
+            }
             target: {
                 name: m.top.target
             }
@@ -92,7 +115,7 @@ sub sendAction(writer as object)
         application: {
             id: context.applicationId
         }
-        date: timestamp&
+        date: m.startTimestamp&
         service: context.serviceName
         session: {
             has_replay: false

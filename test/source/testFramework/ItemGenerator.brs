@@ -205,6 +205,15 @@ function IG_GetFloat() as float
 end function
 
 ' ----------------------------------------------------------------
+' Generates random double value.
+
+' @return A random double value.
+' ----------------------------------------------------------------
+function IG_GetDouble() as double
+    return Rnd(0)
+end function
+
+' ----------------------------------------------------------------
 ' Generates random string with specified length.
 
 ' @param seed (integer) A string length.
