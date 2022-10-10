@@ -193,12 +193,67 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, writer as object)
-    ' TODO RUMM-2586 handle mutliple consecutive actions
-    m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
-    m.top.activeAction.target = action.target
-    m.top.activeAction.actionType = action.type
-    m.top.activeAction.parentScope = m.top
+    if (action.type = "custom")
+        sendCustomAction(action.target, writer)
+    else ' TODO RUMM-2586 handle mutliple consecutive actions
+        m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
+        m.top.activeAction.target = action.target
+        m.top.activeAction.actionType = action.type
+        m.top.activeAction.parentScope = m.top
+    end if
     m.actionCount++
+end sub
+
+' ----------------------------------------------------------------
+' Sends an action event
+' @param writer (object) the writer node (see WriterTask component)
+' ----------------------------------------------------------------
+sub sendCustomAction(target as string, writer as object)
+    timestamp& = getTimestamp()
+    logVerbose("Sending an action")
+    actionId = CreateObject("roDeviceInfo").GetRandomUUID()
+    context = getRumContext(invalid)
+    actionEvent = {
+        _dd: {
+            format_version: 2
+            session: {
+                plan: 1
+            }
+        }
+        action: {
+            id: actionId
+            error: {
+                count: 0
+            }
+            loading_time: 0
+            resource: {
+                count: 0
+            }
+            target: {
+                name: target
+            }
+            type: "custom"
+        }
+        application: {
+            id: context.applicationId
+        }
+        date: timestamp&
+        service: context.serviceName
+        session: {
+            has_replay: false
+            id: context.sessionId
+            type: "user"
+        }
+        source: agentSource()
+        type: "action"
+        version: context.applicationVersion
+        view: {
+            id: m.viewId
+            url: m.top.viewUrl
+            name: m.top.viewName
+        }
+    }
+    writer.writeEvent = FormatJson(actionEvent)
 end sub
 
 ' ----------------------------------------------------------------
