@@ -266,7 +266,6 @@ function RumViewScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeErrorEvent = { mock: "event", eventType: "addError" }
-    fakeEvent = { mock: "event", eventType: IG_GetString(16) }
 
     ' When
     sleep(150)
@@ -390,7 +389,6 @@ function RumViewScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEv
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "ok", url: IG_GetString(32), transferTime: 0.001 } }
-    fakeEvent = { mock: "event", eventType: IG_GetString(16) }
 
     ' When
     sleep(200)
@@ -577,7 +575,6 @@ function RumViewScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteAc
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "nok" } }
-    fakeEvent = { mock: "event", eventType: IG_GetString(16) }
 
     ' When
     sleep(200)

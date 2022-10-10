@@ -67,11 +67,10 @@ end sub
 sub sendError()
     m.errorIdx++
     try
-        print "About to explode"
+        datadogroku_logWarning("About to explode")
         explodingMethod(m.errorIdx)
     catch error
-        print "Caught something"
-        print error
+        datadogroku_logError("Caught something", error)
         m.rumAgent@.addError(error)
     end try
 end sub

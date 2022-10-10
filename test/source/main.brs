@@ -37,7 +37,7 @@ sub RunUserInterface(args as dynamic)
                 return
             end if
         else if (msgType = "roInputEvent")
-            print "Received input event"; msg.getInfo()
+            datadogroku_logInfo("Received input event" + msg.getInfo())
         end if
     end while
 end sub
