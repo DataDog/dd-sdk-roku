@@ -8,14 +8,20 @@ IFS=$'\n'
 # Lists all files requiring the license header.
 function files {
 	find -E . -iregex '.*\.(xml|brs|sh)$' \
+        -not -path "*/dist/*" \
+        -not -path "*/out/*" \
         -not -path "*/node_modules/*" \
-        -not -path "*/roku_modules/*" 
+        -not -path "*/roku_modules/*"  \
+        -not -path "*/test/source/testFramework/*" 
 }
 
 FILES_WITH_MISSING_LICENSE=""
 
+
 for file in $(files); do
 	if ! grep -q "Apache License Version 2.0" "$file"; then
+		FILES_WITH_MISSING_LICENSE="${FILES_WITH_MISSING_LICENSE}\n${file}"
+	elif ! grep -q "Copyright 2022-Today Datadog, Inc." "$file"; then
 		FILES_WITH_MISSING_LICENSE="${FILES_WITH_MISSING_LICENSE}\n${file}"
 	fi
 done
