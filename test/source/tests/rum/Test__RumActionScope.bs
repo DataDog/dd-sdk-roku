@@ -34,7 +34,7 @@ sub RumActionScopeTest__SetUp()
 
     ' Fake data
     m.testSuite.fakeTarget = IG_GetString(16)
-    m.testSuite.fakeType = IG_GetOneOf(["custom", "click", "tap", "scroll", "swipe", "application_start", "back"])
+    m.testSuite.fakeType = IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"])
 
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()

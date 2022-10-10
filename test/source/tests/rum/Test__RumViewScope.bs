@@ -29,6 +29,7 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleAddFailedResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddActionEvent_ThenCreateChildScope", RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddCustomActionEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAnyEvent_ThenDelegateToActiveActionScope", RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAnyEventActionNotActive_ThenDiscardIt", RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
@@ -977,7 +978,7 @@ end function
 '----------------------------------------------------------------
 function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as string
     ' Given
-    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["custom", "click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
     fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
 
     ' When
@@ -990,6 +991,61 @@ function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as st
         m.assertEqual(actionScope.subType(), "datadogroku_RumActionScope"),
         m.assertEqual(actionScope.target, fakeAction.target),
         m.assertEqual(actionScope.actionType, fakeAction.type)
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addResource) ok
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeAction = { target: IG_GetString(16), type: "custom" }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    sleep(50)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    if (updates.count() = 0)
+        return "Expected writeEvent to be updated"
+    end if
+    actionEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(actionEvent),
+        m.assertEqual(actionEvent.application.id, fakeApplicationId),
+        m.assertBetween(actionEvent.date, m.startTimestamp&, m.startTimestamp& + 50),
+        m.assertEqual(actionEvent.service, fakeServiceName),
+        m.assertEqual(actionEvent.session.has_replay, false),
+        m.assertNotEmpty(actionEvent.session.id),
+        m.assertEqual(actionEvent.session.type, "user"),
+        m.assertEqual(actionEvent.source, "roku"),
+        m.assertEqual(actionEvent.type, "action"),
+        m.assertEqual(actionEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(actionEvent.view.id),
+        m.assertEqual(actionEvent.view.name, m.fakeViewName),
+        m.assertEqual(actionEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(actionEvent.action.id),
+        m.assertEqual(actionEvent.action.type, "custom"),
+        m.assertEqual(actionEvent.action.loading_time, 0),
+        m.assertEqual(actionEvent.action.target.name, fakeAction.target),
+        m.assertEqual(actionEvent.action.error.count, 0),
+        m.assertEqual(actionEvent.action.resource.count, 0)
     ])
 end function
 
