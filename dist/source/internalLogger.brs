@@ -10,6 +10,7 @@
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logVerbose(message as string)
+    'bs:disable-next-line
     print __logPrefix(); "    >> "; message
 end sub
 
@@ -18,6 +19,7 @@ end sub
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logInfo(message as string)
+    'bs:disable-next-line
     print __logPrefix(); " ℹℹ >> "; message
 end sub
 
@@ -26,6 +28,7 @@ end sub
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logWarning(message as string)
+    'bs:disable-next-line
     print __logPrefix(); " ⚠️  >> "; message
 end sub
 
@@ -35,8 +38,10 @@ end sub
 ' @param error (object) the caught exception
 ' ----------------------------------------------------------------
 sub logError(message as string, error = invalid as object)
+    'bs:disable-next-line
     print __logPrefix(); " ‼️  >> "; message
     if (type(error) = "roAssociativeArray")
+        'bs:disable-next-line
         print "              " + errorToString(error)
     end if
 end sub

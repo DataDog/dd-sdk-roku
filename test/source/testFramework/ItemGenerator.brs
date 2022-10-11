@@ -198,7 +198,7 @@ end function
 ' ----------------------------------------------------------------
 ' Generates random float value.
 
-' @return A random float value.
+' @return A random float value in the 0..1 range.
 ' ----------------------------------------------------------------
 function IG_GetFloat() as float
     return Rnd(0)
@@ -207,7 +207,7 @@ end function
 ' ----------------------------------------------------------------
 ' Generates random double value.
 
-' @return A random double value.
+' @return A random double value in the 0..1 range.
 ' ----------------------------------------------------------------
 function IG_GetDouble() as double
     return Rnd(0)

@@ -32,14 +32,14 @@ end sub
 function onKeyEvent(key as string, press as boolean) as boolean
     datadogroku_logVerbose("onKeyEvent(" + key + ", " + press.toStr() + ")")
     if (not press)
-        addAction(key)
+        addAction(key, "custom")
     end if
     return false
 end function
 
 sub onBtnSelected()
     m.msgLabel.text = "Clicked on Button" + Str(m.ButtonGroup.buttonSelected)
-    addAction("Button#" + m.ButtonGroup.buttonSelected.toStr())
+    addAction("Button#" + m.ButtonGroup.buttonSelected.toStr(), "click")
 
     if (m.ButtonGroup.buttonSelected = 0)
         startView()
@@ -67,11 +67,10 @@ end sub
 sub sendError()
     m.errorIdx++
     try
-        print "About to explode"
+        datadogroku_logWarning("About to explode")
         explodingMethod(m.errorIdx)
     catch error
-        print "Caught something"
-        print error
+        datadogroku_logError("Caught something", error)
         m.rumAgent@.addError(error)
     end try
 end sub
@@ -83,9 +82,9 @@ sub sendResource()
     task.control = "RUN"
 end sub
 
-sub addAction(target as string)
+sub addAction(target as string, actionType as string)
     m.rumAgent@.addAction({
         target: target,
-        type: "click"
+        type: actionType
     })
 end sub
