@@ -263,7 +263,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
 
     ' When
     m.testedScope@.handleEvent(fakeErrorEvent, m.mockWriter)
-    sleep(40)
+    sleep(30)
     m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
