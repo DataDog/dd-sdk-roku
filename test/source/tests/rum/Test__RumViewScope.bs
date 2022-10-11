@@ -996,8 +996,8 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumViewScope
-'  When: handling an event (addResource) ok
-'  Then: write an error event
+'  When: handling an event (addAction) type=custom
+'  Then: write a custom action event
 '----------------------------------------------------------------
 function RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent() as string
     ' Given

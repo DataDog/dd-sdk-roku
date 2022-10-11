@@ -205,12 +205,12 @@ sub addAction(action as object, writer as object)
 end sub
 
 ' ----------------------------------------------------------------
-' Sends an action event
+' Sends a custom action event
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendCustomAction(target as string, writer as object)
     timestamp& = getTimestamp()
-    logVerbose("Sending an action")
+    logVerbose("Sending a custom action")
     actionId = CreateObject("roDeviceInfo").GetRandomUUID()
     context = getRumContext(invalid)
     actionEvent = {
