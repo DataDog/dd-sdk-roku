@@ -67,3 +67,12 @@ function addResourceEvent(resource as object) as object
         resource: resource
     }
 end function
+
+' ----------------------------------------------------------------
+' @return (object) a keep alive
+' ----------------------------------------------------------------
+function keepAliveEvent() as object
+    return {
+        eventType: "keepAlive"
+    }
+end function
