@@ -67,6 +67,8 @@ sub handleEvent(event as object, writer as object)
         addResource(event.resource, writer)
     else if (event.eventType = "addAction")
         addAction(event.action, writer)
+    else if (event.eventType = "keepAlive")
+        sendViewUpdate(writer)
     end if
 end sub
 

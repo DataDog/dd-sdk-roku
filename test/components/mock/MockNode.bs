@@ -55,8 +55,8 @@ end sub
 ' @return (string) an empty string if there is a match, or an error
 '     message
 ' ----------------------------------------------------------------
-function assertFunctionCalled(functionName as string, params as object) as string
-    return m.mock.assertFunctionCalled(functionName, params)
+function assertFunctionCalled(functionName as string, params as object, times = 1 as integer) as string
+    return m.mock.assertFunctionCalled(functionName, params, times)
 end function
 
 ' ----------------------------------------------------------------

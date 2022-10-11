@@ -15,6 +15,7 @@ enum RawEvent
     addError = "addError"
     addResource = "addResource"
     addAction = "addAction"
+    keepAlive = "keepAlive"
 end enum
 
 ' ----------------------------------------------------------------
@@ -73,5 +74,14 @@ function addResourceEvent(resource as object) as object
     return {
         eventType: RawEvent.addResource,
         resource: resource
+    }
+end function
+
+' ----------------------------------------------------------------
+' @return (object) a keep alive
+' ----------------------------------------------------------------
+function keepAliveEvent() as object
+    return {
+        eventType: RawEvent.keepAlive
     }
 end function

@@ -15,6 +15,32 @@ import "pkg:/source/internalLogger.bs"
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
+    m.port = createObject("roMessagePort")
+    m.top.observeFieldScoped("stop", m.port)
+    m.top.functionName = "rumAgentLoop"
+    m.top.control = "RUN"
+end sub
+
+' ----------------------------------------------------------------
+' Main RumAgent loop
+' ----------------------------------------------------------------
+sub rumAgentLoop()
+    logInfo("Starting main RumAgent loop")
+
+    while(true)
+        msg = wait(m.top.keepAliveDelayMs, m.port)
+        ensureSetup()
+        m.rumScope@.handleEvent(keepAliveEvent(), m.writer)
+        msgType = type(msg)
+        if (msgType = "roSGNodeEvent")
+            fieldName = msg.getField()
+            if (fieldName = "stop")
+                return
+            else
+                logWarning(fieldName + " not handled")
+            end if
+        end if
+    end while
 end sub
 
 ' ----------------------------------------------------------------

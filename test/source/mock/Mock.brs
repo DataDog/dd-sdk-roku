@@ -84,11 +84,15 @@ end sub
 ' @param functionName (string) the name of the function to check
 ' @param params (object) the parameters for the function. If a
 '     parameter is not given, it means any value is a match
+' @param times (integer) the expected number of times the method is called (default is 1)
+'     a positive value means "exactly" (e.g.: 5 means exactly 5 times)
+'     a negative value means "at least the absolute value" (e.g.: -1 means at least once)
 ' @return (string) an empty string if there is a match, or an error
 '     message
 ' ----------------------------------------------------------------
-function Mock__assertFunctionCalled(functionName as string, params as object) as string
+function Mock__assertFunctionCalled(functionName as string, params as object, times = 1 as integer) as string
     wrongParams = ""
+    matchedCalls = 0
     for each call in m.calls
         if (call.functionName = functionName and not call.consumed)
             isMatch = true
@@ -101,15 +105,31 @@ function Mock__assertFunctionCalled(functionName as string, params as object) as
             end for
             if (isMatch)
                 call.consumed = true
-                return ""
+                matchedCalls++
             end if
         end if
     end for
 
-    if (wrongParams = "")
-        wrongParams = chr(10) + " - " + functionName + "() was never called"
+    if (times >= 0 and matchedCalls = times)
+        ' exact match
+        return ""
+    else if (times < 0 and matchedCalls >= -times)
+        ' at least match
+        return ""
+    else if (matchedCalls > 0)
+        ' invalid count
+        if (times >= 0)
+            return "Expected exactly " + times.toStr() + " call(s) to " + functionName + " but function was called " + matchedCalls.toStr() + " time(s)"
+        else
+            return "Expected at least " + (-times).toStr() + " call(s) to " + functionName + " but function was called " + matchedCalls.toStr() + " time(s)"
+        end if
+    else
+        ' no match found, means invalid params
+        if (wrongParams = "")
+            wrongParams = chr(10) + " - " + functionName + "() was never called"
+        end if
+        return "Expected call to " + functionName + " with params " + TF_Utils__AsString(params) + wrongParams
     end if
-    return "Expected call to " + functionName + " with params " + TF_Utils__AsString(params) + wrongParams
 end function
 
 ' ----------------------------------------------------------------

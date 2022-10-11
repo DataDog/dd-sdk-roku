@@ -32,6 +32,7 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleAddCustomActionEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAnyEvent_ThenDelegateToActiveActionScope", RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAnyEventActionNotActive_ThenDiscardIt", RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleKeepAliveEvent_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     return this
 end function
@@ -262,7 +263,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
 
     ' When
     m.testedScope@.handleEvent(fakeErrorEvent, m.mockWriter)
-    sleep(40)
+    sleep(30)
     m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
@@ -1094,5 +1095,56 @@ function RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt() as 
     return m.multipleAssertions([
         m.assertEqual(m.testedScope.activeAction, invalid),
         mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
+    ])
+end function
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (keep alive)
+'  Then: writes a view event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "keepAlive" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    if (updates.count() = 0)
+        return "Expected writeEvent to be updated"
+    end if
+    viewEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(viewEvent),
+        m.assertEqual(viewEvent._dd.document_version, 1),
+        m.assertEqual(viewEvent.application.id, fakeApplicationId),
+        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
+        m.assertEqual(viewEvent.service, fakeServiceName),
+        m.assertEqual(viewEvent.session.has_replay, false),
+        m.assertNotEmpty(viewEvent.session.id),
+        m.assertEqual(viewEvent.session.type, "user"),
+        m.assertEqual(viewEvent.source, "roku"),
+        m.assertEqual(viewEvent.type, "view"),
+        m.assertEqual(viewEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(viewEvent.view.id),
+        m.assertEqual(viewEvent.view.name, m.fakeViewName),
+        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
+        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
+        m.assertEqual(viewEvent.view.action.count, 0),
+        m.assertEqual(viewEvent.view.error.count, 0),
+        m.assertEqual(viewEvent.view.resource.count, 0)
     ])
 end function
