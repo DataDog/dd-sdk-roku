@@ -2,15 +2,11 @@
 
 > A client-side Roku library to interact with Datadog.
 
-## Getting Started
-
-Todo…
+**NOTE** This library is still in early Developer Preview.
 
 ## Looking up your RUM events
 
 When you open your console in Datadog, navigate to the [RUM Explorer][1]. In the side bar, you can select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
-
-![Datadog Mobile Logs](docs/images/screenshot_rum.png)
 
 ## Contributing
 
