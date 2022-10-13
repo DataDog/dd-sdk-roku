@@ -141,7 +141,6 @@ end sub
 ' ****************************************************************
 ' * RumActionType: list of allowed action types
 ' ****************************************************************
-
 enum RumActionType
     custom = "custom"
     click = "click"

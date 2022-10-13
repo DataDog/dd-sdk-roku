@@ -2,7 +2,7 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-import "pkg:/source/exploding.brs"
+import "pkg:/source/exploding.bs"
 import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
 import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"

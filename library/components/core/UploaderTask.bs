@@ -7,10 +7,10 @@ import "pkg:/source/internalLogger.bs"
 import "pkg:/source/fileUtils.bs"
 import "pkg:/source/timeUtils.bs"
 
-'*****************************************************************
+' *****************************************************************
 ' * UploaderTask: a background loop checking for files available for upload;
 ' * When a file is ready, it s uploaded, and upon success deleted from disk.
-'*****************************************************************
+' *****************************************************************
 
 ' ----------------------------------------------------------------
 ' Initialize the component

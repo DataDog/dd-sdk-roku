@@ -2,14 +2,15 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-'*****************************************************************
-' * WriterNode: a node capable of writing data to a file on disk
-'*****************************************************************
+' *****************************************************************
+' * : a node capable of writing data to a file on disk
+' *****************************************************************
 
 ' ----------------------------------------------------------------
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
+    logThread("WriterNode.init()")
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("writeEvent", m.port)
     m.top.functionName = "writerLoop"
@@ -20,6 +21,7 @@ end sub
 ' Main writer loop
 ' ----------------------------------------------------------------
 sub writerLoop()
+    logThread("WriterNode.writerLoop()")
     m.fileSystem = CreateObject("roFileSystem")
 
     while (true)
@@ -42,14 +44,14 @@ end sub
 ' @param event (string) the event serialized to string
 ' ----------------------------------------------------------------
 sub onWriteEvent(event as string)
-    logInfo("Handling event: " + event)
+    logThread("WriterNode.onWriteEvent()")
     if (event = "")
         ' Ignore empty event
         return
     end if
 
     filePath = getWriteableFile(event.Len())
-    logInfo("Got file: " + filePath)
+    logVerbose("Got file: " + filePath)
 
     if (m.fileSystem.Exists(filePath))
         fileSize = m.fileSystem.Stat(filePath).size
@@ -71,7 +73,7 @@ function getWriteableFile(eventSize as integer) as string
     folderPath = trackFolderPath(m.top.trackType)
     folderExists = m.fileSystem.Exists(folderPath)
     if (not folderExists)
-        logInfo("Folder for track " + m.top.trackType + " doesn't exist")
+        logVerbose("Folder for track " + m.top.trackType + " doesn't exist")
         mkdirs(folderPath)
     end if
 
