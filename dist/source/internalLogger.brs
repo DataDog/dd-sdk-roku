@@ -1,17 +1,19 @@
 ' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
-'*****************************************************************
-'* Common internal logging functions
-'*****************************************************************
+' *****************************************************************
+' * Common internal logging functions
+' *****************************************************************
 
 ' ----------------------------------------------------------------
 ' Outputs the message in parameter if the `dd_verbose` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logVerbose(message as string)
-    'bs:disable-next-line
-    print __logPrefix(); "    >> "; message
+    if (isLogLevelAllowed(4))
+        'bs:disable-next-line
+        print __logPrefix(); "    >> "; message
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -19,8 +21,10 @@ end sub
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logInfo(message as string)
-    'bs:disable-next-line
-    print __logPrefix(); " ℹℹ >> "; message
+    if (isLogLevelAllowed(3))
+        'bs:disable-next-line
+        print __logPrefix(); " ℹℹ >> "; message
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -28,8 +32,10 @@ end sub
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
 sub logWarning(message as string)
-    'bs:disable-next-line
-    print __logPrefix(); " ⚠️  >> "; message
+    if (isLogLevelAllowed(2))
+        'bs:disable-next-line
+        print __logPrefix(); " ⚠️  >> "; message
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -38,11 +44,13 @@ end sub
 ' @param error (object) the caught exception
 ' ----------------------------------------------------------------
 sub logError(message as string, error = invalid as object)
-    'bs:disable-next-line
-    print __logPrefix(); " ‼️  >> "; message
-    if (type(error) = "roAssociativeArray")
+    if (isLogLevelAllowed(1))
         'bs:disable-next-line
-        print "              " + errorToString(error)
+        print __logPrefix(); " ‼️  >> "; message
+        if (type(error) = "roAssociativeArray")
+            'bs:disable-next-line
+            print "              " + errorToString(error)
+        end if
     end if
 end sub
 
@@ -150,7 +158,32 @@ end function
 ' @param operationName (string) the current operation (default is "")
 ' ----------------------------------------------------------------
 sub logThread(operationName = "" as string)
-    node = CreateObject("roSGNode", "Node")
-    threadInfo = node.threadInfo()
-    logVerbose(operationName + " on thread " + threadInfo.currentThread.name + " (" + threadInfo.currentThread.type + ":" + threadInfo.currentThread.id + ")")
+    if (isLogLevelAllowed(5))
+        node = CreateObject("roSGNode", "Node")
+        threadInfo = node.threadInfo()
+        'bs:disable-next-line
+        print __logPrefix(); " ⚙  >> "; operationName; " on thread "; threadInfo.currentThread.name; " ("; threadInfo.currentThread.type; ":"; threadInfo.currentThread.id; ")"
+    end if
 end sub
+
+' ----------------------------------------------------------------
+' Checks whether the given log level is allowed in the current app
+' @param level (LogLevel) the level of the log (1: error; 2: warning; )
+' ----------------------------------------------------------------
+function isLogLevelAllowed(level as object) as boolean
+    if (m.global <> invalid)
+        verbosity = (function(m)
+                __bsConsequent = m.global.datadogVerbosity
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return 0
+                end if
+            end function)(m)
+        return level <= verbosity
+    end if
+    return false
+end function
+' ****************************************************************
+' * LogLevel: level (severity) of logs
+' ****************************************************************
