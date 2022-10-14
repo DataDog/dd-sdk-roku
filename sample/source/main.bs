@@ -17,7 +17,15 @@ sub RunUserInterface(args as dynamic)
     m.global = screen.getGlobalNode()
     m.global.addFields({
         credentials: credentials,
-        datadogVerbosity: 4 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+        datadogVerbosity: 4, ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+        datadogContext: {
+            channel: "Sample channel from dd-sdk-roku"
+        },
+        datadogUserInfo: {
+            id: "42",
+            name: "Unknown",
+            email: "random.user@example.com"
+        }
     })
 
     m.port = CreateObject("roMessagePort")
