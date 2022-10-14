@@ -18,6 +18,10 @@ sub init()
     m.top.observeField("testResults", "onTestResults")
     m.top.observeField("message", "onMessage")
     m.top.observeField("crash", "onCrash")
+
+    testRunner = CreateObject("roSGNode", "TestRunner")
+    testRunner.scene = m.top
+    testRunner.control = "run"
 end sub
 
 ' ----------------------------------------------------------------

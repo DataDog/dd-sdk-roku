@@ -36,10 +36,11 @@
 
 ' @return A TestRunner object.
 ' ----------------------------------------------------------------
-function TestRunner() as object
+function TestRunner(nodeMode = false as boolean) as object
     this = {}
     GetGlobalAA().globalErrorsList = []
-    this.isNodeMode = GetGlobalAA().top <> invalid
+    this.isNodeMode = nodeMode
+    print "isNodeMode? "; this.isNodeMode
     this.Logger = Logger()
 
     ' Internal properties
@@ -817,16 +818,6 @@ function TestRunner__GetTestFilesList(testsDirectory = m.testsDirectory as strin
 
     if testsDirectory <> ""
         fileSystem = CreateObject("roFileSystem")
-
-        if m.isNodeMode
-            ? string(2, Chr(10))
-            ? string(10, "!!!")
-            ? "Note if you crash here this means that we are in render thread and searching for tests"
-            ? "Problem is that file naming is wrong"
-            ? "check brs file name they should match pattern ""Test_ExactComponentName_anything.brs"""
-            ? "In this case we were looking for "testFilePrefix
-            ? string(10, "!!!") string(2, Chr(10))
-        end if
         listing = fileSystem.GetDirectoryListing(testsDirectory)
 
         for each item in listing

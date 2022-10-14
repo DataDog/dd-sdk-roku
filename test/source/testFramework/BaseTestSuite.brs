@@ -50,6 +50,7 @@
 ' ----------------------------------------------------------------
 function BaseTestSuite()
     this = {}
+    this.global = m.global
     this.Name = "BaseTestSuite"
     this.SKIP_TEST_MESSAGE_PREFIX = "SKIP_TEST_MESSAGE_PREFIX__"
     ' Test Cases methods
