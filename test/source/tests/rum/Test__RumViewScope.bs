@@ -13,6 +13,7 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenGetContext_ThenReturnsContext", RumViewScopeTest__WhenGetContext_ThenReturnsContext, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenIsActive_ThenReturnsTrue", RumViewScopeTest__WhenIsActive_ThenReturnsTrue, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumViewScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleStopViewEvent_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithAction_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithError_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -20,19 +21,30 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleStopViewEventTwice_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStopUnknownView_ThenDoNothing", RumViewScopeTest__WhenStopUnknownView_ThenDoNothing, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddErrorEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddErrorEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleAddResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddResourceEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddResourceEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleAddFailedResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddFailedResourceEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleAddActionEvent_ThenCreateChildScope", RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddCustomActionEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleAnyEvent_ThenDelegateToActiveActionScope", RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAnyEventActionNotActive_ThenDiscardIt", RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+
     this.addTest("WhenHandleKeepAliveEvent_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleKeepAliveEventWithContext_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     return this
 end function
@@ -49,6 +61,11 @@ sub RumViewScopeTest__SetUp()
     m.testSuite.fakeActionId = IG_GetString(32)
     m.testSuite.mockActionScope@.stubCall("getRumContext", {}, { actionId: m.testSuite.fakeActionId })
     m.testSuite.mockActionScope@.stubCall("isActive", {}, true)
+    m.testSuite.fakeGlobalContext = {}
+    for i = 1 to 10
+        m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+    m.testSuite.global.addFields({ datadogContext: {} })
 
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()
@@ -263,7 +280,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
 
     ' When
     m.testedScope@.handleEvent(fakeErrorEvent, m.mockWriter)
-    sleep(30)
+    sleep(40)
     m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
@@ -277,7 +294,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
         m.assertNotInvalid(viewEvent),
         m.assertEqual(viewEvent._dd.document_version, 1),
         m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
+        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 10),
         m.assertEqual(viewEvent.service, fakeServiceName),
         m.assertEqual(viewEvent.session.has_replay, false),
         m.assertNotEmpty(viewEvent.session.id),
@@ -287,7 +304,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
         m.assertEqual(viewEvent.version, fakeApplicationVersion),
         m.assertNotEmpty(viewEvent.view.id),
         m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 45000000, 100000000),
+        m.assertBetween(viewEvent.view.time_spent, 45000000, 150000000),
         m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
         m.assertEqual(viewEvent.view.action.count, 0),
         m.assertEqual(viewEvent.view.error.count, 1),
@@ -527,6 +544,65 @@ function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as strin
 end function
 
 '----------------------------------------------------------------
+' Given: a RumViewScope and a global rum context
+'  When: handling an event (addError)
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeMessage = IG_GetString(128)
+    fakeErrorNumber = IG_GetInteger(256)
+    fakeBacktrace = IG_GetBacktrace()
+    fakeException = { number: fakeErrorNumber, message: fakeMessage, backtrace: fakeBacktrace }
+    fakeEvent = { mock: "event", eventType: "addError", exception: fakeException }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    errorEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(errorEvent),
+        m.assertEqual(errorEvent.application.id, fakeApplicationId),
+        m.assertEqual(errorEvent.action.id, invalid),
+        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertEqual(errorEvent.service, fakeServiceName),
+        m.assertEqual(errorEvent.session.has_replay, false),
+        m.assertNotEmpty(errorEvent.session.id),
+        m.assertEqual(errorEvent.session.type, "user"),
+        m.assertEqual(errorEvent.source, "roku"),
+        m.assertEqual(errorEvent.type, "error"),
+        m.assertEqual(errorEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(errorEvent.view.id),
+        m.assertEqual(errorEvent.view.name, m.fakeViewName),
+        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(errorEvent.error.id),
+        m.assertEqual(errorEvent.error.message, fakeMessage),
+        m.assertEqual(errorEvent.error.source, "source"),
+        m.assertEqual(errorEvent.error.source_type, "roku"),
+        m.assertEqual(errorEvent.error.stack, datadogroku_backtraceToString(fakeBacktrace)),
+        m.assertEqual(errorEvent.error.is_crash, false),
+        m.assertEqual(errorEvent.error.type, "&h" + datadogroku_decToHex(fakeErrorNumber)),
+        m.assertEqual(errorEvent.context, m.fakeGlobalContext)
+    ])
+end function
+
+'----------------------------------------------------------------
 ' Given: a RumViewScope
 '  When: handling an event (addError) with an active action
 '  Then: write an error event
@@ -695,6 +771,71 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
         m.assertEqual(resourceEvent.resource.status_code, fakeHttpCode),
         m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
         m.assertEqual(resourceEvent.resource.size, fakeSize)
+        ' TODO RUMM-2529 assert traceId and spanId
+        ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope and a global rum context
+'  When: handling an event (addResource) ok
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeResourceUrl = IG_GetString(128)
+    fakeMethod = IG_GetOneOf(["GET", "POST", "HEAD", "PUT"])
+    fakeHttpCode = IG_GetInteger(600)
+    fakeDurationNs& = IG_GetInteger()
+    nsToSec# = 1000000000
+    fakeTransferTime# = fakeDurationNs& / nsToSec#
+    fakeSize = IG_GetInteger()
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    resourceEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(resourceEvent),
+        m.assertEqual(resourceEvent.application.id, fakeApplicationId),
+        m.assertEqual(resourceEvent.action.id, invalid),
+        m.assertBetween(resourceEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertEqual(resourceEvent.service, fakeServiceName),
+        m.assertEqual(resourceEvent.session.has_replay, false),
+        m.assertNotEmpty(resourceEvent.session.id),
+        m.assertEqual(resourceEvent.session.type, "user"),
+        m.assertEqual(resourceEvent.source, "roku"),
+        m.assertEqual(resourceEvent.type, "resource"),
+        m.assertEqual(resourceEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(resourceEvent.view.id),
+        m.assertEqual(resourceEvent.view.name, m.fakeViewName),
+        m.assertEqual(resourceEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(resourceEvent.resource.id),
+        m.assertEqual(resourceEvent.resource.type, "native"),
+        m.assertEqual(resourceEvent.resource.method, fakeMethod),
+        m.assertEqual(resourceEvent.resource.url, fakeResourceUrl),
+        m.assertEqual(resourceEvent.resource.status_code, fakeHttpCode),
+        m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
+        m.assertEqual(resourceEvent.resource.size, fakeSize),
+        m.assertEqual(resourceEvent.context, m.fakeGlobalContext)
         ' TODO RUMM-2529 assert traceId and spanId
         ' TODO RUMM-2530 assert timings (dns, ssl, …)?
     ])
@@ -899,6 +1040,81 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
 end function
 
 '----------------------------------------------------------------
+' Given: a RumViewScope and a global rum context
+'  When: handling an event (addResource) failed
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeResourceUrl = IG_GetString(128)
+    fakeMethod = IG_GetOneOf(["GET", "POST", "HEAD", "PUT"])
+    fakeStatus = IG_GetOneOf([
+        "unknownerror",
+        "dnsfailure",
+        "dnstimeout",
+        "noroutetohost",
+        "connectiontimeout",
+        "connectionrefused",
+        "untrustedcert",
+        "expiredcert",
+        "nocipher",
+        "handshakefailed",
+        "generalsocketerror",
+        "httperror"
+    ])
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: fakeStatus }
+    fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    errorEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(errorEvent),
+        m.assertEqual(errorEvent.application.id, fakeApplicationId),
+        m.assertEqual(errorEvent.action.id, invalid),
+        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertEqual(errorEvent.service, fakeServiceName),
+        m.assertEqual(errorEvent.session.has_replay, false),
+        m.assertNotEmpty(errorEvent.session.id),
+        m.assertEqual(errorEvent.session.type, "user"),
+        m.assertEqual(errorEvent.source, "roku"),
+        m.assertEqual(errorEvent.type, "error"),
+        m.assertEqual(errorEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(errorEvent.view.id),
+        m.assertEqual(errorEvent.view.name, m.fakeViewName),
+        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(errorEvent.error.id),
+        m.assertEqual(errorEvent.error.message, "Failed to perform request"),
+        m.assertEqual(errorEvent.error.source, "network"),
+        m.assertEqual(errorEvent.error.source_type, "roku"),
+        m.assertEqual(errorEvent.error.stack, invalid),
+        m.assertEqual(errorEvent.error.is_crash, false),
+        m.assertEqual(errorEvent.error.type, fakeStatus),
+        m.assertEqual(errorEvent.error.resource.type, "native"),
+        m.assertEqual(errorEvent.error.resource.method, fakeMethod),
+        m.assertEqual(errorEvent.error.resource.url, fakeResourceUrl),
+        m.assertEqual(errorEvent.context, m.fakeGlobalContext)
+    ])
+end function
+
+'----------------------------------------------------------------
 ' Given: a RumViewScope
 '  When: handling an event (addResource) failed with an active action
 '  Then: write an error event
@@ -1051,6 +1267,63 @@ function RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent() a
 end function
 
 '----------------------------------------------------------------
+' Given: a RumViewScope and a global rum context
+'  When: handling an event (addAction) type=custom
+'  Then: write a custom action event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeAction = { target: IG_GetString(16), type: "custom" }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    sleep(50)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    if (updates.count() = 0)
+        return "Expected writeEvent to be updated"
+    end if
+    actionEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(actionEvent),
+        m.assertEqual(actionEvent.application.id, fakeApplicationId),
+        m.assertBetween(actionEvent.date, m.startTimestamp&, m.startTimestamp& + 50),
+        m.assertEqual(actionEvent.service, fakeServiceName),
+        m.assertEqual(actionEvent.session.has_replay, false),
+        m.assertNotEmpty(actionEvent.session.id),
+        m.assertEqual(actionEvent.session.type, "user"),
+        m.assertEqual(actionEvent.source, "roku"),
+        m.assertEqual(actionEvent.type, "action"),
+        m.assertEqual(actionEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(actionEvent.view.id),
+        m.assertEqual(actionEvent.view.name, m.fakeViewName),
+        m.assertEqual(actionEvent.view.url, m.fakeViewUrl),
+        m.assertNotEmpty(actionEvent.action.id),
+        m.assertEqual(actionEvent.action.type, "custom"),
+        m.assertEqual(actionEvent.action.loading_time, 0),
+        m.assertEqual(actionEvent.action.target.name, fakeAction.target),
+        m.assertEqual(actionEvent.action.error.count, 0),
+        m.assertEqual(actionEvent.action.resource.count, 0),
+        m.assertEqual(actionEvent.context, m.fakeGlobalContext)
+    ])
+end function
+
+'----------------------------------------------------------------
 ' Given: a RumViewScope
 '  When: calling handleEvent (type=any)
 '  Then: delegates the event to the child scope
@@ -1097,6 +1370,7 @@ function RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt() as 
         mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
     ])
 end function
+
 '----------------------------------------------------------------
 ' Given: a RumViewScope
 '  When: handling an event (keep alive)
@@ -1146,5 +1420,59 @@ function RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate() as str
         m.assertEqual(viewEvent.view.action.count, 0),
         m.assertEqual(viewEvent.view.error.count, 0),
         m.assertEqual(viewEvent.view.resource.count, 0)
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope and a global rum context
+'  When: handling an event (keep alive)
+'  Then: writes a view event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpdate() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "keepAlive" }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    if (updates.count() = 0)
+        return "Expected writeEvent to be updated"
+    end if
+    viewEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(viewEvent),
+        m.assertEqual(viewEvent._dd.document_version, 1),
+        m.assertEqual(viewEvent.application.id, fakeApplicationId),
+        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
+        m.assertEqual(viewEvent.service, fakeServiceName),
+        m.assertEqual(viewEvent.session.has_replay, false),
+        m.assertNotEmpty(viewEvent.session.id),
+        m.assertEqual(viewEvent.session.type, "user"),
+        m.assertEqual(viewEvent.source, "roku"),
+        m.assertEqual(viewEvent.type, "view"),
+        m.assertEqual(viewEvent.version, fakeApplicationVersion),
+        m.assertNotEmpty(viewEvent.view.id),
+        m.assertEqual(viewEvent.view.name, m.fakeViewName),
+        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
+        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
+        m.assertEqual(viewEvent.view.action.count, 0),
+        m.assertEqual(viewEvent.view.error.count, 0),
+        m.assertEqual(viewEvent.view.resource.count, 0),
+        m.assertEqual(viewEvent.context, m.fakeGlobalContext)
     ])
 end function
