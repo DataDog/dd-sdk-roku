@@ -166,6 +166,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         }
         source: agentSource()
         type: "error"
+        usr: m.global.datadogUserInfo
         version: context.applicationVersion
         view: {
             id: m.viewId
@@ -250,6 +251,7 @@ sub sendCustomAction(target as string, writer as object)
         }
         source: agentSource()
         type: "action"
+        usr: m.global.datadogUserInfo
         version: context.applicationVersion
         view: {
             id: m.viewId
@@ -310,6 +312,7 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
         }
         source: agentSource()
         type: "resource"
+        usr: m.global.datadogUserInfo
         version: context.applicationVersion
         view: {
             id: m.viewId
@@ -373,6 +376,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
         }
         source: agentSource()
         type: "error"
+        usr: m.global.datadogUserInfo
         version: context.applicationVersion
         view: {
             id: m.viewId
@@ -414,6 +418,7 @@ sub sendViewUpdate(writer as object)
         }
         source: agentSource()
         type: "view"
+        usr: m.global.datadogUserInfo
         version: context.applicationVersion
         view: {
             id: m.viewId
