@@ -8,29 +8,19 @@ import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
-    m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
-    m.top.setFocus(true)
+    datadogroku_logThread("DebugScreen.init()")
     m.titleLabel = m.top.findNode("titleLabel")
     m.msgLabel = m.top.findNode("messageLabel")
     m.titleLabel.font.size = 64
 
     m.ButtonGroup = m.top.findNode("mainButtonGroup")
-    m.ButtonGroup.setFocus(true)
     m.ButtonGroup.observeField("buttonSelected", "onBtnSelected")
 
-    m.rumAgent = CreateObject("roSGNode", "datadogroku_RumAgent")
-    m.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
-    m.rumAgent.clientToken = m.global.credentials.datadogClientToken
-    m.rumAgent.applicationId = m.global.credentials.datadogApplicationId
-    m.rumAgent.serviceName = "roku-sample"
-
     m.errorIdx = 0
-
-    startView()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    datadogroku_logVerbose("onKeyEvent(" + key + ", " + press.toStr() + ")")
+    datadogroku_logVerbose("DebugScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
     if (not press)
         addAction(key, "custom")
     end if
@@ -55,13 +45,13 @@ end sub
 sub startView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
-    m.rumAgent@.startView(viewName, viewUrl)
+    m.global.rumAgent@.startView(viewName, viewUrl)
 end sub
 
 sub stopView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
-    m.rumAgent@.stopView(viewName, viewUrl)
+    m.global.rumAgent@.stopView(viewName, viewUrl)
 end sub
 
 sub sendError()
@@ -71,19 +61,19 @@ sub sendError()
         explodingMethod(m.errorIdx)
     catch error
         datadogroku_logError("Caught something", error)
-        m.rumAgent@.addError(error)
+        m.global.rumAgent@.addError(error)
     end try
 end sub
 
 sub sendResource()
     task = createObject("roSGNode", "RequestTask")
     task.setField("query", "datadog")
-    task.setField("rumAgent", m.rumAgent)
+    task.setField("rumAgent", m.global.rumAgent)
     task.control = "RUN"
 end sub
 
 sub addAction(target as string, actionType as string)
-    m.rumAgent@.addAction({
+    m.global.rumAgent@.addAction({
         target: target,
         type: actionType
     })
