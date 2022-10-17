@@ -147,6 +147,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         application: {
             id: context.applicationId
         }
+        context: m.global.datadogContext
         date: timestamp&
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
@@ -239,6 +240,7 @@ sub sendCustomAction(target as string, writer as object)
         application: {
             id: context.applicationId
         }
+        context: m.global.datadogContext
         date: timestamp&
         service: context.serviceName
         session: {
@@ -289,6 +291,7 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
         application: {
             id: context.applicationId
         }
+        context: m.global.datadogContext
         date: startTimestampMs&
         resource: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
@@ -346,6 +349,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
         application: {
             id: context.applicationId
         }
+        context: m.global.datadogContext
         date: timestamp&
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
@@ -400,6 +404,7 @@ sub sendViewUpdate(writer as object)
         application: {
             id: context.applicationId
         }
+        context: m.global.datadogContext
         date: m.startTimestamp&
         service: context.serviceName
         session: {

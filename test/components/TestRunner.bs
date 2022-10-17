@@ -1,0 +1,70 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/testFramework/BaseTestSuite.brs"
+import "pkg:/source/testFramework/ItemGenerator.brs"
+import "pkg:/source/testFramework/Logger.brs"
+import "pkg:/source/testFramework/TestRunner.brs"
+import "pkg:/source/testFramework/TFUtils.brs"
+import "pkg:/source/testFramework/UTF.brs"
+
+import "pkg:/source/tests/Test__fileUtils.brs"
+import "pkg:/source/tests/core/Test__UploaderTask.bs"
+import "pkg:/source/tests/core/Test__WriterTask.bs"
+import "pkg:/source/tests/rum/Test__RumActionScope.bs"
+import "pkg:/source/tests/rum/Test__RumAgent.bs"
+import "pkg:/source/tests/rum/Test__RumApplicationScope.bs"
+import "pkg:/source/tests/rum/Test__RumSessionScope.bs"
+import "pkg:/source/tests/rum/Test__RumViewScope.bs"
+
+import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
+import "pkg:/source/roku_modules/datadogroku/fileUtils.brs"
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+
+' ****************************************************************
+' * TestRunner: handles running tests
+' ****************************************************************
+
+' ----------------------------------------------------------------
+' Initialize the component
+' ----------------------------------------------------------------
+sub init()
+    m.top.functionName = "runTests"
+end sub
+
+' ----------------------------------------------------------------
+' Runs all the tests
+' ----------------------------------------------------------------
+sub runTests() 
+    Runner = TestRunner()
+
+    Runner.SetFunctions([
+        TestSuite__FileUtils,
+        TestSuite__UploaderTask,
+        TestSuite__WriterTask,
+        TestSuite__RumAgent,
+        TestSuite__RumApplicationScope,
+        TestSuite__RumSessionScope,
+        TestSuite__RumActionScope,
+        TestSuite__RumViewScope
+    ])
+
+    ' setup logger
+    Runner.Logger.SetVerbosity(1) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
+    Runner.Logger.SetEcho(true)
+    Runner.Logger.SetJUnit(false)
+
+    ' run all tests to get one single report
+    Runner.SetFailFast(false)
+
+    statResult = Runner.Logger.CreateTotalStatistic()
+
+    try
+        Runner.Run(statResult)
+        m.top.scene.testResults = statResult
+    catch e
+        m.top.scene.crash = e
+    end try
+end sub

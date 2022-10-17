@@ -12,17 +12,16 @@ sub RunUserInterface(args as dynamic)
     end if
 
     screen = CreateObject("roSGScreen")
+    m.global = screen.getGlobalNode()
+    m.global.addFields({
+        datadogVerbosity: 4 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+    })
+
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
     m.scene = screen.CreateScene("TestScreen")
     screen.show()
     m.scene.signalBeacon("AppLaunchComplete")
-
-    try
-        m.scene.testResults = runTests()
-    catch e
-        m.scene.crash = e
-    end try
 
     ' Handle roInput (deeplink changes at runtime)
     input = CreateObject("roInput")
@@ -41,33 +40,3 @@ sub RunUserInterface(args as dynamic)
         end if
     end while
 end sub
-
-' ----------------------------------------------------------------
-' Runs all the tests
-' ----------------------------------------------------------------
-function runTests() as object
-    Runner = TestRunner()
-
-    Runner.SetFunctions([
-        TestSuite__FileUtils,
-        TestSuite__UploaderTask,
-        TestSuite__WriterTask,
-        TestSuite__RumAgent,
-        TestSuite__RumApplicationScope,
-        TestSuite__RumSessionScope,
-        TestSuite__RumViewScope,
-        TestSuite__RumActionScope
-    ])
-
-    ' setup logger
-    Runner.Logger.SetVerbosity(1) ' 0=basic, 1=normal, 2=verboseFail, 3=verbose
-    Runner.Logger.SetEcho(true)
-    Runner.Logger.SetJUnit(false)
-
-    ' run all tests to get one single report
-    Runner.SetFailFast(false)
-
-    statResult = Runner.Logger.CreateTotalStatistic()
-    Runner.Run(statResult)
-    return statResult
-end function

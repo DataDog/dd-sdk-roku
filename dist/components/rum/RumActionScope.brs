@@ -115,6 +115,7 @@ sub sendAction(writer as object)
         application: {
             id: context.applicationId
         }
+        context: m.global.datadogContext
         date: m.startTimestamp&
         service: context.serviceName
         session: {

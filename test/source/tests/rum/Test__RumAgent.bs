@@ -145,7 +145,6 @@ function RumAgentTest__WhenAddResource_ThenDelegateToRumScope() as string
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a RumAgent
 '  When: nothing

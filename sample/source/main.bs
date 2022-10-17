@@ -7,9 +7,8 @@
 ' @param args (dynamic) arguments passed by the OS when starting the channel
 ' ----------------------------------------------------------------
 sub RunUserInterface(args as dynamic)
-    datadogroku_logThread("RunUserInterface")
     if ((args.mediaType <> invalid) and (args.contentId <> invalid))
-        datadogroku_logInfo("Sample app launched with deeplink: " + args.contentId + "/" + args.mediaType)
+        print "Sample app launched with deeplink: " + args.contentId + "/" + args.mediaType
     end if
 
     screen = CreateObject("roSGScreen")
@@ -17,7 +16,8 @@ sub RunUserInterface(args as dynamic)
     credentials = parseJson(readAsciiFile("pkg:/credentials.json"))
     m.global = screen.getGlobalNode()
     m.global.addFields({
-        credentials: credentials
+        credentials: credentials,
+        datadogVerbosity: 4 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
     })
 
     m.port = CreateObject("roMessagePort")

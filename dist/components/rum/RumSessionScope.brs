@@ -47,7 +47,6 @@ sub handleEvent(event as object, writer as object)
         m.top.activeView.viewName = event.viewName
         m.top.activeView.viewUrl = event.viewUrl
         m.top.activeView.parentScope = m.top
-        m.top.activeView.callfunc("handleEvent", {}, writer)
     end if
 end sub
 

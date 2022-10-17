@@ -16,7 +16,7 @@
     "diagnosticFilters": [
         "components/roku_modules/**/*.*",
         "source/roku_modules/**/*.*",
-        "source/exploding.brs"
+        "source/exploding.bs"
     ],
     "lintConfig": "tools/lint/bslint.json"
 }
