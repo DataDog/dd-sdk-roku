@@ -16,6 +16,7 @@ function TestSuite__RumActionScope() as object
 
     this.addTest("WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent", RumViewScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent", RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent", RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
     this.addTest("WhenHandleErrorEvent_ThenWriteActionEvent", RumViewScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent", RumViewScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
@@ -41,11 +42,16 @@ sub RumActionScopeTest__SetUp()
     ' Fake data
     m.testSuite.fakeTarget = IG_GetString(16)
     m.testSuite.fakeType = IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"])
+    m.testSuite.fakeGlobalUserInfo = {
+        id: IG_GetString(16),
+        name: IG_GetString(16),
+        email: IG_GetString(16) + "@" + IG_GetString(16) + ".com"
+    }
     m.testSuite.fakeGlobalContext = {}
-    for i = 1 to 10
+    for i = 1 to 5
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
-    m.testSuite.global.addFields({ datadogContext: {} })
+    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {} })
 
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()
@@ -248,6 +254,68 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteAc
         m.assertEqual(actionEvent.action.error.count, 0),
         m.assertEqual(actionEvent.action.resource.count, 0),
         m.assertEqual(actionEvent.context, m.fakeGlobalContext)
+    ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope and a global user info
+'  When: handling an event after timeout
+'  Then: writes an action event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeViewId = IG_GetString(32)
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        viewId: fakeViewId,
+        viewName: fakeViewName,
+        viewUrl: fakeViewUrl
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: IG_GetString(16) }
+    m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
+
+    ' When
+    sleep(150)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    if (updates.count() = 0)
+        return "Expected writeEvent to be updated"
+    end if
+    actionEvent = ParseJson(updates[0])
+    return m.multipleAssertions([
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(actionEvent),
+        m.assertEqual(actionEvent.application.id, fakeApplicationId),
+        m.assertBetween(actionEvent.date, m.startTimestamp&, m.startTimestamp& + 50),
+        m.assertEqual(actionEvent.service, fakeServiceName),
+        m.assertEqual(actionEvent.session.has_replay, false),
+        m.assertNotEmpty(actionEvent.session.id),
+        m.assertEqual(actionEvent.session.type, "user"),
+        m.assertEqual(actionEvent.source, "roku"),
+        m.assertEqual(actionEvent.type, "action"),
+        m.assertEqual(actionEvent.version, fakeApplicationVersion),
+        m.assertEqual(actionEvent.view.id, fakeViewId),
+        m.assertEqual(actionEvent.view.name, fakeViewName),
+        m.assertEqual(actionEvent.view.url, fakeViewUrl),
+        m.assertNotEmpty(actionEvent.action.id),
+        m.assertEqual(actionEvent.action.type, m.fakeType),
+        m.assertEqual(actionEvent.action.loading_time, 0),
+        m.assertEqual(actionEvent.action.target.name, m.fakeTarget),
+        m.assertEqual(actionEvent.action.error.count, 0),
+        m.assertEqual(actionEvent.action.resource.count, 0),
+        m.assertEqual(actionEvent.usr, m.fakeGlobalUserInfo)
     ])
 end function
 
