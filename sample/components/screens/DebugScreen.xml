@@ -4,10 +4,10 @@ Unless explicitly stated otherwise all files in this repository are licensed und
 This product includes software developed at Datadog (https://www.datadoghq.com/).
 Copyright 2022-Today Datadog, Inc.
 -->
-<component name="MainScreen" extends="Scene">
+<component name="DebugScreen" extends="Group" initialFocus="mainButtonGroup">
 
     <children>
-        <Label id="titleLabel" text="Datadog Sample Application" translation="[50,200]" />
+        <Label id="titleLabel" text="Debug screen" translation="[50,200]" />
 
         <ButtonGroup id="mainButtonGroup" translation="[50,300]">
             <Button text="Start View" showFocusFootprint="true" />
@@ -19,6 +19,6 @@ Copyright 2022-Today Datadog, Inc.
         <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />
     </children>
 
-    <script type="text/brightscript" uri="pkg:/components/MainScreen.bs" />
+    <script type="text/brightscript" uri="pkg:/components/screens/DebugScreen.bs" />
 
 </component>

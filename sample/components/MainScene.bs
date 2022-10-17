@@ -1,0 +1,52 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/exploding.bs"
+import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+
+sub init()
+    datadogroku_logThread("MainScene.init()")
+    m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
+    m.top.setFocus(true)
+
+    m.videoScreen = m.top.findNode("videoScreen")
+    m.debugScreen = m.top.findNode("debugScreen")
+
+    if (m.global.rumAgent = invalid)
+        datadogroku_logWarning("No RUM agent, creating one")
+        m.global.addFields({ rumAgent: CreateObject("roSGNode", "datadogroku_RumAgent") })
+        m.global.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
+        m.global.rumAgent.clientToken = m.global.credentials.datadogClientToken
+        m.global.rumAgent.applicationId = m.global.credentials.datadogApplicationId
+        m.global.rumAgent.serviceName = "roku-sample"
+    end if
+
+    switchScreen()
+end sub
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    datadogroku_logVerbose("MainScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    if ((key = "options" or key = "back") and press)
+        m.global.rumAgent@.addAction({ target: "options", type: "click" })
+        switchScreen()
+        return true
+    end if
+    return false
+end function
+
+sub switchScreen()
+    if (m.debugScreen.visible)
+        m.global.rumAgent@.startView("VideoScreen", "components/screens/VideoScreen.xml")
+        m.videoScreen.setFocus(true)
+        m.videoScreen.visible = true
+        m.debugScreen.visible = false
+    else
+        m.global.rumAgent@.startView("DebugScreen", "components/screens/DebugScreen.xml")
+        m.debugScreen.setFocus(true)
+        m.debugScreen.visible = true
+        m.videoScreen.visible = false
+    end if
+end sub

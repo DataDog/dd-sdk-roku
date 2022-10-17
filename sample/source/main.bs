@@ -17,7 +17,7 @@ sub RunUserInterface(args as dynamic)
     m.global = screen.getGlobalNode()
     m.global.addFields({
         credentials: credentials,
-        datadogVerbosity: 4, ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+        datadogVerbosity: 5, ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
         datadogContext: {
             channel: "Sample channel from dd-sdk-roku"
         },
@@ -31,13 +31,20 @@ sub RunUserInterface(args as dynamic)
     m.port = CreateObject("roMessagePort")
 
     screen.setMessagePort(m.port)
-    scene = screen.CreateScene("MainScreen")
+    scene = screen.CreateScene("MainScene")
     screen.show()
     scene.signalBeacon("AppLaunchComplete")
 
     ' Handle roInput (deeplink changes at runtime)
     input = CreateObject("roInput")
     input.setMessagePort(m.port)
+
+    ' Handle roSystemLogEvent
+    sysLog = CreateObject("roSystemLog")
+    sysLog.setMessagePort(m.port)
+    ' sysLog.enableType("http.connect")
+    sysLog.enableType("http.error")
+    sysLog.enableType("http.complete")
 
     while(true)
         msg = wait(0, m.port)
@@ -47,6 +54,11 @@ sub RunUserInterface(args as dynamic)
             if (msg.isScreenClosed())
                 return
             end if
+        else if (msgType = "roSystemLogEvent")
+            sysLogEvent = msg.getInfo()
+            datadogroku_logInfo("Received system event: " + sysLogEvent.LogType)
+            print sysLogEvent
+            m.global.rumAgent@.addResource(sysLogEvent)
         else if (msgType = "roInputEvent")
             datadogroku_logInfo("Received input event" + msg.getInfo())
         end if

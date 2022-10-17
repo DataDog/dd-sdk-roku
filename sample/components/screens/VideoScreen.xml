@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="VideoScreen" extends="Group" initialFocus="devtube">
+    <script type="text/brightscript" uri="pkg:/components/screens/VideoScreen.bs" />
+
+    <children>
+        <video id="devtube" width="1280" height="720" horizAlignment="center" vertAlignment="center" />
+        
+    </children>
+</component>
+    

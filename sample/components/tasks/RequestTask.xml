@@ -6,7 +6,7 @@ Copyright 2022-Today Datadog, Inc.
 -->
 <component name="RequestTask" extends="Task">
 
-    <script type="text/brightscript" uri="pkg:/components/RequestTask.bs" />
+    <script type="text/brightscript" uri="pkg:/components/tasks/RequestTask.bs" />
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/internalLogger.brs" />
     <script type="text/brightscript" uri="pkg:/source/roku_modules/datadogroku/timeUtils.brs" />
 
