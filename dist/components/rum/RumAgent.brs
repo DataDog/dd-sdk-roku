@@ -135,6 +135,7 @@ sub ensureUploader()
         m.uploader.payloadPrefix = ""
         m.uploader.payloadPostfix = ""
         m.uploader.clientToken = m.top.clientToken
+        m.uploader.contentType = "text/plain;charset=UTF-8"
     end if
 end sub
 

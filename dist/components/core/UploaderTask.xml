@@ -9,6 +9,8 @@
         <field id="mediaType" type="string" value="application/json" />
         <field id="payloadPrefix" type="string" value="" />
         <field id="payloadPostfix" type="string" value="" />
+        <field id="contentType" type="string" value="" />
+        <field id="queryParams" type="assocarray" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/core/UploaderTask.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />

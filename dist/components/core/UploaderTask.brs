@@ -70,8 +70,21 @@ function uploadFile(path as string) as integer
     ensureNetworkClient()
     requestId = m.deviceInfo.GetRandomUUID()
     url = "https://" + m.top.endpointHost + "/api/v2/" + m.top.trackType
+    if (m.top.queryParams <> invalid)
+        first = true
+        for each key in m.top.queryParams
+            prefix = ""
+            if (first)
+                prefix = "?"
+            else
+                prefix = "&"
+            end if
+            ' TODO add url encoding of values
+            url = url + prefix + key + "=" + m.top.queryParams[key]
+        end for
+    end if
     headers = {}
-    headers["Content-Type"] = "text/plain;charset=UTF-8"
+    headers["Content-Type"] = m.top.contentType
     headers["DD-API-KEY"] = m.top.clientToken
     headers["DD-EVP-ORIGIN"] = agentSource()
     headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
