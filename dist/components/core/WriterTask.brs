@@ -9,7 +9,7 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    logThread("WriterNode.init()")
+    ddLogThread("WriterNode.init()")
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("writeEvent", m.port)
     m.top.functionName = "writerLoop"
@@ -20,7 +20,7 @@ end sub
 ' Main writer loop
 ' ----------------------------------------------------------------
 sub writerLoop()
-    logThread("WriterNode.writerLoop()")
+    ddLogThread("WriterNode.writerLoop()")
     m.fileSystem = CreateObject("roFileSystem")
     while (true)
         msg = wait(0, m.port)
@@ -31,7 +31,7 @@ sub writerLoop()
                 eventData = msg.getData()
                 onWriteEvent(eventData)
             else
-                logWarning(fieldName + " not handled")
+                ddlogWarning(fieldName + " not handled")
             end if
         end if
     end while
@@ -42,13 +42,13 @@ end sub
 ' @param event (string) the event serialized to string
 ' ----------------------------------------------------------------
 sub onWriteEvent(event as string)
-    logThread("WriterNode.onWriteEvent()")
+    ddlogThread("WriterNode.onWriteEvent()")
     if (event = "")
         ' Ignore empty event
         return
     end if
     filePath = getWriteableFile(event.Len())
-    logVerbose("Got file: " + filePath)
+    ddlogVerbose("Got file: " + filePath)
     if (m.fileSystem.Exists(filePath))
         fileSize = m.fileSystem.Stat(filePath).size
         if (fileSize > 0)
@@ -67,7 +67,7 @@ function getWriteableFile(eventSize as integer) as string
     folderPath = trackFolderPath(m.top.trackType)
     folderExists = m.fileSystem.Exists(folderPath)
     if (not folderExists)
-        logVerbose("Folder for track " + m.top.trackType + " doesn't exist")
+        ddlogVerbose("Folder for track " + m.top.trackType + " doesn't exist")
         mkdirs(folderPath)
     end if
     currentTimestamp& = getTimestamp()

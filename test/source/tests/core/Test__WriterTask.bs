@@ -59,7 +59,7 @@ function WriterTaskTest__WhenFirstWriteEvent_ThenCreateNewFile() as string
     sleep(15)
 
     ' Then
-    datadogroku_logWarning("rolling assertions")
+    datadogroku_ddLogWarning("rolling assertions")
     filenames = ListDir(m.folderPath)
     if (filenames.count() = 0)
         return "Expected writer to create a file in folder " + m.folderPath
@@ -146,7 +146,7 @@ function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
     sleep(50)
 
     ' Then
-    datadogroku_logWarning("rolling assertions")
+    datadogroku_ddLogWarning("rolling assertions")
     filenames = ListDir(m.folderPath)
     if (filenames.count() <> 1)
         return "Expected writer to reuse the existing file"

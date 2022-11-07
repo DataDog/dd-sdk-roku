@@ -2,7 +2,7 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-import "pkg:/source/mock/Mock.brs"
+import "pkg:/source/mock/Mock.bs"
 import "pkg:/source/testFramework/TFUtils.brs"
 import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 

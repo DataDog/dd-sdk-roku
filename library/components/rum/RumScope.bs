@@ -12,7 +12,7 @@ import "pkg:/source/internalLogger.bs"
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    logVerbose("RumScope::init()")
+    ddlogVerbose("RumScope::init()")
 end sub
 
 ' ----------------------------------------------------------------
@@ -21,7 +21,7 @@ end sub
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
 function getRumContext(_ph as dynamic) as object
-    logVerbose("RumScope::getRumContext()")
+    ddlogVerbose("RumScope::getRumContext()")
     return invalid
 end function
 
@@ -31,7 +31,7 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    logVerbose("RumScope::handleEvent(" + FormatJson(event) + ", writer)")
+    ddlogVerbose("RumScope::handleEvent(" + FormatJson(event) + ", writer)")
 end sub
 
 ' ----------------------------------------------------------------
@@ -40,7 +40,7 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
-    logVerbose("RumScope::isActive()")
+    ddlogVerbose("RumScope::isActive()")
     ' TODO
     return invalid
 end function

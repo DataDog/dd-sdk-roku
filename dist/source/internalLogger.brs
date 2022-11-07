@@ -9,8 +9,8 @@
 ' Outputs the message in parameter if the `dd_verbose` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
-sub logVerbose(message as string)
-    if (isLogLevelAllowed(4))
+sub ddlogVerbose(message as string)
+    if (__isLogLevelAllowed(4))
         'bs:disable-next-line
         print __logPrefix(); "    >> "; message
     end if
@@ -20,8 +20,8 @@ end sub
 ' Outputs the message in parameter if the `dd_info` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
-sub logInfo(message as string)
-    if (isLogLevelAllowed(3))
+sub ddlogInfo(message as string)
+    if (__isLogLevelAllowed(3))
         'bs:disable-next-line
         print __logPrefix(); " ℹℹ >> "; message
     end if
@@ -31,8 +31,8 @@ end sub
 ' Outputs the message in parameter if the `dd_warning` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
-sub logWarning(message as string)
-    if (isLogLevelAllowed(2))
+sub ddlogWarning(message as string)
+    if (__isLogLevelAllowed(2))
         'bs:disable-next-line
         print __logPrefix(); " ⚠️  >> "; message
     end if
@@ -43,14 +43,27 @@ end sub
 ' @param message (string) the message to log
 ' @param error (object) the caught exception
 ' ----------------------------------------------------------------
-sub logError(message as string, error = invalid as object)
-    if (isLogLevelAllowed(1))
+sub ddlogError(message as string, error = invalid as object)
+    if (__isLogLevelAllowed(1))
         'bs:disable-next-line
         print __logPrefix(); " ‼️  >> "; message
         if (type(error) = "roAssociativeArray")
             'bs:disable-next-line
             print "              " + errorToString(error)
         end if
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Prints information about the current thread
+' @param operationName (string) the current operation (default is "")
+' ----------------------------------------------------------------
+sub ddlogThread(operationName = "" as string)
+    if (__isLogLevelAllowed(5))
+        node = CreateObject("roSGNode", "Node")
+        threadInfo = node.threadInfo()
+        'bs:disable-next-line
+        print __logPrefix(); " ⚙  >> "; operationName; " on thread "; threadInfo.currentThread.name; " ("; threadInfo.currentThread.type; ":"; threadInfo.currentThread.id; ")"
     end if
 end sub
 
@@ -154,23 +167,10 @@ function decToHex(number as integer) as string
 end function
 
 ' ----------------------------------------------------------------
-' Prints information about the current thread
-' @param operationName (string) the current operation (default is "")
-' ----------------------------------------------------------------
-sub logThread(operationName = "" as string)
-    if (isLogLevelAllowed(5))
-        node = CreateObject("roSGNode", "Node")
-        threadInfo = node.threadInfo()
-        'bs:disable-next-line
-        print __logPrefix(); " ⚙  >> "; operationName; " on thread "; threadInfo.currentThread.name; " ("; threadInfo.currentThread.type; ":"; threadInfo.currentThread.id; ")"
-    end if
-end sub
-
-' ----------------------------------------------------------------
 ' Checks whether the given log level is allowed in the current app
 ' @param level (LogLevel) the level of the log (1: error; 2: warning; )
 ' ----------------------------------------------------------------
-function isLogLevelAllowed(level as object) as boolean
+function __isLogLevelAllowed(level as object) as boolean
     if (m.global <> invalid)
         verbosity = (function(m)
                 __bsConsequent = m.global.datadogVerbosity

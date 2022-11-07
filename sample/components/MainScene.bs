@@ -8,7 +8,7 @@ import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
-    datadogroku_logThread("MainScene.init()")
+    datadogroku_ddLogThread("MainScene.init()")
     m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
     m.top.setFocus(true)
 
@@ -16,7 +16,7 @@ sub init()
     m.debugScreen = m.top.findNode("debugScreen")
 
     if (m.global.rumAgent = invalid)
-        datadogroku_logWarning("No RUM agent, creating one")
+        datadogroku_ddLogWarning("No RUM agent, creating one")
         m.global.addFields({ rumAgent: CreateObject("roSGNode", "datadogroku_RumAgent") })
         m.global.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
         m.global.rumAgent.clientToken = m.global.credentials.datadogClientToken
@@ -28,7 +28,7 @@ sub init()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    datadogroku_logVerbose("MainScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    datadogroku_ddLogVerbose("MainScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
     if ((key = "options" or key = "back") and press)
         m.global.rumAgent@.addAction({ target: "options", type: "click" })
         switchScreen()

@@ -1627,7 +1627,7 @@ function RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt() as 
 
     ' When
     m.testedScope@.handleEvent(fakeEvent, fakeWriter)
-    datadogroku_logVerbose("Back from handleEvent " + TF_Utils__AsString(m.testedScope.activeAction))
+    datadogroku_ddLogVerbose("Back from handleEvent " + TF_Utils__AsString(m.testedScope.activeAction))
     sleep(50)
 
     ' Then

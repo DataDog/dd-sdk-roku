@@ -23,17 +23,17 @@ end function
 ' @return (boolean) true if the directory was created or already exists
 ' ----------------------------------------------------------------
 function mkdirs(path as string) as boolean
-    logVerbose("mkdirs(" + path + ")")
+    ddlogVerbose("mkdirs(" + path + ")")
     fileSystem = CreateObject("roFileSystem")
     ' Early exist, dir already exists
     if (fileSystem.Exists(path))
-        logInfo("Folder already exists: " + path)
+        ddLogInfo("Folder already exists: " + path)
         return true
     end if
     ' Early exit, path contains invalid chars
     folderPath = CreateObject("roPath", path)
     if (not folderPath.IsValid())
-        logWarning("Can't make folder, path is invalid: " + path)
+        ddlogWarning("Can't make folder, path is invalid: " + path)
         return false
     end if
     folderData = folderPath.Split()
@@ -45,7 +45,7 @@ function mkdirs(path as string) as boolean
     end if
     ' Create dir
     if (not CreateDirectory(path))
-        logWarning("Failed to create directory " + path)
+        ddlogWarning("Failed to create directory " + path)
         return false
     end if
     return true
@@ -59,7 +59,7 @@ end function
 ' @return (string) whether the file was successfully appended
 ' ----------------------------------------------------------------
 function AppendAsciiFile(filepath as string, text as string) as boolean
-    logInfo("Appending bytes to " + filepath)
+    ddLogInfo("Appending bytes to " + filepath)
     byteArray = CreateObject("roByteArray")
     byteArray.FromAsciiString(text)
     return byteArray.AppendFile(filepath)

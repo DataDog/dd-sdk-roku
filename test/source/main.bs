@@ -8,13 +8,13 @@
 ' ----------------------------------------------------------------
 sub RunUserInterface(args as dynamic)
     if ((args.mediaType <> invalid) and (args.contentId <> invalid))
-        datadogroku_logInfo("Test app launched with deeplink: " + args.contentId + "/" + args.mediaType)
+        datadogroku_ddLogInfo("Test app launched with deeplink: " + args.contentId + " / " + args.mediaType)
     end if
 
     screen = CreateObject("roSGScreen")
     m.global = screen.getGlobalNode()
     m.global.addFields({
-        datadogVerbosity: 4 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+        datadogVerbosity: 5 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
     })
 
     m.port = CreateObject("roMessagePort")
@@ -36,7 +36,7 @@ sub RunUserInterface(args as dynamic)
                 return
             end if
         else if (msgType = "roInputEvent")
-            datadogroku_logInfo("Received input event" + msg.getInfo())
+            datadogroku_ddLogInfo("Received input event" + msg.getInfo())
         end if
     end while
 end sub
