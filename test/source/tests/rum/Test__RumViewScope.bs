@@ -74,6 +74,7 @@ sub RumViewScopeTest__SetUp()
     m.testSuite.fakeGlobalContext = {}
     for i = 1 to 5
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+        m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
     m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {} })
 
