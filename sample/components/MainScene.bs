@@ -24,6 +24,15 @@ sub init()
         m.global.rumAgent.serviceName = "roku-sample"
     end if
 
+    if (m.global.logsAgent = invalid)
+        datadogroku_ddLogWarning("No RUM agent, creating one")
+        m.global.addFields({ logsAgent: CreateObject("roSGNode", "datadogroku_LogsAgent") })
+        m.global.logsAgent.endpointHost = "rum.browser-intake-datadoghq.com"
+        m.global.logsAgent.clientToken = m.global.credentials.datadogClientToken
+        m.global.logsAgent.serviceName = "roku-sample"
+        m.global.logsAgent.envName = "staging"
+    end if
+
     switchScreen()
 end sub
 
@@ -39,14 +48,18 @@ end function
 
 sub switchScreen()
     if (m.debugScreen.visible)
+        m.global.logsAgent@.logOk("Switching screen to video", { screen: "Debug" })
         m.global.rumAgent@.startView("VideoScreen", "components/screens/VideoScreen.xml")
-        m.videoScreen.setFocus(true)
-        m.videoScreen.visible = true
         m.debugScreen.visible = false
+        m.debugScreen.setFocus(false)
+        m.videoScreen.visible = true
+        m.videoScreen.setFocus(true)
     else
+        m.global.logsAgent@.logOk("Switching screen to debug", { screen: "Video" })
         m.global.rumAgent@.startView("DebugScreen", "components/screens/DebugScreen.xml")
-        m.debugScreen.setFocus(true)
-        m.debugScreen.visible = true
         m.videoScreen.visible = false
+        m.videoScreen.setFocus(false)
+        m.debugScreen.visible = true
+        m.debugScreen.setFocus(true)
     end if
 end sub

@@ -21,6 +21,7 @@ end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     datadogroku_ddLogVerbose("DebugScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    m.global.logsAgent@.logDebug("Key pressed", { screen: "Debug", key: key, press: press })
     if (not press)
         addAction(key, "custom")
     end if

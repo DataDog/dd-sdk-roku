@@ -22,6 +22,7 @@ end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     datadogroku_ddLogVerbose("VideoScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    m.global.logsAgent@.logDebug("Key pressed", { screen: "Video", key: key, press: press })
     if(key = "play" and press)
         datadogroku_ddLogInfo("Video State: " + m.devTube.state)
         m.global.rumAgent@.addAction({ target: "play", type: "click" })
