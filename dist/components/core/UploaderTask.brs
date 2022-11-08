@@ -81,6 +81,7 @@ function uploadFile(path as string) as integer
             end if
             ' TODO add url encoding of values
             url = url + prefix + key + "=" + m.top.queryParams[key]
+            first = false
         end for
     end if
     headers = {}

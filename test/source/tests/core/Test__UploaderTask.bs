@@ -407,16 +407,19 @@ function UploaderTaskTest__WhenInitWithQueryParams_UploadsExistingFile_202() as 
     ' Given
     folderPath = datadogroku_trackFolderPath(m.fakeTrackType)
     filePath = folderPath + "/" + IG_GetInteger(65536).toStr()
-    qpKey = IG_GetString(8)
-    qpValue = IG_GetString(16)
-    expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType + "?" + qpKey + "=" + qpValue
+    qpKey1 = IG_GetString(8)
+    qpKey2 = IG_GetString(8)
+    qpValue1 = IG_GetString(16)
+    qpValue2 = IG_GetString(16)
+    expectedUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType + "?" + qpKey1 + "=" + qpValue1 + "&" + qpKey2 + "=" + qpValue2
     expectedHeaders = buildExpectedHeaders(m.fakeClientToken, m.fakeContentType)
     expectedCallArgs = { url: expectedUrl, filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
     m.mockNetworkClient@.stubCall("postFromFile", expectedCallArgs, 202)
     datadogroku_mkdirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
     queryParams = {}
-    queryParams[qpKey] = qpValue
+    queryParams[qpKey1] = qpValue1
+    queryParams[qpKey2] = qpValue2
     m.testedTask.queryParams = queryParams
 
 
