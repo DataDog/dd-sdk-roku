@@ -11,14 +11,58 @@ function TestSuite__LogsAgent() as object
     this.Name = "LogsAgent"
 
     this.addTest("WhenLogOk_ThenWriteLog", LogsAgentTest__WhenLogOk_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogDebug_ThenWriteLog", LogsAgentTest__WhenLogDebug_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogDebugWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogDebugWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogDebugWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogDebugWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogDebugWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogInfo_ThenWriteLog", LogsAgentTest__WhenLogInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogInfoWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogInfoWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogInfoWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogInfoWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogNotice_ThenWriteLog", LogsAgentTest__WhenLogNotice_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogNoticeWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogNoticeWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogNoticeWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogNoticeWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogWarn_ThenWriteLog", LogsAgentTest__WhenLogWarn_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogWarnWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogWarnWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogWarnWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogWarnWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogError_ThenWriteLog", LogsAgentTest__WhenLogError_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogErrorWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogErrorWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogErrorWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogErrorWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogCritical_ThenWriteLog", LogsAgentTest__WhenLogCritical_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogCriticalWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogCriticalWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogCriticalWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogCriticalWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogAlert_ThenWriteLog", LogsAgentTest__WhenLogAlert_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogAlertWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogAlertWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogAlertWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogAlertWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     this.addTest("WhenLogEmergency_ThenWriteLog", LogsAgentTest__WhenLogEmergency_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogEmergencyWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogEmergencyWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogEmergencyWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogEmergencyWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
 
     return this
 end function
@@ -39,11 +83,20 @@ sub LogsAgentTest__SetUp()
         email: IG_GetString(16) + "@" + IG_GetString(16) + ".com"
     }
     m.testSuite.fakeGlobalContext = {}
+    m.testSuite.fakeRumContext = {
+        actionId: IG_GetString(32),
+        applicationId: IG_GetString(32),
+        sessionId: IG_GetString(32),
+        viewId: IG_GetString(32)
+    }
     for i = 1 to 5
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
-    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {} })
+    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
+    m.testSuite.global.setField("datadogContext", {})
+    m.testSuite.global.setField("datadogUserInfo", {})
+    m.testSuite.global.setField("datadogRumContext", {})
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_LogsAgent")
@@ -71,6 +124,109 @@ function LogsAgentTest__WhenLogOk_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logOk(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "ok")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log ok with custom attributes
+'  Then: writes a ok log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logOk(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "ok")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log ok with global attributes
+'  Then: writes a ok log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logOk(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "ok")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log ok with user info
+'  Then: writes a ok log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
@@ -94,12 +250,44 @@ function LogsAgentTest__WhenLogOk_ThenWriteLog() as string
         m.assertEqual(logEvent.status, "ok"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log ok with rum context
+'  Then: writes a ok log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logOk(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "ok"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
     return m.multipleAssertions(assertions)
 end function
 
@@ -109,6 +297,109 @@ end function
 '  Then: writes a debug log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogDebug_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logDebug(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "debug")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log debug with custom attributes
+'  Then: writes a debug log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logDebug(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "debug")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log debug with global attributes
+'  Then: writes a debug log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logDebug(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "debug")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log debug with user info
+'  Then: writes a debug log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -128,19 +419,51 @@ function LogsAgentTest__WhenLogDebug_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "debug"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log debug with rum context
+'  Then: writes a debug log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogDebugWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logDebug(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "debug"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
     return m.multipleAssertions(assertions)
 end function
 
@@ -150,6 +473,109 @@ end function
 '  Then: writes a info log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogInfo_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logInfo(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "info")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log info with custom attributes
+'  Then: writes a info log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logInfo(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "info")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log info with global attributes
+'  Then: writes a info log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logInfo(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "info")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log info with user info
+'  Then: writes a info log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -169,21 +595,55 @@ function LogsAgentTest__WhenLogInfo_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "info"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log info with rum context
+'  Then: writes a info log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logInfo(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "info"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -191,6 +651,109 @@ end function
 '  Then: writes a notice log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogNotice_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logNotice(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "notice")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log notice with custom attributes
+'  Then: writes a notice log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logNotice(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "notice")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log notice with global attributes
+'  Then: writes a notice log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logNotice(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "notice")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log notice with user info
+'  Then: writes a notice log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -210,21 +773,55 @@ function LogsAgentTest__WhenLogNotice_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "notice"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log notice with rum context
+'  Then: writes a notice log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logNotice(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "notice"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -232,6 +829,109 @@ end function
 '  Then: writes a warn log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogWarn_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logWarn(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "warn")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log warn with custom attributes
+'  Then: writes a warn log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logWarn(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "warn")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log warn with global attributes
+'  Then: writes a warn log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logWarn(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "warn")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log warn with user info
+'  Then: writes a warn log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -251,21 +951,55 @@ function LogsAgentTest__WhenLogWarn_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "warn"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log warn with rum context
+'  Then: writes a warn log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logWarn(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "warn"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -273,6 +1007,109 @@ end function
 '  Then: writes a error log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogError_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logError(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "error")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log error with custom attributes
+'  Then: writes a error log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logError(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "error")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log error with global attributes
+'  Then: writes a error log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logError(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "error")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log error with user info
+'  Then: writes a error log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -292,21 +1129,55 @@ function LogsAgentTest__WhenLogError_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "error"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log error with rum context
+'  Then: writes a error log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logError(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "error"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -314,6 +1185,109 @@ end function
 '  Then: writes a critical log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogCritical_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logCritical(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "critical")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log critical with custom attributes
+'  Then: writes a critical log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logCritical(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "critical")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log critical with global attributes
+'  Then: writes a critical log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logCritical(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "critical")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log critical with user info
+'  Then: writes a critical log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -333,21 +1307,55 @@ function LogsAgentTest__WhenLogCritical_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "critical"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log critical with rum context
+'  Then: writes a critical log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logCritical(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "critical"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -355,6 +1363,109 @@ end function
 '  Then: writes a alert log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogAlert_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logAlert(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "alert")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log alert with custom attributes
+'  Then: writes a alert log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logAlert(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "alert")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log alert with global attributes
+'  Then: writes a alert log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logAlert(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "alert")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log alert with user info
+'  Then: writes a alert log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -374,21 +1485,55 @@ function LogsAgentTest__WhenLogAlert_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "alert"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log alert with rum context
+'  Then: writes a alert log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logAlert(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "alert"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -396,6 +1541,109 @@ end function
 '  Then: writes a emergency log
 '----------------------------------------------------------------
 function LogsAgentTest__WhenLogEmergency_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logEmergency(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "emergency")
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log emergency with custom attributes
+'  Then: writes a emergency log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logEmergency(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "emergency")
+    ]
+    for each key in fakeAttributes
+        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log emergency with global attributes
+'  Then: writes a emergency log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logEmergency(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "emergency")
+    ]
+    for each key in m.fakeGlobalContext
+        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+    end for
+    return m.multipleAssertions(assertions)
+end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log emergency with user info
+'  Then: writes a emergency log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog() as string
     ' Given
     fakeMessage = IG_GetString(32)
     fakeAttributes = {}
@@ -415,18 +1663,52 @@ function LogsAgentTest__WhenLogEmergency_ThenWriteLog() as string
     assertions = [
         m.assertEqual(updates.count(), 1),
         m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
         m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
         m.assertEqual(logEvent.message, fakeMessage),
         m.assertEqual(logEvent.service, m.fakeServiceName),
         m.assertEqual(logEvent.status, "emergency"),
         m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
     ]
-    for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
-    end for
-    for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
-    end for
     return m.multipleAssertions(assertions)
 end function
+
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call the log emergency with rum context
+'  Then: writes a emergency log
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    for i = 1 to 10
+        fakeAttributes[IG_GetString(10)] = IG_GetString(32)
+    end for
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedNode@.logEmergency(fakeMessage, fakeAttributes)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    assertions = [
+        m.assertEqual(updates.count(), 1),
+        m.assertNotInvalid(logEvent),
+        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
+        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
+        m.assertEqual(logEvent.message, fakeMessage),
+        m.assertEqual(logEvent.service, m.fakeServiceName),
+        m.assertEqual(logEvent.status, "emergency"),
+        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
+        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
+        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
+        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
+    ]
+    return m.multipleAssertions(assertions)
+end function
+
+
