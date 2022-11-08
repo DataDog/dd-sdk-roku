@@ -13,7 +13,7 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    ddlogThread("RumAgent.init()")
+    ddLogThread("RumAgent.init()")
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("stop", m.port)
     m.top.functionName = "rumAgentLoop"
@@ -24,7 +24,7 @@ end sub
 ' Main RumAgent loop
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
-    ddlogThread("RumAgent.rumAgentLoop()")
+    ddLogThread("RumAgent.rumAgentLoop()")
     while (true)
         msg = wait(m.top.keepAliveDelayMs, m.port)
         ensureSetup()
@@ -35,7 +35,7 @@ sub rumAgentLoop()
             if (fieldName = "stop")
                 return
             else
-                ddlogWarning(fieldName + " not handled")
+                ddLogWarning(fieldName + " not handled")
             end if
         end if
     end while
@@ -47,7 +47,7 @@ end sub
 ' @param url (string) the view url (developer identifier)
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string)
-    ddlogThread("RumAgent.startView()")
+    ddLogThread("RumAgent.startView()")
     ensureSetup()
     m.rumScope.callfunc("handleEvent", startViewEvent(name, url), m.writer)
 end sub
@@ -58,7 +58,7 @@ end sub
 ' @param url (string) the view url (developer identifier)
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string)
-    ddlogThread("RumAgent.stopView()")
+    ddLogThread("RumAgent.stopView()")
     ensureSetup()
     m.rumScope.callfunc("handleEvent", stopViewEvent(name, url), m.writer)
 end sub
@@ -68,7 +68,7 @@ end sub
 ' @param action (object) the action to track
 ' ----------------------------------------------------------------
 sub addAction(action as object)
-    ddlogThread("RumAgent.addAction()")
+    ddLogThread("RumAgent.addAction()")
     ensureSetup()
     m.rumScope.callfunc("handleEvent", addActionEvent(action), m.writer)
 end sub
@@ -78,7 +78,7 @@ end sub
 ' @param exception (object) the caught exception object
 ' ----------------------------------------------------------------
 sub addError(exception as object)
-    ddlogThread("RumAgent.addError()")
+    ddLogThread("RumAgent.addError()")
     ensureSetup()
     m.rumScope.callfunc("handleEvent", addErrorEvent(exception), m.writer)
 end sub
@@ -88,7 +88,7 @@ end sub
 ' @param resource (object) the tracked resource object (as retrieved from the roSystemLog)
 ' ----------------------------------------------------------------
 sub addResource(resource as object)
-    ddlogThread("RumAgent.addResource()")
+    ddLogThread("RumAgent.addResource()")
     ensureSetup()
     m.rumScope.callfunc("handleEvent", addResourceEvent(resource), m.writer)
 end sub

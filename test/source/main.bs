@@ -14,7 +14,7 @@ sub RunUserInterface(args as dynamic)
     screen = CreateObject("roSGScreen")
     m.global = screen.getGlobalNode()
     m.global.addFields({
-        datadogVerbosity: 5 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+        datadogVerbosity: 5 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose; 5 = log threads
     })
 
     m.port = CreateObject("roMessagePort")

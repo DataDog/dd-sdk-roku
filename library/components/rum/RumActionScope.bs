@@ -92,7 +92,7 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendAction(writer as object)
-    ddlogVerbose("Sending an action")
+    ddLogVerbose("Sending an action")
     duration& = millisToNanos(m.lastEventTimestamp& - m.startTimestamp&)
 
     context = getRumContext(invalid)

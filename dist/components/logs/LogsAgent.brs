@@ -14,7 +14,7 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    ddlogThread("LogsAgent.init()")
+    ddLogThread("LogsAgent.init()")
     m.applicationVersion = CreateObject("roAppInfo").GetVersion()
 end sub
 
@@ -24,7 +24,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logOk(message as string, attributes as object)
-    ddlogThread("LogsAgent.logOk()")
+    ddLogThread("LogsAgent.logOk()")
     sendLog("ok", message, attributes)
 end sub
 
@@ -34,7 +34,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logDebug(message as string, attributes as object)
-    ddlogThread("LogsAgent.logDebug()")
+    ddLogThread("LogsAgent.logDebug()")
     sendLog("debug", message, attributes)
 end sub
 
@@ -44,7 +44,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logInfo(message as string, attributes as object)
-    ddlogThread("LogsAgent.logInfo()")
+    ddLogThread("LogsAgent.logInfo()")
     sendLog("info", message, attributes)
 end sub
 
@@ -54,7 +54,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logNotice(message as string, attributes as object)
-    ddlogThread("LogsAgent.logNotice()")
+    ddLogThread("LogsAgent.logNotice()")
     sendLog("notice", message, attributes)
 end sub
 
@@ -64,7 +64,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logWarn(message as string, attributes as object)
-    ddlogThread("LogsAgent.logWarn()")
+    ddLogThread("LogsAgent.logWarn()")
     sendLog("warn", message, attributes)
 end sub
 
@@ -74,7 +74,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logError(message as string, attributes as object)
-    ddlogThread("LogsAgent.logError()")
+    ddLogThread("LogsAgent.logError()")
     sendLog("error", message, attributes)
 end sub
 
@@ -84,7 +84,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logCritical(message as string, attributes as object)
-    ddlogThread("LogsAgent.logCritical()")
+    ddLogThread("LogsAgent.logCritical()")
     sendLog("critical", message, attributes)
 end sub
 
@@ -94,7 +94,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logAlert(message as string, attributes as object)
-    ddlogThread("LogsAgent.logAlert()")
+    ddLogThread("LogsAgent.logAlert()")
     sendLog("alert", message, attributes)
 end sub
 
@@ -104,7 +104,7 @@ end sub
 ' @param attributes (object) additional custom attributes
 ' ----------------------------------------------------------------
 sub logEmergency(message as string, attributes as object)
-    ddlogThread("LogsAgent.logEmergency()")
+    ddLogThread("LogsAgent.logEmergency()")
     sendLog("emergency", message, attributes)
 end sub
 

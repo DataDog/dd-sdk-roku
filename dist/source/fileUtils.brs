@@ -23,7 +23,7 @@ end function
 ' @return (boolean) true if the directory was created or already exists
 ' ----------------------------------------------------------------
 function mkdirs(path as string) as boolean
-    ddlogVerbose("mkdirs(" + path + ")")
+    ddLogVerbose("mkdirs(" + path + ")")
     fileSystem = CreateObject("roFileSystem")
     ' Early exist, dir already exists
     if (fileSystem.Exists(path))
@@ -33,7 +33,7 @@ function mkdirs(path as string) as boolean
     ' Early exit, path contains invalid chars
     folderPath = CreateObject("roPath", path)
     if (not folderPath.IsValid())
-        ddlogWarning("Can't make folder, path is invalid: " + path)
+        ddLogWarning("Can't make folder, path is invalid: " + path)
         return false
     end if
     folderData = folderPath.Split()
@@ -45,7 +45,7 @@ function mkdirs(path as string) as boolean
     end if
     ' Create dir
     if (not CreateDirectory(path))
-        ddlogWarning("Failed to create directory " + path)
+        ddLogWarning("Failed to create directory " + path)
         return false
     end if
     return true

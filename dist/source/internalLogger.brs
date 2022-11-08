@@ -9,7 +9,7 @@
 ' Outputs the message in parameter if the `dd_verbose` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
-sub ddlogVerbose(message as string)
+sub ddLogVerbose(message as string)
     if (__isLogLevelAllowed(4))
         'bs:disable-next-line
         print __logPrefix(); "    >> "; message
@@ -20,7 +20,7 @@ end sub
 ' Outputs the message in parameter if the `dd_info` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
-sub ddlogInfo(message as string)
+sub ddLogInfo(message as string)
     if (__isLogLevelAllowed(3))
         'bs:disable-next-line
         print __logPrefix(); " ℹℹ >> "; message
@@ -31,7 +31,7 @@ end sub
 ' Outputs the message in parameter if the `dd_warning` compiler flag is enabled
 ' @param message (string) the message to log
 ' ----------------------------------------------------------------
-sub ddlogWarning(message as string)
+sub ddLogWarning(message as string)
     if (__isLogLevelAllowed(2))
         'bs:disable-next-line
         print __logPrefix(); " ⚠️  >> "; message
@@ -43,7 +43,7 @@ end sub
 ' @param message (string) the message to log
 ' @param error (object) the caught exception
 ' ----------------------------------------------------------------
-sub ddlogError(message as string, error = invalid as object)
+sub ddLogError(message as string, error = invalid as object)
     if (__isLogLevelAllowed(1))
         'bs:disable-next-line
         print __logPrefix(); " ‼️  >> "; message
@@ -58,7 +58,7 @@ end sub
 ' Prints information about the current thread
 ' @param operationName (string) the current operation (default is "")
 ' ----------------------------------------------------------------
-sub ddlogThread(operationName = "" as string)
+sub ddLogThread(operationName = "" as string)
     if (__isLogLevelAllowed(5))
         node = CreateObject("roSGNode", "Node")
         threadInfo = node.threadInfo()

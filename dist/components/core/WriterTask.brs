@@ -31,7 +31,7 @@ sub writerLoop()
                 eventData = msg.getData()
                 onWriteEvent(eventData)
             else
-                ddlogWarning(fieldName + " not handled")
+                ddLogWarning(fieldName + " not handled")
             end if
         end if
     end while
@@ -42,13 +42,13 @@ end sub
 ' @param event (string) the event serialized to string
 ' ----------------------------------------------------------------
 sub onWriteEvent(event as string)
-    ddlogThread("WriterNode.onWriteEvent()")
+    ddLogThread("WriterNode.onWriteEvent()")
     if (event = "")
         ' Ignore empty event
         return
     end if
     filePath = getWriteableFile(event.Len())
-    ddlogVerbose("Got file: " + filePath)
+    ddLogVerbose("Got file: " + filePath)
     if (m.fileSystem.Exists(filePath))
         fileSize = m.fileSystem.Stat(filePath).size
         if (fileSize > 0)
@@ -67,7 +67,7 @@ function getWriteableFile(eventSize as integer) as string
     folderPath = trackFolderPath(m.top.trackType)
     folderExists = m.fileSystem.Exists(folderPath)
     if (not folderExists)
-        ddlogVerbose("Folder for track " + m.top.trackType + " doesn't exist")
+        ddLogVerbose("Folder for track " + m.top.trackType + " doesn't exist")
         mkdirs(folderPath)
     end if
     currentTimestamp& = getTimestamp()
