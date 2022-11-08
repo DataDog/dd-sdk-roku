@@ -17,6 +17,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="mediaType" type="string" value="application/json" />
         <field id="payloadPrefix" type="string" value="" />
         <field id="payloadPostfix" type="string" value="" />
+        <field id="contentType" type="string" value="" />
+        <field id="queryParams" type="assocarray" />
     </interface>
 
 </component>

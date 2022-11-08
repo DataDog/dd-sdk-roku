@@ -24,16 +24,16 @@ end sub
 ' Main uploader loop
 ' ----------------------------------------------------------------
 sub uploaderLoop()
-    logVerbose("Starting Uploader loop")
+    ddLogVerbose("Starting Uploader loop")
 
     ' Uploader's dependencies
     m.fileSystem = CreateObject("roFileSystem")
     m.deviceInfo = CreateObject("roDeviceInfo")
 
     while (true)
-        logVerbose("Uploader loop sync")
+        ddLogVerbose("Uploader loop sync")
         uploadAvailableFiles()
-        logVerbose("Nothing else to do, waiting for " + m.top.waitPeriodMs.toStr() + "ms")
+        ddLogVerbose("Nothing else to do, waiting for " + m.top.waitPeriodMs.toStr() + "ms")
         sleep(m.top.waitPeriodMs)
     end while
 end sub
@@ -76,14 +76,28 @@ function uploadFile(path as string) as integer
 
     requestId = m.deviceInfo.GetRandomUUID()
     url = "https://" + m.top.endpointHost + "/api/v2/" + m.top.trackType
+    if (m.top.queryParams <> invalid)
+        first = true
+        for each key in m.top.queryParams
+            prefix = ""
+            if (first)
+                prefix = "?"
+            else
+                prefix = "&"
+            end if
+            ' TODO add url encoding of values
+            url = url + prefix + key + "=" + m.top.queryParams[key]
+            first = false
+        end for
+    end if
     headers = {}
-    headers["Content-Type"] = "text/plain;charset=UTF-8"
+    headers["Content-Type"] = m.top.contentType
     headers["DD-API-KEY"] = m.top.clientToken
     headers["DD-EVP-ORIGIN"] = agentSource()
     headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
     headers["DD-REQUEST-ID"] = requestId
 
-    logVerbose("Network request " + requestId + " from " + path + " to " + url)
+    ddLogVerbose("Network request " + requestId + " from " + path + " to " + url)
     result = m.networkClient@.postFromFile(url, path, headers, m.top.payloadPrefix, m.top.payloadPostfix)
     return result
 end function
@@ -111,57 +125,57 @@ end function
 ' ----------------------------------------------------------------
 sub handleResponse(responseCode as integer, filePath as string)
     if (responseCode = 202)
-        logInfo("Upload to track " + m.top.trackType + " succeeded.")
+        ddLogInfo("Upload to track " + m.top.trackType + " succeeded.")
         retry = false
     else if (responseCode = 400)
-        logError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
-        logError("The intake server returned status code 400 Bad Request, try updating the SDK to the latest version, or contact the support.")
+        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("The intake server returned status code 400 Bad Request, try updating the SDK to the latest version, or contact the support.")
         retry = false
     else if (responseCode = 401)
-        logError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
-        logError("The intake server returned status code 401 Unauthorized, please check your ClientToken is correct and still valid.")
+        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("The intake server returned status code 401 Unauthorized, please check your ClientToken is correct and still valid.")
         retry = false
     else if (responseCode = 403)
-        logError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
-        logError("The intake server returned status code 403 Forbidden, please check your ClientToken is correct and still valid.")
+        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("The intake server returned status code 403 Forbidden, please check your ClientToken is correct and still valid.")
         retry = false
     else if (responseCode = 408)
-        logWarning("Upload to track " + m.top.trackType + " timed out, we'll retry later")
+        ddLogWarning("Upload to track " + m.top.trackType + " timed out, we'll retry later")
         retry = true
     else if (responseCode = 413)
-        logError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
-        logError("The intake server returned status code 413 Payload Too Large, please check the number of custom attributes you attached to your events, or contact the support.")
+        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("The intake server returned status code 413 Payload Too Large, please check the number of custom attributes you attached to your events, or contact the support.")
         retry = false
     else if (responseCode = 429)
-        logWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
-        logWarning("The intake server returned status code 429 Too Many Requests; if you think this shouldn't happen, please contact the support.")
+        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code 429 Too Many Requests; if you think this shouldn't happen, please contact the support.")
         retry = true
     else if (responseCode = 500)
-        logWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
-        logWarning("The intake server returned status code 500 Internal Server Error; if the issue persits, please contact the support.")
+        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code 500 Internal Server Error; if the issue persits, please contact the support.")
         retry = true
     else if (responseCode = 503)
-        logWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
-        logWarning("The intake server returned status code 503 Unavailable; if the issue persits, please contact the support.")
+        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code 503 Unavailable; if the issue persits, please contact the support.")
         retry = true
     else if (responseCode >= 500 and responseCode < 600)
-        logWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
-        logWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
+        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
         retry = true
     else if (responseCode >= 400 and responseCode < 500)
-        logWarning("Upload to track " + m.top.trackType + " failed, data will be discarded;")
-        logWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
+        ddLogWarning("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
         retry = false
     else
-        logWarning("Upload to track " + m.top.trackType + " status unknown;")
-        logWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
+        ddLogWarning("Upload to track " + m.top.trackType + " status unknown;")
+        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
         retry = false
     end if
 
     if (not retry)
-        logVerbose("Deleting file at " + filePath)
+        ddLogVerbose("Deleting file at " + filePath)
         if (not DeleteFile(filePath))
-            logWarning("Unable to delete file at " + filePath)
+            ddLogWarning("Unable to delete file at " + filePath)
         end if
     end if
 end sub

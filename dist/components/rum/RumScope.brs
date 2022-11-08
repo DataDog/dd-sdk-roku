@@ -10,7 +10,7 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    logVerbose("RumScope::init()")
+    ddLogVerbose("RumScope::init()")
 end sub
 
 ' ----------------------------------------------------------------
@@ -19,7 +19,7 @@ end sub
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
 function getRumContext(_ph as dynamic) as object
-    logVerbose("RumScope::getRumContext()")
+    ddLogVerbose("RumScope::getRumContext()")
     return invalid
 end function
 
@@ -29,7 +29,7 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    logVerbose("RumScope::handleEvent(" + FormatJson(event) + ", writer)")
+    ddLogVerbose("RumScope::handleEvent(" + FormatJson(event) + ", writer)")
 end sub
 
 ' ----------------------------------------------------------------
@@ -38,7 +38,7 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
-    logVerbose("RumScope::isActive()")
+    ddLogVerbose("RumScope::isActive()")
     ' TODO
     return invalid
 end function

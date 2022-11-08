@@ -8,7 +8,7 @@ import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
-    datadogroku_logThread("DebugScreen.init()")
+    datadogroku_ddLogThread("DebugScreen.init()")
     m.titleLabel = m.top.findNode("titleLabel")
     m.msgLabel = m.top.findNode("messageLabel")
     m.titleLabel.font.size = 64
@@ -20,7 +20,8 @@ sub init()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    datadogroku_logVerbose("DebugScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    datadogroku_ddLogVerbose("DebugScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    m.global.logsAgent@.logDebug("Key pressed", { screen: "Debug", key: key, press: press })
     if (not press)
         addAction(key, "custom")
     end if
@@ -57,10 +58,10 @@ end sub
 sub sendError()
     m.errorIdx++
     try
-        datadogroku_logWarning("About to explode")
+        datadogroku_ddLogWarning("About to explode")
         explodingMethod(m.errorIdx)
     catch error
-        datadogroku_logError("Caught something", error)
+        datadogroku_ddLogError("Caught something", error)
         m.global.rumAgent@.addError(error)
     end try
 end sub

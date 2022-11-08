@@ -65,6 +65,9 @@ if (( $result > 0 )); then
 fi
 if (( $HTTP_STATUS == 200 )); then
     echo "   Uninstalled previous dev app on device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET).";
+elif (( $HTTP_STATUS == 577 )); then
+    echo "ERROR: Device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET) answered $HTTP_STATUS; check for OS updates or developer password.";
+    exit 1
 else
     echo "ERROR: Device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET) answered $HTTP_STATUS.";
     exit 1
@@ -79,6 +82,9 @@ if (( $result > 0 )); then
 fi
 if (( $HTTP_STATUS == 200 )); then
     echo "SUCCESS: Installed $1 on device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET).";
+elif (( $HTTP_STATUS == 577 )); then
+    echo "ERROR: Device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET) answered $HTTP_STATUS; check for OS updates or developer password.";
+    exit 1
 else
     echo "ERROR: Device '$ROKU_DEV_TARGET_NAME' ($ROKU_DEV_TARGET) answered $HTTP_STATUS.";
     exit 1

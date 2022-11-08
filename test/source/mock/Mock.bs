@@ -44,7 +44,7 @@ end sub
 ' @param params (object) the parameters for the function
 ' ----------------------------------------------------------------
 sub Mock__recordFunctionCall(functionName as string, params as object)
-    datadogroku_logInfo("Recording Function Call on mock: " + functionName)
+    datadogroku_ddLogInfo("Recording Function Call on mock: " + functionName)
     m.calls.Push({
         functionName: functionName,
         params: params,
@@ -183,7 +183,7 @@ function Mock__getStubReturnValue(functionName as string, params as object) as d
         end if
     end for
 
-    datadogroku_logWarning("No stub match found for" + functionName + "(" + TF_Utils__AsString(params) + "):" + wrongParams)
+    datadogroku_ddLogWarning("No stub match found for" + functionName + "(" + TF_Utils__AsString(params) + "):" + wrongParams)
     return invalid
 end function
 

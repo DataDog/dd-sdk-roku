@@ -12,6 +12,7 @@ import "pkg:/source/testFramework/UTF.brs"
 import "pkg:/source/tests/Test__fileUtils.brs"
 import "pkg:/source/tests/core/Test__UploaderTask.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"
+import "pkg:/source/tests/logs/Test__LogsAgent.bs"
 import "pkg:/source/tests/rum/Test__RumActionScope.bs"
 import "pkg:/source/tests/rum/Test__RumAgent.bs"
 import "pkg:/source/tests/rum/Test__RumApplicationScope.bs"
@@ -37,7 +38,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Runs all the tests
 ' ----------------------------------------------------------------
-sub runTests() 
+sub runTests()
     Runner = TestRunner()
 
     Runner.SetFunctions([
@@ -48,7 +49,8 @@ sub runTests()
         TestSuite__RumApplicationScope,
         TestSuite__RumSessionScope,
         TestSuite__RumActionScope,
-        TestSuite__RumViewScope
+        TestSuite__RumViewScope,
+        TestSuite__LogsAgent
     ])
 
     ' setup logger

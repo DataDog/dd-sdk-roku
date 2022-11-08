@@ -8,7 +8,7 @@ import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
-    datadogroku_logThread("MainScene.init()")
+    datadogroku_ddLogThread("MainScene.init()")
     m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
     m.top.setFocus(true)
 
@@ -16,7 +16,7 @@ sub init()
     m.debugScreen = m.top.findNode("debugScreen")
 
     if (m.global.rumAgent = invalid)
-        datadogroku_logWarning("No RUM agent, creating one")
+        datadogroku_ddLogWarning("No RUM agent, creating one")
         m.global.addFields({ rumAgent: CreateObject("roSGNode", "datadogroku_RumAgent") })
         m.global.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
         m.global.rumAgent.clientToken = m.global.credentials.datadogClientToken
@@ -24,11 +24,20 @@ sub init()
         m.global.rumAgent.serviceName = "roku-sample"
     end if
 
+    if (m.global.logsAgent = invalid)
+        datadogroku_ddLogWarning("No RUM agent, creating one")
+        m.global.addFields({ logsAgent: CreateObject("roSGNode", "datadogroku_LogsAgent") })
+        m.global.logsAgent.endpointHost = "logs.browser-intake-datadoghq.com"
+        m.global.logsAgent.clientToken = m.global.credentials.datadogClientToken
+        m.global.logsAgent.serviceName = "roku-sample"
+        m.global.logsAgent.envName = "staging"
+    end if
+
     switchScreen()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
-    datadogroku_logVerbose("MainScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
+    datadogroku_ddLogVerbose("MainScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
     if ((key = "options" or key = "back") and press)
         m.global.rumAgent@.addAction({ target: "options", type: "click" })
         switchScreen()
@@ -39,14 +48,18 @@ end function
 
 sub switchScreen()
     if (m.debugScreen.visible)
+        m.global.logsAgent@.logOk("Switching screen to video", { screen: "Debug" })
         m.global.rumAgent@.startView("VideoScreen", "components/screens/VideoScreen.xml")
-        m.videoScreen.setFocus(true)
-        m.videoScreen.visible = true
         m.debugScreen.visible = false
+        m.debugScreen.setFocus(false)
+        m.videoScreen.visible = true
+        m.videoScreen.setFocus(true)
     else
+        m.global.logsAgent@.logOk("Switching screen to debug", { screen: "Video" })
         m.global.rumAgent@.startView("DebugScreen", "components/screens/DebugScreen.xml")
-        m.debugScreen.setFocus(true)
-        m.debugScreen.visible = true
         m.videoScreen.visible = false
+        m.videoScreen.setFocus(false)
+        m.debugScreen.visible = true
+        m.debugScreen.setFocus(true)
     end if
 end sub

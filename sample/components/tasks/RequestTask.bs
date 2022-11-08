@@ -5,7 +5,7 @@ sub init()
 end sub
 
 sub performRequest()
-    datadogroku_logInfo("performing request")
+    datadogroku_ddLogInfo("performing request")
 
     m.port = CreateObject("roMessagePort")
 

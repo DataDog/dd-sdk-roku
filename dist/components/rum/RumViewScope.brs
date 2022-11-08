@@ -48,13 +48,13 @@ end function
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
     if (m.top.activeAction <> invalid)
-        logVerbose("Delegate to child")
+        ddLogVerbose("Delegate to child")
         m.top.activeAction.callfunc("handleEvent", event, writer)
         if (not m.top.activeAction.callfunc("isActive", invalid))
-            logVerbose("No child anymore")
+            ddLogVerbose("No child anymore")
             m.top.activeAction = invalid
         else
-            logVerbose("Child still active")
+            ddLogVerbose("Child still active")
         end if
     end if
     if (event.eventType = "stopView")
@@ -88,13 +88,13 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string, writer as object)
-    logVerbose("RUM stopping view " + name + " (" + url + ")")
+    ddLogVerbose("RUM stopping view " + name + " (" + url + ")")
     if (m.top.viewUrl <> url)
-        logWarning("Trying to stop unknown view '" + name + "' (" + url + "), ignoring.")
+        ddLogWarning("Trying to stop unknown view '" + name + "' (" + url + "), ignoring.")
         return
     end if
     if (m.stopped)
-        logWarning("Trying to stop view '" + name + "' (" + url + ") but it's already stopped.")
+        ddLogWarning("Trying to stop view '" + name + "' (" + url + ") but it's already stopped.")
         return
     end if
     m.stopped = true
@@ -128,7 +128,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendError(message as string, errorType as string, backtrace as dynamic, writer as object)
     timestamp& = getTimestamp()
-    logVerbose("Sending an error")
+    ddLogVerbose("Sending an error")
     context = getRumContext(invalid)
     actionId = invalid
     if (m.top.activeAction <> invalid)
@@ -214,7 +214,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendCustomAction(target as string, writer as object)
     timestamp& = getTimestamp()
-    logVerbose("Sending a custom action")
+    ddLogVerbose("Sending a custom action")
     actionId = CreateObject("roDeviceInfo").GetRandomUUID()
     context = getRumContext(invalid)
     actionEvent = {
@@ -273,7 +273,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendResource(url as string, transferTime as double, method as dynamic, httpCode as dynamic, bytesDownloaded as dynamic, writer as object)
     timestamp& = getTimestamp()
-    logVerbose("Sending a resource")
+    ddLogVerbose("Sending a resource")
     context = getRumContext(invalid)
     actionId = invalid
     if (m.top.activeAction <> invalid)
@@ -333,7 +333,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendResourceError(status as string, url as dynamic, method as dynamic, writer as object)
     timestamp& = getTimestamp()
-    logVerbose("Sending a resource error")
+    ddLogVerbose("Sending a resource error")
     context = getRumContext(invalid)
     actionId = invalid
     if (m.top.activeAction <> invalid)
@@ -393,7 +393,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendViewUpdate(writer as object)
     timestamp& = getTimestamp()
-    logVerbose("Sending view update")
+    ddLogVerbose("Sending view update")
     context = getRumContext(invalid)
     m.documentVersionUpdate++
     timeSpentNs& = (timestamp& - m.startTimestamp&) * 1000000 ' convert ms to ns
