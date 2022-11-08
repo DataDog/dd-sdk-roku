@@ -27,7 +27,7 @@ sub init()
     if (m.global.logsAgent = invalid)
         datadogroku_ddLogWarning("No RUM agent, creating one")
         m.global.addFields({ logsAgent: CreateObject("roSGNode", "datadogroku_LogsAgent") })
-        m.global.logsAgent.endpointHost = "rum.browser-intake-datadoghq.com"
+        m.global.logsAgent.endpointHost = "logs.browser-intake-datadoghq.com"
         m.global.logsAgent.clientToken = m.global.credentials.datadogClientToken
         m.global.logsAgent.serviceName = "roku-sample"
         m.global.logsAgent.envName = "staging"
