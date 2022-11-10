@@ -230,7 +230,6 @@ function LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -406,7 +405,6 @@ function LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -582,7 +580,6 @@ function LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -760,7 +757,6 @@ function LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -938,7 +934,6 @@ function LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -1116,7 +1111,6 @@ function LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -1294,7 +1288,6 @@ function LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -1472,7 +1465,6 @@ function LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
@@ -1650,7 +1642,6 @@ function LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog() as string
     for i = 1 to 10
         fakeAttributes[IG_GetString(10)] = IG_GetString(32)
     end for
-    m.global.setField("datadogContext", m.fakeGlobalContext)
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
     ' When
