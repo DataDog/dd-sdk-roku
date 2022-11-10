@@ -118,6 +118,11 @@ sub ensureRumScope()
         end if
         m.rumScope.applicationId = m.top.applicationId
         m.rumScope.serviceName = m.top.serviceName
+        
+        m.global.addFields({ datadogRumContext: {} })
+        datadogRumContext = m.global.datadogRumContext
+        datadogRumContext.applicationId = m.top.applicationId
+        m.global.setField("datadogRumContext", datadogRumContext)
     end if
 end sub
 

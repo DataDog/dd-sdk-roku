@@ -10,6 +10,7 @@ function TestSuite__RumActionScope() as object
     this = BaseTestSuite()
     this.Name = "RumActionScope"
 
+    this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumActionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumActionScopeTest__WhenGetContext_ThenReturnsContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenIsActive_ThenReturnsTrue", RumActionScopeTest__WhenIsActive_ThenReturnsTrue, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumActionScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
@@ -30,6 +31,8 @@ function TestSuite__RumActionScope() as object
 
     this.addTest("WhenHandleStartViewEvent_ThenWriteActionEventImmediately", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediately, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEvent_ThenWriteActionEventImmediately", RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediately, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    
+    this.addTest("WhenWritingAction_ThenUpdateGlobalRumContext", RumViewScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
     return this
 end function
@@ -51,7 +54,7 @@ sub RumActionScopeTest__SetUp()
     for i = 1 to 5
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
-    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {} })
+    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
 
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()
@@ -66,6 +69,19 @@ sub RumActionScopeTest__TearDown()
     m.testSuite.Delete("mockParentScope")
     m.testSuite.Delete("testedScope")
 end sub
+
+'----------------------------------------------------------------
+' Given: a RumActionScope
+'  When: init
+'  Then: check the global rum context is updated with the action id
+'----------------------------------------------------------------
+function RumActionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
+    ' When
+    context = m.testedScope@.getRumContext()
+
+    ' Then
+    return m.assertEqual(context.actionId, m.global.datadogRumContext.actionId)
+end function
 
 '----------------------------------------------------------------
 ' Given: a RumActionScope
@@ -867,4 +883,38 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediate
         m.assertEqual(actionEvent.action.error.count, 0),
         m.assertEqual(actionEvent.action.resource.count, 0)
     ])
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling any event after timeout
+'  Then: check the global rum context is updated with null action id
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeServiceName = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeViewId = IG_GetString(32)
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        serviceName: fakeServiceName,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        viewId: fakeViewId,
+        viewName: fakeViewName,
+        viewUrl: fakeViewUrl
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: IG_GetString(16) }
+
+    ' When
+    sleep(150)
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    return m.assertInvalid(m.global.datadogRumContext.actionId)
 end function

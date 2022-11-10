@@ -19,6 +19,9 @@ sub init()
     m.lastEventTimestamp& = m.startTimestamp&
     m.errorCount = 0
     m.resourceCount = 0
+    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext.actionId = m.actionId
+    m.global.setField("datadogRumContext", datadogRumContext)
 end sub
 
 ' ----------------------------------------------------------------
@@ -71,6 +74,9 @@ sub handleEvent(event as object, writer as object)
     if (timeout or parentStopping)
         sendAction(writer)
         m.stopped = true
+        datadogRumContext = m.global.datadogRumContext
+        datadogRumContext.actionId = invalid
+        m.global.setField("datadogRumContext", datadogRumContext)
     end if
 end sub
 

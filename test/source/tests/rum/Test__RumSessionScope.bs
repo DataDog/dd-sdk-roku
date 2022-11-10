@@ -10,6 +10,7 @@ function TestSuite__RumSessionScope() as object
     this = BaseTestSuite()
     this.Name = "RumSessionScope"
 
+    this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleAnyEvent_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
@@ -25,6 +26,7 @@ sub RumSessionScopeTest__SetUp()
     m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
+    m.testSuite.global.addFields({ datadogRumContext: {} })
 
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
@@ -36,6 +38,19 @@ sub RumSessionScopeTest__TearDown()
     m.testSuite.Delete("mockParentScope")
     m.testSuite.Delete("testedScope")
 end sub
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: init
+'  Then: check the global rum context is updated with the session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
+    ' When
+    context = m.testedScope@.getRumContext()
+
+    ' Then
+    return m.assertEqual(context.sessionId, m.global.datadogRumContext.sessionId)
+end function
 
 '----------------------------------------------------------------
 ' Given: a RumSessionScope
