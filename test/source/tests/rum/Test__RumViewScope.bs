@@ -10,6 +10,7 @@ function TestSuite__RumViewScope() as object
     this = BaseTestSuite()
     this.Name = "RumViewScope"
 
+    this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumViewScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumViewScopeTest__WhenGetContext_ThenReturnsContext, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenIsActive_ThenReturnsTrue", RumViewScopeTest__WhenIsActive_ThenReturnsTrue, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumViewScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -76,7 +77,7 @@ sub RumViewScopeTest__SetUp()
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
-    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {} })
+    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
 
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()
@@ -92,6 +93,19 @@ sub RumViewScopeTest__TearDown()
     m.testSuite.Delete("mockActionScope")
     m.testSuite.Delete("testedScope")
 end sub
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: init
+'  Then: check the global rum context is updated with the view id
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
+    ' When
+    context = m.testedScope@.getRumContext()
+
+    ' Then
+    return m.assertEqual(context.viewId, m.global.datadogRumContext.viewId)
+end function
 
 '----------------------------------------------------------------
 ' Given: a RumViewScope
@@ -709,7 +723,7 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithAction_ThenWriteViewEvent(
         m.assertNotInvalid(errorEvent),
         m.assertEqual(errorEvent.application.id, fakeApplicationId),
         m.assertEqual(errorEvent.action.id, m.fakeActionId),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
+        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 10),
         m.assertEqual(errorEvent.service, fakeServiceName),
         m.assertEqual(errorEvent.session.has_replay, false),
         m.assertNotEmpty(errorEvent.session.id),

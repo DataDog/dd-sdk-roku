@@ -128,9 +128,21 @@ sub sendLog(status as object, message as string, attributes as object)
     for each key in attributes
         logEvent[key] = attributes[key]
     end for
-    for each key in m.global.datadogContext
-        logEvent[key] = m.global.datadogContext[key]
-    end for
+    if (m.global.datadogContext <> invalid)
+        for each key in m.global.datadogContext
+            logEvent[key] = m.global.datadogContext[key]
+        end for
+    end if
+    if (m.global.datadogRumContext <> invalid)
+        logEvent["application_id"] = m.global.datadogRumContext.applicationId
+        logEvent["session_id"] = m.global.datadogRumContext.sessionId
+        logEvent["view"] = {
+            id: m.global.datadogRumContext.viewId
+        }
+        logEvent["user_action"] = {
+            id: m.global.datadogRumContext.actionId
+        }
+    end if
     m.writer.writeEvent = FormatJson(logEvent)
 end sub
 

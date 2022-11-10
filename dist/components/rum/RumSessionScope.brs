@@ -13,6 +13,9 @@
 ' ----------------------------------------------------------------
 sub init()
     m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
+    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext.sessionId = m.sessionId
+    m.global.setField("datadogRumContext", datadogRumContext)
 end sub
 
 ' ----------------------------------------------------------------
@@ -35,7 +38,7 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    ' TODO RUMM-2478 update session
+    ' TODO RUMM-2478 update session (+ update global rum context)
     if (m.top.activeView <> invalid)
         m.top.activeView.callfunc("handleEvent", event, writer)
         if (not m.top.activeView.callfunc("isActive", invalid))

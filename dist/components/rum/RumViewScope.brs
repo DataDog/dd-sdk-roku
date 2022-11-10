@@ -23,6 +23,9 @@ sub init()
     m.actionCount = 0
     m.errorCount = 0
     m.resourceCount = 0
+    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext.viewId = m.viewId
+    m.global.setField("datadogRumContext", datadogRumContext)
 end sub
 
 ' ----------------------------------------------------------------
