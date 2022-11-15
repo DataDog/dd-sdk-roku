@@ -422,7 +422,6 @@ function UploaderTaskTest__WhenInitWithQueryParams_UploadsExistingFile_202() as 
     queryParams[qpKey2] = qpValue2
     m.testedTask.queryParams = queryParams
 
-
     ' When
     sleep(100)
 

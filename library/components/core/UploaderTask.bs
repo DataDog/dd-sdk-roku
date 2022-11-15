@@ -24,7 +24,7 @@ end sub
 ' Main uploader loop
 ' ----------------------------------------------------------------
 sub uploaderLoop()
-    ddLogVerbose("Starting Uploader loop")
+    ddLogThread("UploaderTask.uploaderLoop()")
 
     ' Uploader's dependencies
     m.fileSystem = CreateObject("roFileSystem")

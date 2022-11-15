@@ -25,6 +25,7 @@ function Mock() as object
     instance.assertNoInteractions = Mock__assertNoInteractions
     instance.getFieldUpdates = Mock__getFieldUpdates
     instance.getStubReturnValue = Mock__getStubReturnValue
+    instance.captureFunctionCalls = Mock__captureFunctionCalls
 
     return instance
 end function
@@ -100,6 +101,7 @@ function Mock__assertFunctionCalled(functionName as string, params as object, ti
                 if (not checkParamMatch(params[param], call.params[param]))
                     wrongParams += chr(10) + " - " + functionName + "() was called with params " + TF_Utils__AsString(call.params)
                     wrongParams += chr(10) + " - - > first mismatched param: " + param
+                    wrongParams += chr(10) + "       " + TF_Utils__AsString(params[param]) + " ≠ " + TF_Utils__AsString(call.params[param])
                     isMatch = false
                 end if
             end for
@@ -130,6 +132,32 @@ function Mock__assertFunctionCalled(functionName as string, params as object, ti
         end if
         return "Expected call to " + functionName + " with params " + TF_Utils__AsString(params) + wrongParams
     end if
+end function
+
+' ----------------------------------------------------------------
+' Returns all the calls to the given function matching the params
+' @param functionName (string) the name of the function to check
+' @param params (object) the parameters for the function. If a
+'     parameter is not given, it means any value is a match
+' @return (object) an array of params for each function call registered
+' ----------------------------------------------------------------
+function Mock__captureFunctionCalls(functionName as string, params as object) as object
+    matchedCalls = []
+    for each call in m.calls
+        if (call.functionName = functionName)
+            isMatch = true
+            for each param in params
+                if (not checkParamMatch(params[param], call.params[param]))
+                    isMatch = false
+                end if
+            end for
+            if (isMatch)
+                matchedCalls.Push(call.params)
+            end if
+        end if
+    end for
+
+    return matchedCalls
 end function
 
 ' ----------------------------------------------------------------
@@ -170,10 +198,11 @@ function Mock__getStubReturnValue(functionName as string, params as object) as d
     for each stub in m.stubs
         if (stub.functionName = functionName)
             isMatch = true
-            for each param in params
+            for each param in stub.params
                 if (not checkParamMatch(stub.params[param], params[param]))
                     wrongParams += chr(10) + " - " + functionName + "() was stubbed with params " + TF_Utils__AsString(stub.params)
                     wrongParams += chr(10) + " - - > first mismatched param: " + param
+                    wrongParams += chr(10) + "       " + TF_Utils__AsString(params[param]) + " ≠ " + TF_Utils__AsString(stub.params[param])
                     isMatch = false
                 end if
             end for
@@ -183,7 +212,7 @@ function Mock__getStubReturnValue(functionName as string, params as object) as d
         end if
     end for
 
-    datadogroku_ddLogWarning("No stub match found for" + functionName + "(" + TF_Utils__AsString(params) + "):" + wrongParams)
+    datadogroku_ddLogWarning("No stub match found for " + functionName + "(" + TF_Utils__AsString(params) + "):" + wrongParams)
     return invalid
 end function
 

@@ -11,6 +11,7 @@ import "pkg:/source/testFramework/UTF.brs"
 
 import "pkg:/source/tests/Test__fileUtils.brs"
 import "pkg:/source/tests/core/Test__UploaderTask.bs"
+import "pkg:/source/tests/core/Test__MultitrackUploaderTask.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"
 import "pkg:/source/tests/logs/Test__LogsAgent.bs"
 import "pkg:/source/tests/rum/Test__RumActionScope.bs"
@@ -43,6 +44,7 @@ sub runTests()
 
     Runner.SetFunctions([
         TestSuite__FileUtils,
+        TestSuite__MultiTrackUploaderTask
         TestSuite__UploaderTask,
         TestSuite__WriterTask,
         TestSuite__RumAgent,

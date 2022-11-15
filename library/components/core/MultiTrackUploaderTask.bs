@@ -1,13 +1,16 @@
 ' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
-'import "pkg:/source/datadogSdk.bs"
-'import "pkg:/source/internalLogger.bs"
-'import "pkg:/source/fileUtils.bs"
-'import "pkg:/source/timeUtils.bs"
+
+import "pkg:/source/datadogSdk.bs"
+import "pkg:/source/internalLogger.bs"
+import "pkg:/source/fileUtils.bs"
+import "pkg:/source/timeUtils.bs"
+
 ' *****************************************************************
-' * UploaderTask: a background loop checking for files available for upload;
+' * MultiTrackUploaderTask: a background loop checking for files available for upload;
 ' * When a file is ready, it s uploaded, and upon success deleted from disk.
+' * It can look into different folders
 ' *****************************************************************
 
 ' ----------------------------------------------------------------
@@ -22,12 +25,14 @@ end sub
 ' Main uploader loop
 ' ----------------------------------------------------------------
 sub uploaderLoop()
-    ddLogThread("UploaderTask.uploaderLoop()")
+    ddLogThread("MultiTrackUploaderTask.uploaderLoop()")
+
     ' Uploader's dependencies
     m.fileSystem = CreateObject("roFileSystem")
     m.deviceInfo = CreateObject("roDeviceInfo")
+
     while (true)
-        ddLogVerbose("Uploader loop sync")
+        ddLogVerbose("Multi Track Uploader loop sync")
         uploadAvailableFiles()
         ddLogVerbose("Nothing else to do, waiting for " + m.top.waitPeriodMs.toStr() + "ms")
         sleep(m.top.waitPeriodMs)
@@ -38,13 +43,28 @@ end sub
 ' Looks for all uploadable files, and upload them one by one
 ' ----------------------------------------------------------------
 sub uploadAvailableFiles()
-    folderPath = trackFolderPath(m.top.trackType)
+    tracks = m.top.tracks
+    for each track in tracks
+        ddLogVerbose("Checking files to upload for track " + track)
+        trackInfo = tracks[track]
+        uploadAvailableFilesForTrack(trackInfo)
+    end for
+end sub
+
+' ----------------------------------------------------------------
+' Looks for all uploadable files for the given track, and upload them one by one
+' @param trackInfo (object) the configuration for the current track
+' ----------------------------------------------------------------
+sub uploadAvailableFilesForTrack(trackInfo as object)
+    folderPath = trackFolderPath(trackInfo.trackType)
+    ddLogVerbose("Checking files in folder " + folderPath)
+
     filenames = ListDir(folderPath)
     for each filename in filenames
         filePath = folderPath + "/" + filename
         if (isFileValidForUpload(filename))
-            responseCode = uploadFile(filePath)
-            handleResponse(responseCode, filePath)
+            responseCode = uploadFile(filePath, trackInfo)
+            handleResponse(responseCode, filePath, trackInfo)
         end if
     end for
 end sub
@@ -62,17 +82,16 @@ function isFileValidForUpload(filename as string) as boolean
 end function
 
 ' ----------------------------------------------------------------
-' Uploads the content of the given file to Datadog
-' @param path (string) the path of the file to upload
-' @return (integer) the upload status code
+' Get the upload url for the current track
+' @param trackInfo (object) the configuration for the current track
+' @return (string) the url to upload the data to
 ' ----------------------------------------------------------------
-function uploadFile(path as string) as integer
-    ensureNetworkClient()
-    requestId = m.deviceInfo.GetRandomUUID()
-    url = "https://" + m.top.endpointHost + "/api/v2/" + m.top.trackType
-    if (m.top.queryParams <> invalid)
+function getUploadUrl(trackInfo as object) as string
+    url = "https://" + trackInfo.endpointHost + "/api/v2/" + trackInfo.trackType
+    if (trackInfo.queryParams <> invalid)
         first = true
-        for each key in m.top.queryParams
+        for each key in trackInfo.queryParams
+            ddLogInfo("Found query params " + key)
             prefix = ""
             if (first)
                 prefix = "?"
@@ -80,23 +99,43 @@ function uploadFile(path as string) as integer
                 prefix = "&"
             end if
             ' TODO add url encoding of values
-            url = url + prefix + key + "=" + m.top.queryParams[key]
+            url = url + prefix + key + "=" + trackInfo.queryParams[key]
             first = false
         end for
+    else
+        ddLogWarning("No query parameters")
     end if
+
+    ddLogInfo ("URL:" + url)
+    return url
+end function
+
+' ----------------------------------------------------------------
+' Uploads the content of the given file to Datadog
+' @param path (string) the path of the file to upload
+' @param trackInfo (object) the configuration for the current track
+' @return (integer) the upload status code
+' ----------------------------------------------------------------
+function uploadFile(path as string, trackInfo as object) as integer
+    ensureNetworkClient()
+
+    requestId = m.deviceInfo.GetRandomUUID()
+    url = getUploadUrl(trackInfo)
     headers = {}
-    headers["Content-Type"] = m.top.contentType
+    headers["Content-Type"] = trackInfo.contentType
     headers["DD-API-KEY"] = m.top.clientToken
     headers["DD-EVP-ORIGIN"] = agentSource()
     headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
     headers["DD-REQUEST-ID"] = requestId
+
     ddLogVerbose("Network request " + requestId + " from " + path + " to " + url)
-    result = m.networkClient.callfunc("postFromFile", url, path, headers, m.top.payloadPrefix, m.top.payloadPostfix)
+    result = m.networkClient@.postFromFile(url, path, headers, trackInfo.payloadPrefix, trackInfo.payloadPostfix)
     return result
 end function
 
 ' ----------------------------------------------------------------
 ' Handles the response code by deleting or keeping the file for retry.
+' @param responseCode (integer) the HTTP status code of the upload request
 ' - 202 Accepted: the request has been accepted for processing
 ' - 400 Bad Request: the server cannot or will not process the request (client error).
 '     The client SHOULD NOT retry this request.
@@ -114,56 +153,58 @@ end function
 '     The client SHOULD retry this request.
 ' - 503 Service Unavailable: the server is not ready to handle the request probably because it is overloaded.
 '     The client SHOULD retry this request.
-' @param path (string) the path of the file that was uploaded
+' @param filePath (string) the path of the file that was uploaded
+' @param trackInfo (object) the configuration for the current track
 ' ----------------------------------------------------------------
-sub handleResponse(responseCode as integer, filePath as string)
+sub handleResponse(responseCode as integer, filePath as string, trackInfo as object)
     if (responseCode = 202)
-        ddLogInfo("Upload to track " + m.top.trackType + " succeeded.")
+        ddLogInfo("Upload to track " + trackInfo.trackType + " succeeded.")
         retry = false
     else if (responseCode = 400)
-        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 400 Bad Request, try updating the SDK to the latest version, or contact the support.")
         retry = false
     else if (responseCode = 401)
-        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 401 Unauthorized, please check your ClientToken is correct and still valid.")
         retry = false
     else if (responseCode = 403)
-        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 403 Forbidden, please check your ClientToken is correct and still valid.")
         retry = false
     else if (responseCode = 408)
-        ddLogWarning("Upload to track " + m.top.trackType + " timed out, we'll retry later")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " timed out, we'll retry later")
         retry = true
     else if (responseCode = 413)
-        ddLogError("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 413 Payload Too Large, please check the number of custom attributes you attached to your events, or contact the support.")
         retry = false
     else if (responseCode = 429)
-        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code 429 Too Many Requests; if you think this shouldn't happen, please contact the support.")
         retry = true
     else if (responseCode = 500)
-        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code 500 Internal Server Error; if the issue persits, please contact the support.")
         retry = true
     else if (responseCode = 503)
-        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code 503 Unavailable; if the issue persits, please contact the support.")
         retry = true
     else if (responseCode >= 500 and responseCode < 600)
-        ddLogWarning("Upload to track " + m.top.trackType + " failed, we'll retry later;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
         retry = true
     else if (responseCode >= 400 and responseCode < 500)
-        ddLogWarning("Upload to track " + m.top.trackType + " failed, data will be discarded;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
         retry = false
     else
-        ddLogWarning("Upload to track " + m.top.trackType + " status unknown;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " status unknown;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
         retry = false
     end if
+
     if (not retry)
         ddLogVerbose("Deleting file at " + filePath)
         if (not DeleteFile(filePath))
@@ -185,3 +226,4 @@ sub ensureNetworkClient()
         end if
     end if
 end sub
+

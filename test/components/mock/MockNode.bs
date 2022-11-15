@@ -52,6 +52,9 @@ end sub
 ' @param functionName (string) the name of the function to check
 ' @param params (object) the parameters for the function. If a
 '     parameter is not given, it means any value is a match
+' @param times (integer) the expected number of times the method is called (default is 1)
+'     a positive value means "exactly" (e.g.: 5 means exactly 5 times)
+'     a negative value means "at least the absolute value" (e.g.: -1 means at least once)
 ' @return (string) an empty string if there is a match, or an error
 '     message
 ' ----------------------------------------------------------------
@@ -85,4 +88,16 @@ end function
 ' ----------------------------------------------------------------
 function getStubReturnValue(functionName as string, params as object) as dynamic
     return m.mock.getStubReturnValue(functionName, params)
+end function
+
+' ----------------------------------------------------------------
+' Returns all the calls to the given function matching the params
+' @param functionName (string) the name of the function to check
+' @param params (object) the parameters for the function. If a
+'     parameter is not given, it means any value is a match
+' @return (string) an empty string if there is a match, or an error
+'     message
+' ----------------------------------------------------------------
+function captureFunctionCalls(functionName as string, params as object) as object
+    return m.mock.captureFunctionCalls(functionName, params)
 end function
