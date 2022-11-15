@@ -214,7 +214,7 @@ end function
 function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as string
     ' Given
     fakeTrack2 = IG_GetString(8)
-    fakeEndpoint2 = "https://" + IG_GetString(8) + ".com"
+    fakeEndpoint2 = IG_GetString(8) + ".com"
     fakePrefix2 = IG_GetString(3)
     fakePostfix2 = IG_GetString(3)
     fakeContentType2 = IG_GetString(16)

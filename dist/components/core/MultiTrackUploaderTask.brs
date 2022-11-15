@@ -7,8 +7,8 @@
 'import "pkg:/source/timeUtils.bs"
 ' *****************************************************************
 ' * MultiTrackUploaderTask: a background loop checking for files available for upload;
-' * When a file is ready, it s uploaded, and upon success deleted from disk.
-' * It can look into different folders
+' * When a file is ready, it is uploaded, and upon success deleted from disk.
+' * It can look into different folders with distinct configurations
 ' *****************************************************************
 
 ' ----------------------------------------------------------------

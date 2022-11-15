@@ -705,12 +705,10 @@ end function
 
 ' @param s (dynamic) A target string.
 ' @param substring (dynamic) A value to check.
-' @param msg (string) An error message.
-' Default value: ""
 
 ' @return An error message.
 ' ----------------------------------------------------------------
-function BTS__AssertStringContains(s as dynamic, substring as dynamic, msg = "" as string) as string
+function BTS__AssertStringContains(s as dynamic, substring as dynamic) as string
     if substring <> invalid and not TF_Utils__IsString(substring)
         return "Substring value has invalid type."
     end if
@@ -725,11 +723,8 @@ function BTS__AssertStringContains(s as dynamic, substring as dynamic, msg = "" 
         end for
         return "Couldn't find '" + substring + "' in '" + s + "'"
     else
-        msg = "Input value is not a String."
-        return msg
+        return "Input value is not a String."
     end if
-
-    return ""
 end function
 
 ' ----------------------------------------------------------------
