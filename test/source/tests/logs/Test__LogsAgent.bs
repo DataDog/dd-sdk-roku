@@ -144,7 +144,6 @@ function LogsAgentTest__WhenLogOk_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log ok with custom attributes
@@ -179,7 +178,6 @@ function LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog() as string
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -217,7 +215,6 @@ function LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log ok with user info
@@ -251,7 +248,6 @@ function LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -319,7 +315,6 @@ function LogsAgentTest__WhenLogDebug_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log debug with custom attributes
@@ -354,7 +349,6 @@ function LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog() as strin
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -392,7 +386,6 @@ function LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog() as strin
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log debug with user info
@@ -426,7 +419,6 @@ function LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -494,7 +486,6 @@ function LogsAgentTest__WhenLogInfo_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log info with custom attributes
@@ -529,7 +520,6 @@ function LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog() as string
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -567,7 +557,6 @@ function LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log info with user info
@@ -601,7 +590,6 @@ function LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -640,8 +628,6 @@ function LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log notice
@@ -670,7 +656,6 @@ function LogsAgentTest__WhenLogNotice_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -706,7 +691,6 @@ function LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog() as stri
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -744,7 +728,6 @@ function LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog() as stri
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log notice with user info
@@ -778,7 +761,6 @@ function LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -817,8 +799,6 @@ function LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log warn
@@ -847,7 +827,6 @@ function LogsAgentTest__WhenLogWarn_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -883,7 +862,6 @@ function LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog() as string
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -921,7 +899,6 @@ function LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log warn with user info
@@ -955,7 +932,6 @@ function LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -994,8 +970,6 @@ function LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log error
@@ -1024,7 +998,6 @@ function LogsAgentTest__WhenLogError_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1060,7 +1033,6 @@ function LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog() as strin
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1098,7 +1070,6 @@ function LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog() as strin
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log error with user info
@@ -1132,7 +1103,6 @@ function LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1171,8 +1141,6 @@ function LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log critical
@@ -1201,7 +1169,6 @@ function LogsAgentTest__WhenLogCritical_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1237,7 +1204,6 @@ function LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog() as st
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1275,7 +1241,6 @@ function LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog() as st
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log critical with user info
@@ -1309,7 +1274,6 @@ function LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1348,8 +1312,6 @@ function LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log alert
@@ -1378,7 +1340,6 @@ function LogsAgentTest__WhenLogAlert_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1414,7 +1375,6 @@ function LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog() as strin
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1452,7 +1412,6 @@ function LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog() as strin
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log alert with user info
@@ -1486,7 +1445,6 @@ function LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1525,8 +1483,6 @@ function LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog() as string
     return m.multipleAssertions(assertions)
 end function
 
-
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log emergency
@@ -1555,7 +1511,6 @@ function LogsAgentTest__WhenLogEmergency_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1591,7 +1546,6 @@ function LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog() as s
     end for
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1629,7 +1583,6 @@ function LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog() as s
     return m.multipleAssertions(assertions)
 end function
 
-
 '----------------------------------------------------------------
 ' Given: a LogsAgent
 '  When: call the log emergency with user info
@@ -1663,7 +1616,6 @@ function LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
@@ -1701,5 +1653,4 @@ function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
     ]
     return m.multipleAssertions(assertions)
 end function
-
 

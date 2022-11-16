@@ -84,6 +84,7 @@ function BaseTestSuite()
     this.multipleAssertions = BTS__MultipleAssertions
     this.assertBetween = BTS__AssertBetween
     this.assertGreater = BTS__AssertGreaterThan
+    this.assertStringContains = BTS__AssertStringContains
 
     ' Type Comparison Functionality
     this.eqValues = TF_Utils__EqValues
@@ -697,6 +698,33 @@ function BTS__AssertNotEmpty(item as dynamic, msg = "" as string) as string
     end if
 
     return ""
+end function
+
+' ----------------------------------------------------------------
+' Fail if the string doesn't have the item.
+
+' @param s (dynamic) A target string.
+' @param substring (dynamic) A value to check.
+
+' @return An error message.
+' ----------------------------------------------------------------
+function BTS__AssertStringContains(s as dynamic, substring as dynamic) as string
+    if substring <> invalid and not TF_Utils__IsString(substring)
+        return "Substring value has invalid type."
+    end if
+
+    substringLen = Len(substring)
+
+    if TF_Utils__IsString(s)
+        for i = 0 to (Len(s) - substringLen)
+            if (s.Mid(i, substringLen) = substring)
+                return ""
+            end if
+        end for
+        return "Couldn't find '" + substring + "' in '" + s + "'"
+    else
+        return "Input value is not a String."
+    end if
 end function
 
 ' ----------------------------------------------------------------

@@ -16,5 +16,6 @@ Copyright 2022-Today Datadog, Inc.
         <function name="assertFunctionCalled" />
         <function name="assertNoInteractions" />
         <function name="getFieldUpdates" />
+        <function name="captureFunctionCalls" />
     </interface>
 </component>
