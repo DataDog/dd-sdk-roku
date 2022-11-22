@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "@rokucommunity/bslint": "^0.7.4",
-    "brighterscript": "^0.59.0"
+    "brighterscript": "^0.60.6"
   }
 }
