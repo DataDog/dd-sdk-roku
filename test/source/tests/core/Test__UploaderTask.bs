@@ -79,10 +79,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_202() as string
     sleep(100)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -106,10 +104,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_2xx() as string
     sleep(100)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -132,10 +128,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_400() as string
     sleep(100)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -158,10 +152,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_401() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -184,10 +176,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_403() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -210,10 +200,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_408() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1)
 end function
 
 '----------------------------------------------------------------
@@ -236,10 +224,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_413() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -262,10 +248,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_429() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1)
 end function
 
 '----------------------------------------------------------------
@@ -289,10 +273,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_4xx() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------
@@ -315,10 +297,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_500() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1)
 end function
 
 '----------------------------------------------------------------
@@ -341,10 +321,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_503() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1)
 end function
 
 '----------------------------------------------------------------
@@ -368,10 +346,8 @@ function UploaderTaskTest__WhenInit_UploadsExistingFile_5xx() as string
     sleep(25)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs, -1)
 end function
 
 '----------------------------------------------------------------
@@ -392,10 +368,8 @@ function UploaderTaskTest__WhenInit_IgnoreRecentFile() as string
     sleep(100)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertNoInteractions(),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertNoInteractions()
 end function
 
 '----------------------------------------------------------------
@@ -426,10 +400,8 @@ function UploaderTaskTest__WhenInitWithQueryParams_UploadsExistingFile_202() as 
     sleep(100)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to be deleted")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isFalse("Expected file " + filePath + " to be deleted")
+    return m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs)
 end function
 
 '----------------------------------------------------------------

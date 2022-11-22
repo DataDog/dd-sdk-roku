@@ -9,7 +9,9 @@ import "pkg:/source/testFramework/TestRunner.brs"
 import "pkg:/source/testFramework/TFUtils.brs"
 import "pkg:/source/testFramework/UTF.brs"
 
-import "pkg:/source/tests/Test__fileUtils.brs"
+import "pkg:/source/asserts/Asserts.bs"
+
+import "pkg:/source/tests/Test__fileUtils.bs"
 import "pkg:/source/tests/core/Test__UploaderTask.bs"
 import "pkg:/source/tests/core/Test__MultitrackUploaderTask.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"

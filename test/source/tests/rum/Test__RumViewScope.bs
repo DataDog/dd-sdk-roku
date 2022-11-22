@@ -104,7 +104,8 @@ function RumViewScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
     context = m.testedScope@.getRumContext()
 
     ' Then
-    return m.assertEqual(context.viewId, m.global.datadogRumContext.viewId)
+    Assert.that(context.viewId).isEqualTo(m.global.datadogRumContext.viewId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -130,15 +131,14 @@ function RumViewScopeTest__WhenGetContext_ThenReturnsContext() as string
     context = m.testedScope@.getRumContext()
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(context.applicationId, fakeApplicationId),
-        m.assertEqual(context.serviceName, fakeServiceName),
-        m.assertEqual(context.applicationVersion, fakeVersion),
-        m.assertEqual(context.sessionId, fakeSessionId),
-        m.assertNotEmpty(context.viewId),
-        m.assertEqual(context.viewName, m.fakeViewName)
-        m.assertEqual(context.viewUrl, m.fakeViewUrl)
-    ])
+    Assert.that(context.applicationId).isEqualTo(fakeApplicationId)
+    Assert.that(context.serviceName).isEqualTo(fakeServiceName)
+    Assert.that(context.applicationVersion).isEqualTo(fakeVersion)
+    Assert.that(context.sessionId).isEqualTo(fakeSessionId)
+    Assert.that(context.viewId).isNotEmpty()
+    Assert.that(context.viewName).isEqualTo(m.fakeViewName)
+    Assert.that(context.viewUrl).isEqualTo(m.fakeViewUrl)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -153,7 +153,8 @@ function RumViewScopeTest__WhenIsActive_ThenReturnsTrue() as string
     isActive = m.testedScope@.isActive()
 
     ' Then
-    return m.assertEqual(isActive, true)
+    Assert.that(isActive).isEqualTo(true)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -170,7 +171,8 @@ function RumViewScopeTest__WhenStoppedIsActive_ThenReturnsFalse() as string
     isActive = m.testedScope@.isActive()
 
     ' Then
-    return m.assertEqual(isActive, false)
+    Assert.that(isActive).isEqualTo(false)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -198,31 +200,27 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate() as stri
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(1)
     viewEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -254,31 +252,27 @@ function RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(2)
     viewEvent = ParseJson(updates[1])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 2),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 45000000, 100000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 1),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(45000000, 100000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(1)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -310,31 +304,27 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(2)
     viewEvent = ParseJson(updates[1])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 2),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 10),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 45000000, 150000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 1),
-        m.assertEqual(viewEvent.view.resource.count, 0)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 10)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(45000000, 150000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(1)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -366,31 +356,27 @@ function RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpda
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(2)
     viewEvent = ParseJson(updates[1])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 2),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 45000000, 100000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 1)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(45000000, 100000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(1)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -419,28 +405,27 @@ function RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent() as 
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     viewEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -457,9 +442,8 @@ function RumViewScopeTest__WhenStopUnknownView_ThenDoNothing() as string
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 0)
-    ])
+    Assert.that(updates).hasSize(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -487,28 +471,27 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent() as stri
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     viewEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 20000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 20000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -541,31 +524,30 @@ function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as strin
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, fakeMessage),
-        m.assertEqual(errorEvent.error.source, "source"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, datadogroku_backtraceToString(fakeBacktrace)),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, "&h" + datadogroku_decToHex(fakeErrorNumber)),
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo(fakeMessage)
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -599,32 +581,31 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, fakeMessage),
-        m.assertEqual(errorEvent.error.source, "source"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, datadogroku_backtraceToString(fakeBacktrace)),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, "&h" + datadogroku_decToHex(fakeErrorNumber)),
-        m.assertEqual(errorEvent.context, m.fakeGlobalContext)
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo(fakeMessage)
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
+    Assert.that(errorEvent.context).isEqualTo(m.fakeGlobalContext)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -658,32 +639,31 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithUserInfo_ThenWriteViewEven
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, fakeMessage),
-        m.assertEqual(errorEvent.error.source, "source"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, datadogroku_backtraceToString(fakeBacktrace)),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, "&h" + datadogroku_decToHex(fakeErrorNumber)),
-        m.assertEqual(errorEvent.usr, m.fakeGlobalUserInfo)
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo(fakeMessage)
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
+    Assert.that(errorEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -717,31 +697,30 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithAction_ThenWriteViewEvent(
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, m.fakeActionId),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 10),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, fakeMessage),
-        m.assertEqual(errorEvent.error.source, "source"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, datadogroku_backtraceToString(fakeBacktrace)),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, "&h" + datadogroku_decToHex(fakeErrorNumber))
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(m.fakeActionId)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 10)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo(fakeMessage)
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -770,31 +749,30 @@ function RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent() as 
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, "Unknown exception"),
-        m.assertEqual(errorEvent.error.source, "source"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, invalid),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, "unknown")
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Unknown exception")
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(invalid)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo("unknown")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -831,33 +809,32 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     resourceEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(resourceEvent),
-        m.assertEqual(resourceEvent.application.id, fakeApplicationId),
-        m.assertEqual(resourceEvent.action.id, invalid),
-        m.assertBetween(resourceEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(resourceEvent.service, fakeServiceName),
-        m.assertEqual(resourceEvent.session.has_replay, false),
-        m.assertNotEmpty(resourceEvent.session.id),
-        m.assertEqual(resourceEvent.session.type, "user"),
-        m.assertEqual(resourceEvent.source, "roku"),
-        m.assertEqual(resourceEvent.type, "resource"),
-        m.assertEqual(resourceEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(resourceEvent.view.id),
-        m.assertEqual(resourceEvent.view.name, m.fakeViewName),
-        m.assertEqual(resourceEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(resourceEvent.resource.id),
-        m.assertEqual(resourceEvent.resource.type, "native"),
-        m.assertEqual(resourceEvent.resource.method, fakeMethod),
-        m.assertEqual(resourceEvent.resource.url, fakeResourceUrl),
-        m.assertEqual(resourceEvent.resource.status_code, fakeHttpCode),
-        m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
-        m.assertEqual(resourceEvent.resource.size, fakeSize)
-        ' TODO RUMM-2529 assert traceId and spanId
-        ' TODO RUMM-2530 assert timings (dns, ssl, …)?
-    ])
+    Assert.that(resourceEvent).isNotInvalid()
+    Assert.that(resourceEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(resourceEvent.action.id).isEqualTo(invalid)
+    Assert.that(resourceEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(resourceEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
+    Assert.that(resourceEvent.session.id).isNotEmpty()
+    Assert.that(resourceEvent.session.type).isEqualTo("user")
+    Assert.that(resourceEvent.source).isEqualTo("roku")
+    Assert.that(resourceEvent.type).isEqualTo("resource")
+    Assert.that(resourceEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(resourceEvent.view.id).isNotEmpty()
+    Assert.that(resourceEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(resourceEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(resourceEvent.resource.id).isNotEmpty()
+    Assert.that(resourceEvent.resource.type).isEqualTo("native")
+    Assert.that(resourceEvent.resource.method).isEqualTo(fakeMethod)
+    Assert.that(resourceEvent.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
+    Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
+    Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
+    ' TODO RUMM-2529 assert traceId and spanId
+    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -895,34 +872,33 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEv
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     resourceEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(resourceEvent),
-        m.assertEqual(resourceEvent.application.id, fakeApplicationId),
-        m.assertEqual(resourceEvent.action.id, invalid),
-        m.assertBetween(resourceEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(resourceEvent.service, fakeServiceName),
-        m.assertEqual(resourceEvent.session.has_replay, false),
-        m.assertNotEmpty(resourceEvent.session.id),
-        m.assertEqual(resourceEvent.session.type, "user"),
-        m.assertEqual(resourceEvent.source, "roku"),
-        m.assertEqual(resourceEvent.type, "resource"),
-        m.assertEqual(resourceEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(resourceEvent.view.id),
-        m.assertEqual(resourceEvent.view.name, m.fakeViewName),
-        m.assertEqual(resourceEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(resourceEvent.resource.id),
-        m.assertEqual(resourceEvent.resource.type, "native"),
-        m.assertEqual(resourceEvent.resource.method, fakeMethod),
-        m.assertEqual(resourceEvent.resource.url, fakeResourceUrl),
-        m.assertEqual(resourceEvent.resource.status_code, fakeHttpCode),
-        m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
-        m.assertEqual(resourceEvent.resource.size, fakeSize),
-        m.assertEqual(resourceEvent.context, m.fakeGlobalContext)
-        ' TODO RUMM-2529 assert traceId and spanId
-        ' TODO RUMM-2530 assert timings (dns, ssl, …)?
-    ])
+    Assert.that(resourceEvent).isNotInvalid()
+    Assert.that(resourceEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(resourceEvent.action.id).isEqualTo(invalid)
+    Assert.that(resourceEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(resourceEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
+    Assert.that(resourceEvent.session.id).isNotEmpty()
+    Assert.that(resourceEvent.session.type).isEqualTo("user")
+    Assert.that(resourceEvent.source).isEqualTo("roku")
+    Assert.that(resourceEvent.type).isEqualTo("resource")
+    Assert.that(resourceEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(resourceEvent.view.id).isNotEmpty()
+    Assert.that(resourceEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(resourceEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(resourceEvent.resource.id).isNotEmpty()
+    Assert.that(resourceEvent.resource.type).isEqualTo("native")
+    Assert.that(resourceEvent.resource.method).isEqualTo(fakeMethod)
+    Assert.that(resourceEvent.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
+    Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
+    Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
+    Assert.that(resourceEvent.context).isEqualTo(m.fakeGlobalContext)
+    ' TODO RUMM-2529 assert traceId and spanId
+    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -960,34 +936,33 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithUserInfo_ThenWriteViewE
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     resourceEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(resourceEvent),
-        m.assertEqual(resourceEvent.application.id, fakeApplicationId),
-        m.assertEqual(resourceEvent.action.id, invalid),
-        m.assertBetween(resourceEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(resourceEvent.service, fakeServiceName),
-        m.assertEqual(resourceEvent.session.has_replay, false),
-        m.assertNotEmpty(resourceEvent.session.id),
-        m.assertEqual(resourceEvent.session.type, "user"),
-        m.assertEqual(resourceEvent.source, "roku"),
-        m.assertEqual(resourceEvent.type, "resource"),
-        m.assertEqual(resourceEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(resourceEvent.view.id),
-        m.assertEqual(resourceEvent.view.name, m.fakeViewName),
-        m.assertEqual(resourceEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(resourceEvent.resource.id),
-        m.assertEqual(resourceEvent.resource.type, "native"),
-        m.assertEqual(resourceEvent.resource.method, fakeMethod),
-        m.assertEqual(resourceEvent.resource.url, fakeResourceUrl),
-        m.assertEqual(resourceEvent.resource.status_code, fakeHttpCode),
-        m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
-        m.assertEqual(resourceEvent.resource.size, fakeSize),
-        m.assertEqual(resourceEvent.usr, m.fakeGlobalUserInfo)
-        ' TODO RUMM-2529 assert traceId and spanId
-        ' TODO RUMM-2530 assert timings (dns, ssl, …)?
-    ])
+    Assert.that(resourceEvent).isNotInvalid()
+    Assert.that(resourceEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(resourceEvent.action.id).isEqualTo(invalid)
+    Assert.that(resourceEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(resourceEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
+    Assert.that(resourceEvent.session.id).isNotEmpty()
+    Assert.that(resourceEvent.session.type).isEqualTo("user")
+    Assert.that(resourceEvent.source).isEqualTo("roku")
+    Assert.that(resourceEvent.type).isEqualTo("resource")
+    Assert.that(resourceEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(resourceEvent.view.id).isNotEmpty()
+    Assert.that(resourceEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(resourceEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(resourceEvent.resource.id).isNotEmpty()
+    Assert.that(resourceEvent.resource.type).isEqualTo("native")
+    Assert.that(resourceEvent.resource.method).isEqualTo(fakeMethod)
+    Assert.that(resourceEvent.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
+    Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
+    Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
+    Assert.that(resourceEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    ' TODO RUMM-2529 assert traceId and spanId
+    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1025,33 +1000,32 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEve
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     resourceEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(resourceEvent),
-        m.assertEqual(resourceEvent.application.id, fakeApplicationId),
-        m.assertEqual(resourceEvent.action.id, m.fakeActionId),
-        m.assertBetween(resourceEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(resourceEvent.service, fakeServiceName),
-        m.assertEqual(resourceEvent.session.has_replay, false),
-        m.assertNotEmpty(resourceEvent.session.id),
-        m.assertEqual(resourceEvent.session.type, "user"),
-        m.assertEqual(resourceEvent.source, "roku"),
-        m.assertEqual(resourceEvent.type, "resource"),
-        m.assertEqual(resourceEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(resourceEvent.view.id),
-        m.assertEqual(resourceEvent.view.name, m.fakeViewName),
-        m.assertEqual(resourceEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(resourceEvent.resource.id),
-        m.assertEqual(resourceEvent.resource.type, "native"),
-        m.assertEqual(resourceEvent.resource.method, fakeMethod),
-        m.assertEqual(resourceEvent.resource.url, fakeResourceUrl),
-        m.assertEqual(resourceEvent.resource.status_code, fakeHttpCode),
-        m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
-        m.assertEqual(resourceEvent.resource.size, fakeSize)
-        ' TODO RUMM-2529 assert traceId and spanId
-        ' TODO RUMM-2530 assert timings (dns, ssl, …)?
-    ])
+    Assert.that(resourceEvent).isNotInvalid()
+    Assert.that(resourceEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(resourceEvent.action.id).isEqualTo(m.fakeActionId)
+    Assert.that(resourceEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(resourceEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
+    Assert.that(resourceEvent.session.id).isNotEmpty()
+    Assert.that(resourceEvent.session.type).isEqualTo("user")
+    Assert.that(resourceEvent.source).isEqualTo("roku")
+    Assert.that(resourceEvent.type).isEqualTo("resource")
+    Assert.that(resourceEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(resourceEvent.view.id).isNotEmpty()
+    Assert.that(resourceEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(resourceEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(resourceEvent.resource.id).isNotEmpty()
+    Assert.that(resourceEvent.resource.type).isEqualTo("native")
+    Assert.that(resourceEvent.resource.method).isEqualTo(fakeMethod)
+    Assert.that(resourceEvent.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
+    Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
+    Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
+    ' TODO RUMM-2529 assert traceId and spanId
+    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1086,33 +1060,32 @@ function RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent(
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     resourceEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(resourceEvent),
-        m.assertEqual(resourceEvent.application.id, fakeApplicationId),
-        m.assertEqual(resourceEvent.action.id, invalid),
-        m.assertBetween(resourceEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(resourceEvent.service, fakeServiceName),
-        m.assertEqual(resourceEvent.session.has_replay, false),
-        m.assertNotEmpty(resourceEvent.session.id),
-        m.assertEqual(resourceEvent.session.type, "user"),
-        m.assertEqual(resourceEvent.source, "roku"),
-        m.assertEqual(resourceEvent.type, "resource"),
-        m.assertEqual(resourceEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(resourceEvent.view.id),
-        m.assertEqual(resourceEvent.view.name, m.fakeViewName),
-        m.assertEqual(resourceEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(resourceEvent.resource.id),
-        m.assertEqual(resourceEvent.resource.type, "native"),
-        m.assertEqual(resourceEvent.resource.method, invalid),
-        m.assertEqual(resourceEvent.resource.url, fakeResourceUrl),
-        m.assertEqual(resourceEvent.resource.status_code, invalid),
-        m.assertBetween(resourceEvent.resource.duration, fakeDurationNs& - 1000, fakeDurationNs& + 1000),
-        m.assertEqual(resourceEvent.resource.size, invalid)
-        ' TODO RUMM-2529 assert traceId and spanId
-        ' TODO RUMM-2530 assert timings (dns, ssl, …)?
-    ])
+    Assert.that(resourceEvent).isNotInvalid()
+    Assert.that(resourceEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(resourceEvent.action.id).isEqualTo(invalid)
+    Assert.that(resourceEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(resourceEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
+    Assert.that(resourceEvent.session.id).isNotEmpty()
+    Assert.that(resourceEvent.session.type).isEqualTo("user")
+    Assert.that(resourceEvent.source).isEqualTo("roku")
+    Assert.that(resourceEvent.type).isEqualTo("resource")
+    Assert.that(resourceEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(resourceEvent.view.id).isNotEmpty()
+    Assert.that(resourceEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(resourceEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(resourceEvent.resource.id).isNotEmpty()
+    Assert.that(resourceEvent.resource.type).isEqualTo("native")
+    Assert.that(resourceEvent.resource.method).isEqualTo(invalid)
+    Assert.that(resourceEvent.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(resourceEvent.resource.status_code).isEqualTo(invalid)
+    Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
+    Assert.that(resourceEvent.resource.size).isEqualTo(invalid)
+    ' TODO RUMM-2529 assert traceId and spanId
+    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1158,34 +1131,33 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, "Failed to perform request"),
-        m.assertEqual(errorEvent.error.source, "network"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, invalid),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, fakeStatus),
-        m.assertEqual(errorEvent.error.resource.type, "native"),
-        m.assertEqual(errorEvent.error.resource.method, fakeMethod),
-        m.assertEqual(errorEvent.error.resource.url, fakeResourceUrl)
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Failed to perform request")
+    Assert.that(errorEvent.error.source).isEqualTo("network")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(invalid)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeStatus)
+    Assert.that(errorEvent.error.resource.type).isEqualTo("native")
+    Assert.that(errorEvent.error.resource.method).isEqualTo(fakeMethod)
+    Assert.that(errorEvent.error.resource.url).isEqualTo(fakeResourceUrl)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1232,35 +1204,34 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWrite
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, "Failed to perform request"),
-        m.assertEqual(errorEvent.error.source, "network"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, invalid),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, fakeStatus),
-        m.assertEqual(errorEvent.error.resource.type, "native"),
-        m.assertEqual(errorEvent.error.resource.method, fakeMethod),
-        m.assertEqual(errorEvent.error.resource.url, fakeResourceUrl),
-        m.assertEqual(errorEvent.context, m.fakeGlobalContext)
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Failed to perform request")
+    Assert.that(errorEvent.error.source).isEqualTo("network")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(invalid)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeStatus)
+    Assert.that(errorEvent.error.resource.type).isEqualTo("native")
+    Assert.that(errorEvent.error.resource.method).isEqualTo(fakeMethod)
+    Assert.that(errorEvent.error.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(errorEvent.context).isEqualTo(m.fakeGlobalContext)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1307,35 +1278,34 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithUserInfo_ThenWrit
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, invalid),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, "Failed to perform request"),
-        m.assertEqual(errorEvent.error.source, "network"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, invalid),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, fakeStatus),
-        m.assertEqual(errorEvent.error.resource.type, "native"),
-        m.assertEqual(errorEvent.error.resource.method, fakeMethod),
-        m.assertEqual(errorEvent.error.resource.url, fakeResourceUrl),
-        m.assertEqual(errorEvent.usr, m.fakeGlobalUserInfo)
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Failed to perform request")
+    Assert.that(errorEvent.error.source).isEqualTo("network")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(invalid)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeStatus)
+    Assert.that(errorEvent.error.resource.type).isEqualTo("native")
+    Assert.that(errorEvent.error.resource.method).isEqualTo(fakeMethod)
+    Assert.that(errorEvent.error.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(errorEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1382,34 +1352,33 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteV
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
     errorEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(errorEvent),
-        m.assertEqual(errorEvent.application.id, fakeApplicationId),
-        m.assertEqual(errorEvent.action.id, m.fakeActionId),
-        m.assertBetween(errorEvent.date, errorTimestamp&, errorTimestamp& + 5),
-        m.assertEqual(errorEvent.service, fakeServiceName),
-        m.assertEqual(errorEvent.session.has_replay, false),
-        m.assertNotEmpty(errorEvent.session.id),
-        m.assertEqual(errorEvent.session.type, "user"),
-        m.assertEqual(errorEvent.source, "roku"),
-        m.assertEqual(errorEvent.type, "error"),
-        m.assertEqual(errorEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(errorEvent.view.id),
-        m.assertEqual(errorEvent.view.name, m.fakeViewName),
-        m.assertEqual(errorEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(errorEvent.error.id),
-        m.assertEqual(errorEvent.error.message, "Failed to perform request"),
-        m.assertEqual(errorEvent.error.source, "network"),
-        m.assertEqual(errorEvent.error.source_type, "roku"),
-        m.assertEqual(errorEvent.error.stack, invalid),
-        m.assertEqual(errorEvent.error.is_crash, false),
-        m.assertEqual(errorEvent.error.type, fakeStatus),
-        m.assertEqual(errorEvent.error.resource.type, "native"),
-        m.assertEqual(errorEvent.error.resource.method, fakeMethod),
-        m.assertEqual(errorEvent.error.resource.url, fakeResourceUrl)
-    ])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(m.fakeActionId)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Failed to perform request")
+    Assert.that(errorEvent.error.source).isEqualTo("network")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(invalid)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeStatus)
+    Assert.that(errorEvent.error.resource.type).isEqualTo("native")
+    Assert.that(errorEvent.error.resource.method).isEqualTo(fakeMethod)
+    Assert.that(errorEvent.error.resource.url).isEqualTo(fakeResourceUrl)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1427,12 +1396,11 @@ function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as st
 
     ' Then
     actionScope = m.testedScope.activeAction
-    return m.multipleAssertions([
-        m.assertEqual(type(actionScope), "roSGNode"),
-        m.assertEqual(actionScope.subType(), "datadogroku_RumActionScope"),
-        m.assertEqual(actionScope.target, fakeAction.target),
-        m.assertEqual(actionScope.actionType, fakeAction.type)
-    ])
+    Assert.that(type(actionScope)).isEqualTo("roSGNode")
+    Assert.that(actionScope.subType()).isEqualTo("datadogroku_RumActionScope")
+    Assert.that(actionScope.target).isEqualTo(fakeAction.target)
+    Assert.that(actionScope.actionType).isEqualTo(fakeAction.type)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1462,32 +1430,28 @@ function RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent() a
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(1)
     actionEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(actionEvent),
-        m.assertEqual(actionEvent.application.id, fakeApplicationId),
-        m.assertBetween(actionEvent.date, m.startTimestamp&, m.startTimestamp& + 50),
-        m.assertEqual(actionEvent.service, fakeServiceName),
-        m.assertEqual(actionEvent.session.has_replay, false),
-        m.assertNotEmpty(actionEvent.session.id),
-        m.assertEqual(actionEvent.session.type, "user"),
-        m.assertEqual(actionEvent.source, "roku"),
-        m.assertEqual(actionEvent.type, "action"),
-        m.assertEqual(actionEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(actionEvent.view.id),
-        m.assertEqual(actionEvent.view.name, m.fakeViewName),
-        m.assertEqual(actionEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(actionEvent.action.id),
-        m.assertEqual(actionEvent.action.type, "custom"),
-        m.assertEqual(actionEvent.action.loading_time, 0),
-        m.assertEqual(actionEvent.action.target.name, fakeAction.target),
-        m.assertEqual(actionEvent.action.error.count, 0),
-        m.assertEqual(actionEvent.action.resource.count, 0)
-    ])
+    Assert.that(actionEvent).isNotInvalid()
+    Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.session.has_replay).isEqualTo(false)
+    Assert.that(actionEvent.session.id).isNotEmpty()
+    Assert.that(actionEvent.session.type).isEqualTo("user")
+    Assert.that(actionEvent.source).isEqualTo("roku")
+    Assert.that(actionEvent.type).isEqualTo("action")
+    Assert.that(actionEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(actionEvent.view.id).isNotEmpty()
+    Assert.that(actionEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(actionEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(actionEvent.action.id).isNotEmpty()
+    Assert.that(actionEvent.action.type).isEqualTo("custom")
+    Assert.that(actionEvent.action.loading_time).isEqualTo(0)
+    Assert.that(actionEvent.action.target.name).isEqualTo(fakeAction.target)
+    Assert.that(actionEvent.action.error.count).isEqualTo(0)
+    Assert.that(actionEvent.action.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1518,33 +1482,29 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteVi
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(1)
     actionEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(actionEvent),
-        m.assertEqual(actionEvent.application.id, fakeApplicationId),
-        m.assertBetween(actionEvent.date, m.startTimestamp&, m.startTimestamp& + 50),
-        m.assertEqual(actionEvent.service, fakeServiceName),
-        m.assertEqual(actionEvent.session.has_replay, false),
-        m.assertNotEmpty(actionEvent.session.id),
-        m.assertEqual(actionEvent.session.type, "user"),
-        m.assertEqual(actionEvent.source, "roku"),
-        m.assertEqual(actionEvent.type, "action"),
-        m.assertEqual(actionEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(actionEvent.view.id),
-        m.assertEqual(actionEvent.view.name, m.fakeViewName),
-        m.assertEqual(actionEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(actionEvent.action.id),
-        m.assertEqual(actionEvent.action.type, "custom"),
-        m.assertEqual(actionEvent.action.loading_time, 0),
-        m.assertEqual(actionEvent.action.target.name, fakeAction.target),
-        m.assertEqual(actionEvent.action.error.count, 0),
-        m.assertEqual(actionEvent.action.resource.count, 0),
-        m.assertEqual(actionEvent.context, m.fakeGlobalContext)
-    ])
+    Assert.that(actionEvent).isNotInvalid()
+    Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.session.has_replay).isEqualTo(false)
+    Assert.that(actionEvent.session.id).isNotEmpty()
+    Assert.that(actionEvent.session.type).isEqualTo("user")
+    Assert.that(actionEvent.source).isEqualTo("roku")
+    Assert.that(actionEvent.type).isEqualTo("action")
+    Assert.that(actionEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(actionEvent.view.id).isNotEmpty()
+    Assert.that(actionEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(actionEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(actionEvent.action.id).isNotEmpty()
+    Assert.that(actionEvent.action.type).isEqualTo("custom")
+    Assert.that(actionEvent.action.loading_time).isEqualTo(0)
+    Assert.that(actionEvent.action.target.name).isEqualTo(fakeAction.target)
+    Assert.that(actionEvent.action.error.count).isEqualTo(0)
+    Assert.that(actionEvent.action.resource.count).isEqualTo(0)
+    Assert.that(actionEvent.context).isEqualTo(m.fakeGlobalContext)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1578,30 +1538,29 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithUserInfo_ThenWriteV
     if (updates.count() = 0)
         return "Expected writeEvent to be updated"
     end if
+    Assert.that(updates).hasSize(1)
     actionEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(actionEvent),
-        m.assertEqual(actionEvent.application.id, fakeApplicationId),
-        m.assertBetween(actionEvent.date, m.startTimestamp&, m.startTimestamp& + 50),
-        m.assertEqual(actionEvent.service, fakeServiceName),
-        m.assertEqual(actionEvent.session.has_replay, false),
-        m.assertNotEmpty(actionEvent.session.id),
-        m.assertEqual(actionEvent.session.type, "user"),
-        m.assertEqual(actionEvent.source, "roku"),
-        m.assertEqual(actionEvent.type, "action"),
-        m.assertEqual(actionEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(actionEvent.view.id),
-        m.assertEqual(actionEvent.view.name, m.fakeViewName),
-        m.assertEqual(actionEvent.view.url, m.fakeViewUrl),
-        m.assertNotEmpty(actionEvent.action.id),
-        m.assertEqual(actionEvent.action.type, "custom"),
-        m.assertEqual(actionEvent.action.loading_time, 0),
-        m.assertEqual(actionEvent.action.target.name, fakeAction.target),
-        m.assertEqual(actionEvent.action.error.count, 0),
-        m.assertEqual(actionEvent.action.resource.count, 0),
-        m.assertEqual(actionEvent.usr, m.fakeGlobalUserInfo)
-    ])
+    Assert.that(actionEvent).isNotInvalid()
+    Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.session.has_replay).isEqualTo(false)
+    Assert.that(actionEvent.session.id).isNotEmpty()
+    Assert.that(actionEvent.session.type).isEqualTo("user")
+    Assert.that(actionEvent.source).isEqualTo("roku")
+    Assert.that(actionEvent.type).isEqualTo("action")
+    Assert.that(actionEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(actionEvent.view.id).isNotEmpty()
+    Assert.that(actionEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(actionEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(actionEvent.action.id).isNotEmpty()
+    Assert.that(actionEvent.action.type).isEqualTo("custom")
+    Assert.that(actionEvent.action.loading_time).isEqualTo(0)
+    Assert.that(actionEvent.action.target.name).isEqualTo(fakeAction.target)
+    Assert.that(actionEvent.action.error.count).isEqualTo(0)
+    Assert.that(actionEvent.action.resource.count).isEqualTo(0)
+    Assert.that(actionEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1621,10 +1580,8 @@ function RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope() 
     m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(m.testedScope.activeAction.subtype(), "MockRumScope"),
-        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
-    ])
+    Assert.that(m.testedScope.activeAction.subtype()).isEqualTo("MockRumScope")
+    return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
 end function
 
 '----------------------------------------------------------------
@@ -1646,10 +1603,8 @@ function RumViewScopeTest__WhenHandleAnyEventActionNotActive_ThenDiscardIt() as 
     sleep(50)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(m.testedScope.activeAction, invalid),
-        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
-    ])
+    Assert.that(m.testedScope.activeAction).isEqualTo(invalid)
+    return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
 end function
 
 '----------------------------------------------------------------
@@ -1677,31 +1632,27 @@ function RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate() as str
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(1)
     viewEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1730,32 +1681,28 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpda
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(1)
     viewEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0),
-        m.assertEqual(viewEvent.context, m.fakeGlobalContext)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).isEqualTo(m.fakeGlobalContext)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1784,30 +1731,26 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithUserInfo_ThenWriteViewUpd
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    if (updates.count() = 0)
-        return "Expected writeEvent to be updated"
-    end if
+    Assert.that(updates).hasSize(1)
     viewEvent = ParseJson(updates[0])
-    return m.multipleAssertions([
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(viewEvent),
-        m.assertEqual(viewEvent._dd.document_version, 1),
-        m.assertEqual(viewEvent.application.id, fakeApplicationId),
-        m.assertBetween(viewEvent.date, m.startTimestamp&, m.startTimestamp& + 5),
-        m.assertEqual(viewEvent.service, fakeServiceName),
-        m.assertEqual(viewEvent.session.has_replay, false),
-        m.assertNotEmpty(viewEvent.session.id),
-        m.assertEqual(viewEvent.session.type, "user"),
-        m.assertEqual(viewEvent.source, "roku"),
-        m.assertEqual(viewEvent.type, "view"),
-        m.assertEqual(viewEvent.version, fakeApplicationVersion),
-        m.assertNotEmpty(viewEvent.view.id),
-        m.assertEqual(viewEvent.view.name, m.fakeViewName),
-        m.assertBetween(viewEvent.view.time_spent, 1000000, 10000000),
-        m.assertEqual(viewEvent.view.url, m.fakeViewUrl),
-        m.assertEqual(viewEvent.view.action.count, 0),
-        m.assertEqual(viewEvent.view.error.count, 0),
-        m.assertEqual(viewEvent.view.resource.count, 0),
-        m.assertEqual(viewEvent.usr, m.fakeGlobalUserInfo)
-    ])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function

@@ -38,10 +38,9 @@ function FileUtilsTest__WhenMkDirs_ThenCreateDir() as string
     result = datadogroku_mkdirs(path)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertTrue(result, "Expected result to be true"),
-        m.assertTrue(fileSystem.Exists(path), "Random folder at " + path + " should exist")
-    ])
+    Assert.that(result).isTrue("Expected result to be true")
+    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -60,11 +59,10 @@ function FileUtilsTest__WhenMkDirsExisting_ThenDoNothing() as string
     result2 = datadogroku_mkdirs(path)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertTrue(result, "Expected result to be true"),
-        m.assertTrue(result2, "Expected result2 to be true"),
-        m.assertTrue(fileSystem.Exists(path), "Random folder at " + path + " should exist")
-    ])
+    Assert.that(result).isTrue("Expected result to be true")
+    Assert.that(result2).isTrue("Expected result2 to be true")
+    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -86,10 +84,9 @@ function FileUtilsTest__WhenMkDirs_ThenCreateParentDirs() as string
     result = datadogroku_mkdirs(path)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertTrue(result, "Expected result to be true"),
-        m.assertTrue(fileSystem.Exists(path), "Random folder at " + path + " should exist")
-    ])
+    Assert.that(result).isTrue("Expected result to be true")
+    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -109,10 +106,9 @@ function FileUtilsTest__WhenMkDirsInvalidPath_ThenDoNothing() as string
     result = datadogroku_mkdirs(path)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertFalse(result, "Expected result to be false"),
-        m.assertFalse(fileSystem.Exists(path), "Random folder at " + path + " shouldn't exist")
-    ])
+    Assert.that(result).isFalse("Expected result to be false")
+    Assert.that(fileSystem.Exists(path)).isFalse("Random folder at " + path + " shouldn't exist")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -127,9 +123,8 @@ function FileUtilsTest__WhenTrackFolderPath_ThenComputePath() as string
     result = datadogroku_trackFolderPath(trackType, version)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(result, "cachefs:/datadog/v" + version.toStr() + "/" + trackType)
-    ])
+    Assert.that(result).isEqualTo("cachefs:/datadog/v" + version.toStr() + "/" + trackType)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -146,10 +141,9 @@ function FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToExistingFile() as strin
     result = datadogroku_AppendAsciiFile(filepath, appendedText)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(result, true)
-        m.assertEqual(ReadAsciiFile(filepath), initialText + appendedText)
-    ])
+    Assert.that(result).isEqualTo(true)
+    Assert.that(ReadAsciiFile(filepath)).isEqualTo(initialText + appendedText)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -165,10 +159,10 @@ function FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToEmptyFile() as string
     result = datadogroku_AppendAsciiFile(filepath, appendedText)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(result, true)
-        m.assertEqual(ReadAsciiFile(filepath), appendedText)
-    ])
+
+    Assert.that(result).isEqualTo(true)
+    Assert.that(ReadAsciiFile(filepath)).isEqualTo(appendedText)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -183,18 +177,15 @@ function FileUtilsTest__WhenAppendAsciiFile_ThenCreateNewFile() as string
     result = datadogroku_AppendAsciiFile(filepath, appendedText)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(result, true)
-        m.assertEqual(ReadAsciiFile(filepath), appendedText)
-    ])
+    Assert.that(result).isEqualTo(true)
+    Assert.that(ReadAsciiFile(filepath)).isEqualTo(appendedText)
+    return ""
 end function
 
 '----------------------------------------------------------------
 ' Checks that strToLong parses long properly
 '----------------------------------------------------------------
 function FileUtilsTest__WhenStrToLong_ThenReturnsLong() as string
-    assertions = []
-
     for i = 0 to 100
         ' Given
         input& = IG_GetLongInteger()
@@ -204,17 +195,15 @@ function FileUtilsTest__WhenStrToLong_ThenReturnsLong() as string
         result& = datadogroku_strToLong(input$)
 
         ' Then
-        assertions.Push(m.assertEqual(result&, input&))
+        Assert.that(result&).isEqualTo(input&)
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
 ' Checks that strToLong parses not long safely
 '----------------------------------------------------------------
 function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
-    assertions = []
-
     for i = 0 to 100
         ' Given
         input$ = IG_GetString(128)
@@ -228,8 +217,7 @@ function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
         end try
 
         ' Then
-        assertions.Push(m.assertFalse(crashed))
+        Assert.that(crashed).isFalse()
     end for
-
-    return m.multipleAssertions(assertions)
+    return ""
 end function

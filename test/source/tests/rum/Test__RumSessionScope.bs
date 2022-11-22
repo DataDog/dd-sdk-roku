@@ -49,7 +49,8 @@ function RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
     context = m.testedScope@.getRumContext()
 
     ' Then
-    return m.assertEqual(context.sessionId, m.global.datadogRumContext.sessionId)
+    Assert.that(context.sessionId).isEqualTo(m.global.datadogRumContext.sessionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -73,12 +74,11 @@ function RumSessionScopeTest__WhenGetContext_ThenReturnsContext() as string
     context = m.testedScope@.getRumContext()
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(context.applicationId, fakeApplicationId),
-        m.assertEqual(context.serviceName, fakeServiceName),
-        m.assertEqual(context.applicationVersion, fakeVersion),
-        m.assertNotEmpty(context.sessionId)
-    ])
+    Assert.that(context.applicationId).isEqualTo(fakeApplicationId)
+    Assert.that(context.serviceName).isEqualTo(fakeServiceName)
+    Assert.that(context.applicationVersion).isEqualTo(fakeVersion)
+    Assert.that(context.sessionId).isNotEmpty()
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -98,12 +98,11 @@ function RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope() as 
 
     ' Then
     activeView = m.testedScope.activeView
-    return m.multipleAssertions([
-        m.assertNotInvalid(activeView),
-        m.assertEqual(activeView.subtype(), "datadogroku_RumViewScope"),
-        m.assertEqual(activeView.viewName, fakeViewName),
-        m.assertEqual(activeView.viewUrl, fakeViewUrl)
-    ])
+    Assert.that(activeView).isNotInvalid()
+    Assert.that(activeView.subtype()).isEqualTo("datadogroku_RumViewScope")
+    Assert.that(activeView.viewName).isEqualTo(fakeViewName)
+    Assert.that(activeView.viewUrl).isEqualTo(fakeViewUrl)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -123,10 +122,8 @@ function RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope() as st
     m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(m.testedScope.activeView.subtype(), "MockRumScope"),
-        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
-    ])
+    Assert.that(m.testedScope.activeView.subtype()).isEqualTo("MockRumScope")
+    return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
 end function
 
 '----------------------------------------------------------------
@@ -146,8 +143,6 @@ function RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt() as string
     m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(m.testedScope.activeView, invalid),
-        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
-    ])
+    Assert.that(m.testedScope.activeView).isEqualTo(invalid)
+    return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
 end function
