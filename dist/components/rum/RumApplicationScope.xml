@@ -2,9 +2,8 @@
 <component name="RumApplicationScope" extends="RumScope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
     <interface>
         <field id="applicationId" type="string" />
-        <field id="serviceName" type="string" />
+        <field id="service" type="string" />
         <field id="sessionScope" type="node" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumApplicationScope.brs" />
-    <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
 </component>

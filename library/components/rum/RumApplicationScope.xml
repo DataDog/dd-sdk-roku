@@ -10,7 +10,7 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="applicationId" type="string" />
-        <field id="serviceName" type="string" />
+        <field id="service" type="string" />
 
         <field id="sessionScope" type="node" />
     </interface>

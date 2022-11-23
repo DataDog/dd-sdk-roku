@@ -161,7 +161,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
             stack: backtraceToString(backtrace)
             type: errorType
         }
-        service: context.serviceName
+        service: context.service
         session: {
             has_replay: false
             id: context.sessionId
@@ -247,7 +247,7 @@ sub sendCustomAction(target as string, writer as object)
         }
         context: m.global.datadogContext
         date: timestamp&
-        service: context.serviceName
+        service: context.service
         session: {
             has_replay: false
             id: context.sessionId
@@ -308,7 +308,7 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
             size: bytesDownloaded
             duration: secToNanos(transferTime)
         }
-        service: context.serviceName
+        service: context.service
         session: {
             has_replay: false
             id: context.sessionId
@@ -372,7 +372,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
             stack: invalid
             type: status
         }
-        service: context.serviceName
+        service: context.service
         session: {
             has_replay: false
             id: context.sessionId
@@ -414,7 +414,7 @@ sub sendViewUpdate(writer as object)
         }
         context: m.global.datadogContext
         date: m.startTimestamp&
-        service: context.serviceName
+        service: context.service
         session: {
             has_replay: false
             id: context.sessionId

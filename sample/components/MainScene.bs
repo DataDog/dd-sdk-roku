@@ -19,7 +19,7 @@ sub init()
         datadogroku_ddLogWarning("No RUM agent, creating one")
         m.global.addFields({ datadogUploader: CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask") })
         m.global.datadogUploader.clientToken = m.global.credentials.datadogClientToken
-    endif
+    end if
 
     if (m.global.rumAgent = invalid)
         datadogroku_ddLogWarning("No RUM agent, creating one")
@@ -27,7 +27,7 @@ sub init()
         m.global.rumAgent.endpointHost = "rum.browser-intake-datadoghq.com"
         m.global.rumAgent.clientToken = m.global.credentials.datadogClientToken
         m.global.rumAgent.applicationId = m.global.credentials.datadogApplicationId
-        m.global.rumAgent.serviceName = "roku-sample"
+        m.global.rumAgent.service = "roku-sample"
         m.global.rumAgent.uploader = m.global.datadogUploader
     end if
 
@@ -36,8 +36,8 @@ sub init()
         m.global.addFields({ logsAgent: CreateObject("roSGNode", "datadogroku_LogsAgent") })
         m.global.logsAgent.endpointHost = "logs.browser-intake-datadoghq.com"
         m.global.logsAgent.clientToken = m.global.credentials.datadogClientToken
-        m.global.logsAgent.serviceName = "roku-sample"
-        m.global.logsAgent.envName = "staging"
+        m.global.logsAgent.service = "roku-sample"
+        m.global.logsAgent.env = "staging"
         m.global.logsAgent.uploader = m.global.datadogUploader
     end if
 

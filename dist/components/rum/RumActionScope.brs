@@ -123,7 +123,7 @@ sub sendAction(writer as object)
         }
         context: m.global.datadogContext
         date: m.startTimestamp&
-        service: context.serviceName
+        service: context.service
         session: {
             has_replay: false
             id: context.sessionId
