@@ -52,6 +52,8 @@ end sub
 '----------------------------------------------------------------
 function WriterTaskTest__WhenFirstWriteEvent_ThenCreateNewFile() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     fakeEvent = IG_GetString(128)
 
     ' When
@@ -67,7 +69,8 @@ function WriterTaskTest__WhenFirstWriteEvent_ThenCreateNewFile() as string
         return "Expected writer to create only one file in folder " + m.folderPath
     end if
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.assertEqual(content, fakeEvent)
+    Assert.that(content).isEqualTo(fakeEvent)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -77,6 +80,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenEvent_ThenAppendEmptyFile() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     fakeEvent = IG_GetString(128)
     timestamp& = datadogroku_getTimestamp()
     filePath = m.folderPath + "/" + timestamp&.toStr()
@@ -92,10 +97,9 @@ function WriterTaskTest__WhenEvent_ThenAppendEmptyFile() as string
         return "Expected writer to reuse the existing file"
     end if
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.multipleAssertions([
-        m.assertEqual(filenames[0], timestamp&.toStr()),
-        m.assertEqual(content, fakeEvent)
-    ])
+    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
+    Assert.that(content).isEqualTo(fakeEvent)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -105,6 +109,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenEvent_ThenAppendNonEmptyFile() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     previousData = IG_GetString(128)
     fakeEvent = IG_GetString(128)
     timestamp& = datadogroku_getTimestamp()
@@ -121,10 +127,9 @@ function WriterTaskTest__WhenEvent_ThenAppendNonEmptyFile() as string
         return "Expected writer to reuse the existing file"
     end if
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.multipleAssertions([
-        m.assertEqual(filenames[0], timestamp&.toStr()),
-        m.assertEqual(content, previousData + m.fakeSeparator + fakeEvent)
-    ])
+    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
+    Assert.that(content).isEqualTo(previousData + m.fakeSeparator + fakeEvent)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -134,6 +139,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     fakeEvents = [IG_GetString(128), IG_GetString(128), IG_GetString(128), IG_GetString(128), IG_GetString(128)]
     timestamp& = datadogroku_getTimestamp()
     filePath = m.folderPath + "/" + timestamp&.toStr()
@@ -152,10 +159,9 @@ function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
         return "Expected writer to reuse the existing file"
     end if
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.multipleAssertions([
-        m.assertEqual(filenames[0], timestamp&.toStr()),
-        m.assertEqual(content, fakeEvents[0] + m.fakeSeparator + fakeEvents[1] + m.fakeSeparator + fakeEvents[2] + m.fakeSeparator + fakeEvents[3] + m.fakeSeparator + fakeEvents[4])
-    ])
+    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
+    Assert.that(content).isEqualTo(fakeEvents[0] + m.fakeSeparator + fakeEvents[1] + m.fakeSeparator + fakeEvents[2] + m.fakeSeparator + fakeEvents[3] + m.fakeSeparator + fakeEvents[4])
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -165,6 +171,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenFileTooLarge_ThenWriteInNewFile() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     fakePreviousEvent = IG_GetString(128)
     while (fakePreviousEvent.Len() < 16384)
         fakePreviousEvent += IG_GetString(128)
@@ -180,14 +188,11 @@ function WriterTaskTest__WhenFileTooLarge_ThenWriteInNewFile() as string
 
     ' Then
     filenames = ListDir(m.folderPath)
-    if (filenames.count() <> 2)
-        return "Expected writer to create a new file in addition to existing one"
-    end if
+    Assert.that(filenames).hasSize(2)
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.multipleAssertions([
-        m.assertNotEqual(filenames[0], timestamp&.toStr()),
-        m.assertEqual(content, fakeEvent)
-    ])
+    Assert.that(filenames).contains(timestamp&.toStr())
+    Assert.that(content).isEqualTo(fakeEvent)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -197,6 +202,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenFileTooOld_ThenWriteInNewFile() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     previousData = IG_GetString(128)
     fakeEvent = IG_GetString(128)
     timestamp& = datadogroku_getTimestamp() - 30000
@@ -209,14 +216,11 @@ function WriterTaskTest__WhenFileTooOld_ThenWriteInNewFile() as string
 
     ' Then
     filenames = ListDir(m.folderPath)
-    if (filenames.count() <> 2)
-        return "Expected writer to create a new file in addition to existing one"
-    end if
+    Assert.that(filenames).hasSize(2)
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.multipleAssertions([
-        m.assertNotEqual(filenames[0], timestamp&.toStr()),
-        m.assertEqual(content, fakeEvent)
-    ])
+    Assert.that(filenames).contains(timestamp&.toStr())
+    Assert.that(content).isEqualTo(fakeEvent)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -226,6 +230,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenEmptyEvent_ThenDoNothing() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
 
     ' When
     m.testedTask.writeEvent = ""
@@ -233,9 +239,8 @@ function WriterTaskTest__WhenEmptyEvent_ThenDoNothing() as string
 
     ' Then
     filenames = ListDir(m.folderPath)
-    return m.multipleAssertions([
-        m.assertEqual(filenames.count(), 0, "Expected write to ignore empty event")
-    ])
+    Assert.that(filenames).hasSize(0)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -245,6 +250,8 @@ end function
 '----------------------------------------------------------------
 function WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing() as string
     ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
     timestamp& = datadogroku_getTimestamp()
     filePath = m.folderPath + "/" + timestamp&.toStr()
     previousData = IG_GetString(128)
@@ -260,8 +267,7 @@ function WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing() as strin
         return "Expected writer to ignore empty"
     end if
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    return m.multipleAssertions([
-        m.assertEqual(filenames[0], timestamp&.toStr()),
-        m.assertEqual(content, previousData)
-    ])
+    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
+    Assert.that(content).isEqualTo(previousData)
+    return ""
 end function

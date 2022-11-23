@@ -200,10 +200,8 @@ function MultiTrackUploaderTaskTest__WhenInit_IgnoreRecentFile() as string
     sleep(100)
 
     ' Then
-    return m.multipleAssertions([
-        m.mockNetworkClient@.assertNoInteractions(),
-        m.assertTrue(CreateObject("roFileSystem").Exists(filePath), "Expected file " + filePath + " to still be present")
-    ])
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertNoInteractions()
 end function
 
 '----------------------------------------------------------------
@@ -247,11 +245,11 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as
     sleep(100)
 
     ' Then
+    Assert.that(CreateObject("roFileSystem").Exists(filePath1)).isFalse("Expected file " + filePath1 + " to be deleted")
+    Assert.that(CreateObject("roFileSystem").Exists(filePath2)).isFalse("Expected file " + filePath2 + " to be deleted")
     return m.multipleAssertions([
         m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs1),
         m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs2),
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath1), "Expected file " + filePath1 + " to be deleted")
-        m.assertFalse(CreateObject("roFileSystem").Exists(filePath2), "Expected file " + filePath2 + " to be deleted")
     ])
 end function
 
@@ -280,22 +278,21 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
     ' Then
     calls = m.mockNetworkClient@.captureFunctionCalls("postFromFile", expectedCallArgs)
     firstCall = calls[0]
-    assertions = [
-        m.assertNotInvalid(calls),
-        m.assertEqual(CreateObject("roFileSystem").Exists(filePath), keepFile, "Expected file " + filePath + " exists:" + keepFile.toStr()),
-        m.assertStringContains(firstCall.url, expectedBaseUrl)
-    ]
+    Assert.that(calls).isNotInvalid()
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isEqualTo(keepFile)
+    Assert.that(firstCall.url).hasSubstring(expectedBaseUrl)
+
     if (keepFile)
-        assertions.Push(m.assertGreater(calls.count(), 1))
+        Assert.that(calls.count()).isGreaterThan(1)
     else
-        assertions.Push(m.assertEqual(calls.count(), 1))
+        Assert.that(calls).hasSize(1)
     end if
 
     for each key in m.fakeQueryParams
-        assertions.Push(m.assertStringContains(firstCall.url, key + "=" + m.fakeQueryParams[key]))
+        Assert.that(firstCall.url).hasSubstring(firstCall.url, key + "=" + m.fakeQueryParams[key])
     end for
 
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------

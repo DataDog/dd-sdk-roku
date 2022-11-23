@@ -51,7 +51,8 @@ function RumApplicationScopeTest__WhenHandleEvent_ThenCreatesSessionScope() as s
 
     ' Then
     sessionScope = m.testedScope.sessionScope
-    return m.assertEqual(sessionScope.subtype(), "datadogroku_RumSessionScope")
+    Assert.that(sessionScope.subtype()).isEqualTo("datadogroku_RumSessionScope")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -66,11 +67,10 @@ function RumApplicationScopeTest__WhenGetContext_ThenReturnsContext() as string
     context = m.testedScope@.getRumContext()
 
     ' Then
-    return m.multipleAssertions([
-        m.assertEqual(context.applicationId, m.fakeApplicationId),
-        m.assertEqual(context.serviceName, m.fakeServiceName),
-        m.assertEqual(context.applicationVersion, "4.8.15")
-    ])
+    Assert.that(context.applicationId).isEqualTo(m.fakeApplicationId)
+    Assert.that(context.serviceName).isEqualTo(m.fakeServiceName)
+    Assert.that(context.applicationVersion).isEqualTo("4.8.15")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -89,7 +89,5 @@ function RumApplicationScopeTest__WhenHandleEvent_ThenDelegateToSessionScope() a
     m.testedScope@.handleEvent(fakeEvent, fakeWriter)
 
     ' Then
-    return m.multipleAssertions([
-        mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
-    ])
+    return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
 end function

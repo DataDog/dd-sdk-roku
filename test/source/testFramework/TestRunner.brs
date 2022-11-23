@@ -161,10 +161,16 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                         try
                             runResult = testSuite.testCase()
                         catch e
-                            runResult = m.CRASH_TEST_MESSAGE_PREFIX + datadogroku_errorToString(e)
-                            print "✘ ✘ ✘ ✘ ✘ ✘"
-                            print datadogroku_errorToString(e)
-                            print "✘ ✘ ✘ ✘ ✘ ✘"
+                            if (e.number = 300)
+                                runResult = e.message
+                            else if (e.number = 310)
+                                runResult = m.SKIP_TEST_MESSAGE_PREFIX + e.message
+                            else
+                                runResult = m.CRASH_TEST_MESSAGE_PREFIX + datadogroku_errorToString(e)
+                                print "✘ ✘ ✘ ✘ ✘ ✘"
+                                print datadogroku_errorToString(e)
+                                print "✘ ✘ ✘ ✘ ✘ ✘"
+                            end if
                         end try
                     end if
                 end if
@@ -191,16 +197,14 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                     if InStr(0, runResult, m.SKIP_TEST_MESSAGE_PREFIX) = 1
                         testStatObj.result = "Skipped"
                         testStatObj.message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
+                    else if InStr(0, runResult, m.CRASH_TEST_MESSAGE_PREFIX) = 1
+                        testStatObj.result = "Crashed"
+                        testStatObj.Error.Code = 2
+                        testStatObj.Error.Message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
                     else
-                        if InStr(0, runResult, m.CRASH_TEST_MESSAGE_PREFIX) = 1
-                            testStatObj.result = "Crashed"
-                            testStatObj.Error.Code = 2
-                            testStatObj.Error.Message = runResult.Mid(Len(m.SKIP_TEST_MESSAGE_PREFIX)) ' remove prefix from the message
-                        else
-                            testStatObj.Result = "Fail"
-                            testStatObj.Error.Code = 1
-                            testStatObj.Error.Message = runResult
-                        end if
+                        testStatObj.Result = "Fail"
+                        testStatObj.Error.Code = 1
+                        testStatObj.Error.Message = runResult
                     end if
                 else
                     testStatObj.Result = "Success"

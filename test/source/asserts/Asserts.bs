@@ -1,0 +1,447 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'*****************************************************************
+' Assert
+' provides a handful of assertions in a fluent manner
+'*****************************************************************
+namespace Assert
+
+    const ASSERT_EXCEPTION = 300
+
+    function that(actual as dynamic) as BaseAssert
+        return BaseAssert(actual, Assert.ASSERT_EXCEPTION)
+    end function
+
+end namespace
+
+'*****************************************************************
+' Assume
+' provides the same methods as Assert, but will ignore the test if the check fails
+'*****************************************************************
+namespace Assume
+
+    const ASSUME_EXCEPTION = 310
+
+    function that(actual as dynamic) as BaseAssert
+        return BaseAssert(actual, Assume.ASSUME_EXCEPTION)
+    end function
+
+end namespace
+
+namespace Constants
+    ' Standard error defined in Roku &h28
+    const ERR_USER = 40
+    ' Epsilon value for double comparison
+    const EPSILON = 0.0001
+end namespace
+
+' *****************************************************************
+' * BaseAssert: a class providing ways to make chained assertions on a value
+' *****************************************************************
+class BaseAssert
+
+    actual as dynamic
+    errorCode as integer
+
+    ' ----------------------------------------------------------------
+    ' Constructor
+    ' @param actual (dynamic) the value to make assertions on
+    ' ----------------------------------------------------------------
+    sub new(actual as dynamic, errorCode = Constants.ERR_USER as integer)
+        m.actual = actual
+        m.errorCode = errorCode
+    end sub
+
+    ' ----------------------------------------------------------------
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isInvalid(msg = "" as string) as BaseAssert
+        if (m.actual <> invalid)
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be invalid"
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isNotInvalid(msg = "" as string) as BaseAssert
+        if (m.actual = invalid)
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " not to be invalid"
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected value to be equal to the actual
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isEqualTo(expected as dynamic, msg = "" as string) as BaseAssert
+        if (not m.__areEqual(m.actual, expected))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be equal to " + TF_Utils__AsString(expected)
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected value not to be equal to the actual
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isNotEqualTo(expected as dynamic, msg = "" as string) as BaseAssert
+        if (m.__areEqual(m.actual, expected))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " not to be equal to " + TF_Utils__AsString(expected)
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isTrue(msg = "" as string) as BaseAssert
+        if (not m.__areEqual(m.actual, true))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be true"
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isFalse(msg = "" as string) as BaseAssert
+        if (not m.__areEqual(m.actual, false))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be false"
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param min (dynamic) the lower boundary of the range (inclusive)
+    ' @param max (dynamic) the upper boundary of the range (inclusive)
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isInRange(min as dynamic, max as dynamic, msg = "" as string) as BaseAssert
+
+        if (not TF_Utils__IsNumber(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a number (integer, longinteger, float or double) but was " + type(m.actual)
+            }
+        else if (not TF_Utils__IsNumber(min))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(min) + " to be a number (integer, longinteger, float or double) but was " + type(min)
+            }
+        else if (not TF_Utils__IsNumber(max))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(max) + " to be a number (integer, longinteger, float or double) but was " + type(max)
+            }
+        end if
+
+        if ((m.actual < min) or (m.actual > max))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be in the range [" + TF_Utils__AsString(min) + ", " + TF_Utils__AsString(min) + "]"
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param value (dynamic) the value to check against
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isGreaterThan(value as dynamic, msg = "" as string) as BaseAssert
+
+        if (not TF_Utils__IsNumber(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a number (integer, longinteger, float or double) but was " + type(m.actual)
+            }
+        else if (not TF_Utils__IsNumber(value))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(value) + " to be a number (integer, longinteger, float or double) but was " + type(value)
+            }
+        end if
+
+        if (m.actual <= value)
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be greater than " + TF_Utils__AsString(value)
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isEmpty(msg = "" as string) as BaseAssert
+        if (TF_Utils__IsArray(m.actual) or TF_Utils__IsAssociativeArray(m.actual))
+            if (m.actual.count() <> 0)
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (found " + m.actual.count() + " items)"
+                }
+            end if
+        else if (TF_Utils__IsString(m.actual))
+            if (m.actual.Len() <> 0)
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (string was '" + m.actual + "')"
+                }
+            end if
+        else
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string, an array or an associative array, but was " + type(m.actual)
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isNotEmpty(msg = "" as string) as BaseAssert
+        if (TF_Utils__IsArray(m.actual) or TF_Utils__IsAssociativeArray(m.actual))
+            if (m.actual.count() = 0)
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " not to be empty"
+                }
+            end if
+        else if (TF_Utils__IsString(m.actual))
+            if (m.actual.Len() = 0)
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " not to be empty"
+                }
+            end if
+        else
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string, an array or an associative array, but was " + type(m.actual)
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected size of the string, array or assocarray
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function hasSize(expected as dynamic, msg = "" as string) as BaseAssert
+        if (not TF_Utils__IsNumber(expected))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(expected) + " to be a number (integer, longinteger, float or double) but was " + type(expected)
+            }
+        end if
+
+        if (TF_Utils__IsArray(m.actual) or TF_Utils__IsAssociativeArray(m.actual))
+            if (m.actual.count() <> expected)
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.count()
+                }
+            end if
+        else if (TF_Utils__IsString(m.actual))
+            if (m.actual.Len() <> expected)
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.Len()
+                }
+            end if
+        else
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string, an array or an associative array, but was " + type(m.actual)
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected substring
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function hasSubstring(expected as dynamic, msg = "" as string) as BaseAssert
+        if ((expected = invalid) or (not TF_Utils__IsString(expected)))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(expected) + " to be a string but was " + type(expected)
+            }
+        else if (not TF_Utils__IsString(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string but was " + type(m.actual)
+            }
+        end if
+
+        substringLen = Len(expected)
+        limit = (Len(m.actual)) - substringLen
+
+        for i = 0 to limit
+            if (m.actual.Mid(i, substringLen) = expected)
+                return m
+            end if
+        end for
+
+        throw {
+            number: m.errorCode,
+            message: "Expected " + m.actual + " to have substring " + expected + ")"
+        }
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected element contained in the value under test
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function contains(expected as dynamic, msg = "" as string) as BaseAssert
+        if (TF_Utils__IsArray(m.actual))
+            for each item in m.actual
+                if (m.__areEqual(item, expected))
+                    return m
+                end if
+            end for
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to contain " + TF_Utils__AsString(expected)
+            }
+        end if
+
+        throw {
+            number: m.errorCode,
+            message: "Expected " + TF_Utils__AsString(m.actual) + " to be an array but was " + type(m.actual) + ""
+        }
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' Checks whether two values are equal
+    ' @param value1 (dynamic) the first value
+    ' @param value2 (dynamic) the second value
+    ' @return (boolean) true if both values are equal
+    ' ----------------------------------------------------------------
+    function __areEqual(value1 as dynamic, value2 as dynamic) as boolean
+        value1Type = Type(value1)
+        value2Type = Type(value2)
+
+        if (value1Type = "roAssociativeArray" and value2Type = "roAssociativeArray")
+            return m.__areAssocArrayEqual(value1, value2)
+        else if (TF_Utils__IsNumber(value1) and TF_Utils__IsNumber(value2))
+            return Abs(value1 - value2) < Constants.EPSILON
+        else if (Type(box(value1), 3) = Type(box(value2), 3))
+            return value1 = value2
+        else
+            return false
+        end if
+    end function
+
+    ' ----------------------------------------------------------------
+    ' Checks whether two Associative Arrays are equal
+    ' @param value1 (object) the first Associative Array
+    ' @param value2 (object) the second Associative Array
+    ' @return (boolean) true if both AssocArrays are equal
+    ' ----------------------------------------------------------------
+    function __areAssocArrayEqual(value1 as object, value2 as object) as boolean
+        if (not value1.Count() = value2.Count())
+            return false
+        else
+            for each key1 in value1
+                if (not value2.DoesExist(key1))
+                    return false
+                else
+                    entryValue1 = value1[key1]
+                    entryValue2 = value2[key1]
+                    if (not m.__areEqual(entryValue1, entryValue2))
+                        return false
+                    end if
+                end if
+            end for
+            return true
+        end if
+    end function
+
+end class

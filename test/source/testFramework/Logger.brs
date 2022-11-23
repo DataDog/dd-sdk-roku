@@ -345,7 +345,7 @@ sub Logger__AppendTestStatistic(statSuiteObj as object, statTestObj as object)
             testStatusSymbol = "×"
             statSuiteObj.Fail++
         else if LCase(statTestObj.result) = "skipped"
-            testStatusSymbol = "-"
+            testStatusSymbol = "⚬"
             statSuiteObj.skipped++
         else if LCase(statTestObj.result) = "crashed"
             testStatusSymbol = "☠"
@@ -355,6 +355,10 @@ sub Logger__AppendTestStatistic(statSuiteObj as object, statTestObj as object)
         if (statTestObj.Error.Message <> "")
             statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statSuiteObj.Name + " - " + statTestObj.name])
             statSuiteObj.OutputLog.Append([statTestObj.Error.Message])
+            statSuiteObj.OutputLog.Append([string(16, "- ")])
+        else if LCase(statTestObj.result) = "skipped"
+            statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statSuiteObj.Name + " - " + statTestObj.name])
+            statSuiteObj.OutputLog.Append(["Skipped: " + statTestObj.Message])
             statSuiteObj.OutputLog.Append([string(16, "- ")])
         end if
 

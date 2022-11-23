@@ -132,16 +132,15 @@ function LogsAgentTest__WhenLogOk_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "ok")
-    ]
-    return m.multipleAssertions(assertions)
+
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("ok")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -164,19 +163,17 @@ function LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "ok")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("ok")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -200,19 +197,17 @@ function LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "ok")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("ok")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -236,17 +231,15 @@ function LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "ok"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -270,20 +263,18 @@ function LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "ok"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -303,16 +294,14 @@ function LogsAgentTest__WhenLogDebug_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "debug")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("debug")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -335,19 +324,17 @@ function LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog() as strin
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "debug")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("debug")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -371,19 +358,17 @@ function LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog() as strin
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "debug")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("debug")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -407,17 +392,15 @@ function LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "debug"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -441,20 +424,19 @@ function LogsAgentTest__WhenLogDebugWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "debug"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -474,16 +456,14 @@ function LogsAgentTest__WhenLogInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "info")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("info")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -506,19 +486,17 @@ function LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "info")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("info")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -542,19 +520,18 @@ function LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "info")
-    ]
+
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("info")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -578,17 +555,15 @@ function LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "info"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -612,20 +587,18 @@ function LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "info"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -645,16 +618,14 @@ function LogsAgentTest__WhenLogNotice_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "notice")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("notice")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -677,19 +648,17 @@ function LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog() as stri
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "notice")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("notice")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -713,19 +682,17 @@ function LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog() as stri
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "notice")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("notice")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -749,17 +716,15 @@ function LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "notice"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -783,20 +748,18 @@ function LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "notice"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -816,16 +779,14 @@ function LogsAgentTest__WhenLogWarn_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "warn")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("warn")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -848,19 +809,17 @@ function LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "warn")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("warn")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -884,19 +843,17 @@ function LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "warn")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("warn")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -920,17 +877,15 @@ function LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "warn"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -954,20 +909,18 @@ function LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "warn"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -987,16 +940,14 @@ function LogsAgentTest__WhenLogError_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "error")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("error")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1019,19 +970,17 @@ function LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog() as strin
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "error")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("error")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1055,19 +1004,17 @@ function LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog() as strin
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "error")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("error")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1091,17 +1038,15 @@ function LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "error"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1125,20 +1070,18 @@ function LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "error"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1158,16 +1101,14 @@ function LogsAgentTest__WhenLogCritical_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "critical")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("critical")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1190,19 +1131,17 @@ function LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog() as st
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "critical")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("critical")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1226,19 +1165,17 @@ function LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog() as st
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "critical")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("critical")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1262,17 +1199,15 @@ function LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "critical"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1296,20 +1231,18 @@ function LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "critical"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1329,16 +1262,14 @@ function LogsAgentTest__WhenLogAlert_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "alert")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("alert")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1361,19 +1292,17 @@ function LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog() as strin
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "alert")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("alert")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1397,19 +1326,17 @@ function LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog() as strin
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "alert")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("alert")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1433,17 +1360,15 @@ function LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "alert"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1467,20 +1392,18 @@ function LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "alert"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1500,16 +1423,14 @@ function LogsAgentTest__WhenLogEmergency_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "emergency")
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("emergency")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1532,19 +1453,18 @@ function LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog() as s
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "emergency")
-    ]
+
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("emergency")
     for each key in fakeAttributes
-        assertions.Push(m.assertEqual(logEvent[key], fakeAttributes[key]))
+        Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1568,19 +1488,17 @@ function LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog() as s
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "emergency")
-    ]
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("emergency")
     for each key in m.fakeGlobalContext
-        assertions.Push(m.assertEqual(logEvent[key], m.fakeGlobalContext[key]))
+        Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
-    return m.multipleAssertions(assertions)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1604,17 +1522,15 @@ function LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "emergency"),
-        m.assertEqual(logEvent.usr, m.fakeGlobalUserInfo)
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -1638,19 +1554,17 @@ function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     logEvent = ParseJson(updates[0])
-    assertions = [
-        m.assertEqual(updates.count(), 1),
-        m.assertNotInvalid(logEvent),
-        m.assertBetween(logEvent.date, errorTimestamp&, errorTimestamp& + 20),
-        m.assertEqual(logEvent.ddtags, "env:" + m.fakeEnvName + ",version:4.8.15"),
-        m.assertEqual(logEvent.message, fakeMessage),
-        m.assertEqual(logEvent.service, m.fakeServiceName),
-        m.assertEqual(logEvent.status, "emergency"),
-        m.assertEqual(logEvent.application_id, m.fakeRumContext.applicationId),
-        m.assertEqual(logEvent.session_id, m.fakeRumContext.sessionId),
-        m.assertEqual(logEvent.view.id, m.fakeRumContext.viewId),
-        m.assertEqual(logEvent.user_action.id, m.fakeRumContext.actionId),
-    ]
-    return m.multipleAssertions(assertions)
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 20)
+    Assert.that(logEvent.ddtags).isEqualTo("env:" + m.fakeEnvName + ",version:4.8.15")
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.service).isEqualTo(m.fakeServiceName)
+    Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
 end function
 
