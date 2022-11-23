@@ -191,11 +191,16 @@ function TF_Utils__AsString(input as dynamic) as string
     else if TF_Utils__IsArray(input)
         return FormatJson(input)
     else if TF_Utils__IsAssociativeArray(input)
-        asString = "{"
+        first = true
+        asString = "{ "
         for each key in input
-            asString += key + ": " + TF_Utils__AsString(input[key]) + ","
+            if (not first)
+                asString += ", "
+            endif
+            asString += key + ": " + TF_Utils__AsString(input[key]) 
+            first = false
         end for
-        asString += "}"
+        asString += " }"
         return asString
     else
         throw "Can't convert type " + type(input) + " to string"
