@@ -200,9 +200,10 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, writer as object)
+    ' TODO RUMM-2586 handle mutliple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, writer)
-    else ' TODO RUMM-2586 handle mutliple consecutive actions
+    else
         m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
         m.top.activeAction.target = action.target
         m.top.activeAction.actionType = action.type

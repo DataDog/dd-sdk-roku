@@ -17,7 +17,6 @@ function files {
 
 FILES_WITH_MISSING_LICENSE=""
 
-
 for file in $(files); do
 	if ! grep -q "Apache License Version 2.0" "$file"; then
 		FILES_WITH_MISSING_LICENSE="${FILES_WITH_MISSING_LICENSE}\n${file}"

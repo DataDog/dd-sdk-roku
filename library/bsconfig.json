@@ -9,8 +9,8 @@
         "@rokucommunity/bslint"
     ],
     "createPackage": false,
-    "retainStagingFolder": true,
-    "stagingFolderPath": "../dist",
+    "retainStagingDir": true,
+    "stagingDir": "../dist",
     "diagnosticFilters": [
         "source/roku_modules/**/*.*"
     ],

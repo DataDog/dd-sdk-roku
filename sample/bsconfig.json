@@ -13,6 +13,7 @@
         "@rokucommunity/bslint"
     ],
     "createPackage": true,
+    "retainStagingDir": true,
     "diagnosticFilters": [
         "components/roku_modules/**/*.*",
         "source/roku_modules/**/*.*",
