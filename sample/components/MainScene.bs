@@ -15,6 +15,12 @@ sub init()
     m.videoScreen = m.top.findNode("videoScreen")
     m.debugScreen = m.top.findNode("debugScreen")
 
+    if (m.global.datadogUploader = invalid)
+        datadogroku_ddLogWarning("No RUM agent, creating one")
+        m.global.addFields({ datadogUploader: CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask") })
+        m.global.datadogUploader.clientToken = m.global.credentials.datadogClientToken
+    endif
+
     if (m.global.rumAgent = invalid)
         datadogroku_ddLogWarning("No RUM agent, creating one")
         m.global.addFields({ rumAgent: CreateObject("roSGNode", "datadogroku_RumAgent") })
@@ -22,6 +28,7 @@ sub init()
         m.global.rumAgent.clientToken = m.global.credentials.datadogClientToken
         m.global.rumAgent.applicationId = m.global.credentials.datadogApplicationId
         m.global.rumAgent.serviceName = "roku-sample"
+        m.global.rumAgent.uploader = m.global.datadogUploader
     end if
 
     if (m.global.logsAgent = invalid)
@@ -31,6 +38,7 @@ sub init()
         m.global.logsAgent.clientToken = m.global.credentials.datadogClientToken
         m.global.logsAgent.serviceName = "roku-sample"
         m.global.logsAgent.envName = "staging"
+        m.global.logsAgent.uploader = m.global.datadogUploader
     end if
 
     switchScreen()
