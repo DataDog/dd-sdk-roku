@@ -143,7 +143,7 @@ sub sendLog(status as object, message as string, attributes as object)
             id: m.global.datadogRumContext.actionId
         }
     end if
-    m.writer.writeEvent = FormatJson(logEvent)
+    m.top.writer.writeEvent = FormatJson(logEvent)
 end sub
 
 ' ----------------------------------------------------------------
@@ -159,23 +159,32 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    if (m.uploader = invalid)
-        if (m.top.uploader <> invalid)
-            m.uploader = m.top.uploader
-        else
-            m.uploader = CreateObject("roSGNode", "UploaderTask")
-        end if
-        ' Configure uploader
-        m.uploader.endpointHost = m.top.endpointHost
-        m.uploader.trackType = "logs"
-        m.uploader.payloadPrefix = "["
-        m.uploader.payloadPostfix = "]"
-        m.uploader.clientToken = m.top.clientToken
-        m.uploader.contentType = "application/json"
-        m.uploader.queryParams = {
+    uploader = m.top.uploader
+    if (m.top.uploader = invalid)
+        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+    end if
+    trackId = "logs_" + m.top.threadInfo().node.address
+    tracks = (function(uploader)
+            __bsConsequent = uploader.tracks
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(uploader)
+    tracks[trackId] = {
+        endpointHost: m.top.endpointHost
+        trackType: "logs"
+        payloadPrefix: "["
+        payloadPostfix: "]"
+        contentType: "application/json"
+        queryParams: {
             ddsource: agentSource()
         }
-    end if
+    }
+    uploader.tracks = tracks
+    uploader.clientToken = m.top.clientToken
+    m.top.uploader = uploader
 end sub
 
 ' ----------------------------------------------------------------
@@ -183,14 +192,12 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    if (m.writer = invalid)
-        if (m.top.writer <> invalid)
-            m.writer = m.top.writer
-        else
-            m.writer = CreateObject("roSGNode", "WriterTask")
-        end if
-        ' Configure writer
-        m.writer.trackType = "logs"
-        m.writer.payloadSeparator = ","
+    writer = m.top.writer
+    if (writer = invalid)
+        ddLogVerbose("Creating WriterTask")
+        writer = CreateObject("roSGNode", "WriterTask")
     end if
+    writer.trackType = "logs"
+    writer.payloadSeparator = ","
+    m.top.writer = writer
 end sub

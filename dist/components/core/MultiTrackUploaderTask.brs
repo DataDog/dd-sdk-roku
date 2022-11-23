@@ -40,11 +40,13 @@ end sub
 ' ----------------------------------------------------------------
 sub uploadAvailableFiles()
     tracks = m.top.tracks
-    for each track in tracks
-        ddLogVerbose("Checking files to upload for track " + track)
-        trackInfo = tracks[track]
-        uploadAvailableFilesForTrack(trackInfo)
-    end for
+    if (tracks <> invalid and GetInterface(tracks, "ifAssociativeArray") <> invalid)
+        for each track in tracks
+            ddLogVerbose("Checking files to upload for track " + track)
+            trackInfo = tracks[track]
+            uploadAvailableFilesForTrack(trackInfo)
+        end for
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -52,16 +54,18 @@ end sub
 ' @param trackInfo (object) the configuration for the current track
 ' ----------------------------------------------------------------
 sub uploadAvailableFilesForTrack(trackInfo as object)
-    folderPath = trackFolderPath(trackInfo.trackType)
-    ddLogVerbose("Checking files in folder " + folderPath)
-    filenames = ListDir(folderPath)
-    for each filename in filenames
-        filePath = folderPath + "/" + filename
-        if (isFileValidForUpload(filename))
-            responseCode = uploadFile(filePath, trackInfo)
-            handleResponse(responseCode, filePath, trackInfo)
-        end if
-    end for
+    if (trackInfo.trackType <> invalid)
+        folderPath = trackFolderPath(trackInfo.trackType)
+        ddLogVerbose("Checking files in folder " + folderPath)
+        filenames = ListDir(folderPath)
+        for each filename in filenames
+            filePath = folderPath + "/" + filename
+            if (isFileValidForUpload(filename))
+                responseCode = uploadFile(filePath, trackInfo)
+                handleResponse(responseCode, filePath, trackInfo)
+            end if
+        end for
+    end if
 end sub
 
 ' ----------------------------------------------------------------

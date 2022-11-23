@@ -141,7 +141,7 @@ sub sendLog(status as LogStatus, message as string, attributes as object)
         logEvent["view"] = { id: m.global.datadogRumContext.viewId }
         logEvent["user_action"] = { id: m.global.datadogRumContext.actionId }
     end if
-    m.writer.writeEvent = FormatJson(logEvent)
+    m.top.writer.writeEvent = FormatJson(logEvent)
 end sub
 
 ' ----------------------------------------------------------------
@@ -157,22 +157,24 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    if (m.uploader = invalid)
-        if (m.top.uploader <> invalid)
-            m.uploader = m.top.uploader
-        else
-            m.uploader = CreateObject("roSGNode", "UploaderTask")
-        end if
-
-        ' Configure uploader
-        m.uploader.endpointHost = m.top.endpointHost
-        m.uploader.trackType = TrackType.logs
-        m.uploader.payloadPrefix = "["
-        m.uploader.payloadPostfix = "]"
-        m.uploader.clientToken = m.top.clientToken
-        m.uploader.contentType = "application/json"
-        m.uploader.queryParams = { ddsource: agentSource() }
+    uploader = m.top.uploader
+    if (m.top.uploader = invalid)
+        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
+
+    trackId = "logs_" + m.top.threadInfo().node.address
+    tracks = uploader.tracks ?? {}
+    tracks[trackId] = {
+        endpointHost: m.top.endpointHost,
+        trackType: TrackType.logs,
+        payloadPrefix: "[",
+        payloadPostfix: "]",
+        contentType: "application/json",
+        queryParams: { ddsource: agentSource() }
+    }
+    uploader.tracks = tracks
+    uploader.clientToken = m.top.clientToken
+    m.top.uploader = uploader
 end sub
 
 ' ----------------------------------------------------------------
@@ -180,15 +182,13 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    if (m.writer = invalid)
-        if (m.top.writer <> invalid)
-            m.writer = m.top.writer
-        else
-            m.writer = CreateObject("roSGNode", "WriterTask")
-        end if
-
-        ' Configure writer
-        m.writer.trackType = TrackType.logs
-        m.writer.payloadSeparator = ","
+    writer = m.top.writer
+    if (writer = invalid)
+        ddLogVerbose("Creating WriterTask")
+        writer = CreateObject("roSGNode", "WriterTask")
     end if
+    
+    writer.trackType = TrackType.logs
+    writer.payloadSeparator = ","
+    m.top.writer = writer
 end sub
