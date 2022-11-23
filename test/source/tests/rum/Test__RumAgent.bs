@@ -192,7 +192,6 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
     m.testedNode.rumScope = invalid
-    print m.testedNode
     expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
 
     ' When

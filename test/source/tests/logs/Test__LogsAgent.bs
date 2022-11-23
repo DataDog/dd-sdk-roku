@@ -1613,7 +1613,6 @@ function LogsAgentTest__WhenDoNothing_ThenInitDependencies() as string
     ' Given
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
-    print m.testedNode
     expectedTrackName = "logs_" + m.testedNode.threadInfo().node.address
 
     ' When
