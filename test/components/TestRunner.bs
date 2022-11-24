@@ -12,6 +12,7 @@ import "pkg:/source/testFramework/UTF.brs"
 import "pkg:/source/asserts/Asserts.bs"
 
 import "pkg:/source/tests/Test__fileUtils.bs"
+import "pkg:/source/tests/Test__datadog.bs"
 import "pkg:/source/tests/core/Test__MultitrackUploaderTask.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"
 import "pkg:/source/tests/logs/Test__LogsAgent.bs"
@@ -44,6 +45,7 @@ sub runTests()
     Runner = TestRunner()
 
     Runner.SetFunctions([
+        TestSuite__Datadog,
         TestSuite__FileUtils,
         TestSuite__MultiTrackUploaderTask
         TestSuite__WriterTask,
