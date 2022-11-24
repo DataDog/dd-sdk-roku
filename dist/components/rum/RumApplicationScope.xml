@@ -6,4 +6,5 @@
         <field id="sessionScope" type="node" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumApplicationScope.brs" />
+    <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
 </component>
