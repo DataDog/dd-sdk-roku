@@ -145,6 +145,7 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                     testSuite.testCase = testCase.Func
 
                     runResult = ""
+                    location = ""
                     if IS_NEW_APPROACH then
                         env.functionToCall = testCase.Func
 
@@ -161,12 +162,13 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                         try
                             runResult = testSuite.testCase()
                         catch e
+                            location = datadogroku_backtraceToString(e.backtrace)
                             if (e.number = 300)
                                 runResult = e.message
                             else if (e.number = 310)
                                 runResult = m.SKIP_TEST_MESSAGE_PREFIX + e.message
                             else
-                                runResult = m.CRASH_TEST_MESSAGE_PREFIX + datadogroku_errorToString(e)
+                                runResult = m.CRASH_TEST_MESSAGE_PREFIX + e.message
                                 print "✘ ✘ ✘ ✘ ✘ ✘"
                                 print datadogroku_errorToString(e)
                                 print "✘ ✘ ✘ ✘ ✘ ✘"
@@ -191,6 +193,10 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
                             runResult += error + Chr(10) + string(10, "-") + Chr(10)
                         end for
                     end if
+                end if
+
+                if location <> ""
+                    testStatObj.Error.Location = location
                 end if
 
                 if runResult <> ""

@@ -388,12 +388,94 @@ class BaseAssert
                 number: m.errorCode,
                 message: "Expected " + TF_Utils__AsString(m.actual) + " to contain " + TF_Utils__AsString(expected)
             }
+        else if (TF_Utils__IsAssociativeArray(m.actual))
+            if (not TF_Utils__IsAssociativeArray(expected))
+                throw {
+                    number: m.errorCode,
+                    message: "Expected " + TF_Utils__AsString(expected) + " to be an associative array but was " + type(expected)
+                }
+            end if
+
+            for each key in expected
+                expectedItem = expected[key]
+                item = m.actual[key]
+                if (not m.__areEqual(item, expectedItem))
+                    throw {
+                        number: m.errorCode,
+                        message: "Expected " + TF_Utils__AsString(m.actual) + chr(10) + "  to have an entry { " + key + ":" + TF_Utils__AsString(expectedItem) + " } but was { " + key + ":" + TF_Utils__AsString(item) + " }"
+                    }
+                end if
+            end for
+        else 
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be an array or an associative array but was " + type(m.actual)
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected key contained in the value under test
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function containsKey(expected as dynamic, msg = "" as string) as BaseAssert
+        if (not TF_Utils__IsString(expected))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(expected) + " to be a string but was " + type(expected)
+            }
+        end if
+
+        if (TF_Utils__IsAssociativeArray(m.actual))
+            for each key in m.actual
+                if (m.__areEqual(key, expected))
+                    return m
+                end if
+            end for
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to contain key " + TF_Utils__AsString(expected)
+            }
         end if
 
         throw {
             number: m.errorCode,
-            message: "Expected " + TF_Utils__AsString(m.actual) + " to be an array but was " + type(m.actual) + ""
+            message: "Expected " + TF_Utils__AsString(m.actual) + " to be an associative array but was " + type(m.actual)
         }
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected subtype of the given node
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function hasSubtype(expected as dynamic, msg = "" as string) as BaseAssert
+        if (not TF_Utils__IsString(expected))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(expected) + " to be a string but was " + type(expected)
+            }
+        end if
+
+        if (not TF_Utils__IsSGNode(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be an SGNode but was " + type(m.actual)
+            }
+        end if
+
+        subtype = m.actual.subType()
+        if (subtype <> expected)
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to have subtype " + expected + " but was " + subtype
+            }
+        end if
 
         return m
     end function

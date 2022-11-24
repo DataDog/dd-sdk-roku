@@ -17,6 +17,8 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenDoNothing_ThenTriggerKeepAlive", RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
+    this.addTest("WhenDoNothing_ThenInitDependencies", RumAgentTest__WhenDoNothing_ThenInitDependencies, RumAgentTest__SetUpNoMock, RumAgentTest__TearDown)
+
     return this
 end function
 
@@ -43,6 +45,24 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.uploader = m.testSuite.mockUploader
     m.testSuite.testedNode.writer = m.testSuite.mockWriter
     m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
+end sub
+
+sub RumAgentTest__SetUpNoMock()
+
+    ' Fake data
+    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
+    m.testSuite.fakeApplicationId = IG_GetString(32)
+    m.testSuite.fakeServiceName = IG_GetString(32)
+    m.testSuite.fakeKeepAliveDelayMs = 10 + IG_GetInteger(30)
+
+    ' Tested Task
+    m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_RumAgent")
+    m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
+    m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
+    m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
+    m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
+    m.testSuite.testedNode.serviceName = m.testSuite.fakeServiceName
 end sub
 
 sub RumAgentTest__TearDown()
@@ -152,7 +172,7 @@ end function
 '----------------------------------------------------------------
 function RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive() as string
     ' Given
-    wait3 = 4 * m.fakeKeepAliveDelayMs
+    wait3 = 5 * m.fakeKeepAliveDelayMs
 
     ' When
     sleep(wait3)
@@ -160,4 +180,43 @@ function RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive() as string
     ' Then
     expectedArgs = { event: { eventType: "keepAlive" }, writer: m.mockWriter }
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs, -3)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: initializing
+'  Then: ensure the dependencies are created if not present
+'----------------------------------------------------------------
+function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
+    ' Given
+    m.testedNode.uploader = invalid
+    m.testedNode.writer = invalid
+    m.testedNode.rumScope = invalid
+    expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
+
+    ' When
+    sleep(300)
+
+    ' Then
+    rumScope = m.testedNode.rumScope
+    writer = m.testedNode.writer
+    uploader = m.testedNode.uploader
+    Assert.that(rumScope).isNotInvalid().hasSubtype("datadogroku_RumApplicationScope")
+    Assert.that(writer).isNotInvalid().hasSubtype("datadogroku_WriterTask")
+    Assert.that(writer.trackType).isEqualTo("rum")
+    Assert.that(writer.payloadSeparator).isEqualTo(chr(10))
+    Assert.that(uploader) .isNotInvalid().hasSubtype("datadogroku_MultiTrackUploaderTask")
+    Assert.that(uploader.clientToken).isEqualTo(m.fakeClientToken)
+    uploaderTracks = uploader.tracks
+    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
+    track = uploaderTracks[expectedTrackName]
+    Assert.that(track).isNotInvalid().contains({
+        endpointHost: m.fakeEndpointHost,
+         trackType: "rum",
+         payloadPrefix: "",
+         payloadPostfix: "",
+         contentType: "text/plain;charset=UTF-8",
+         queryParams: {}
+    })
+    return ""
 end function

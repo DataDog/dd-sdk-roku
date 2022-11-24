@@ -309,6 +309,7 @@ function Logger__CreateTestStatistic(name as string, result = "Success" as strin
         Error: {
             Code: errorCode
             Message: errorMessage
+            Location: ""
         }
     }
 
@@ -355,6 +356,7 @@ sub Logger__AppendTestStatistic(statSuiteObj as object, statTestObj as object)
         if (statTestObj.Error.Message <> "")
             statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statSuiteObj.Name + " - " + statTestObj.name])
             statSuiteObj.OutputLog.Append([statTestObj.Error.Message])
+            statSuiteObj.OutputLog.Append([statTestObj.Error.Location])
             statSuiteObj.OutputLog.Append([string(16, "- ")])
         else if LCase(statTestObj.result) = "skipped"
             statSuiteObj.OutputLog.Append([testStatusSymbol + " " + statSuiteObj.Name + " - " + statTestObj.name])

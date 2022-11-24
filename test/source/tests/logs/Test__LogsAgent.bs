@@ -64,6 +64,7 @@ function TestSuite__LogsAgent() as object
     this.addTest("WhenLogEmergencyWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogEmergencyWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
 
+    this.addTest("WhenDoNothing_ThenInitDependencies", LogsAgentTest__WhenDoNothing_ThenInitDependencies, LogsAgentTest__SetUpNoMock, LogsAgentTest__TearDown)
     return this
 end function
 
@@ -106,6 +107,41 @@ sub LogsAgentTest__SetUp()
     m.testSuite.testedNode.envName = m.testSuite.fakeEnvName
     m.testSuite.testedNode.uploader = m.testSuite.mockUploader
     m.testSuite.testedNode.writer = m.testSuite.mockWriter
+end sub
+
+sub LogsAgentTest__SetUpNoMock()
+    ' Fake data
+    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
+    m.testSuite.fakeServiceName = IG_GetString(32)
+    m.testSuite.fakeEnvName = IG_GetString(8)
+    m.testSuite.fakeGlobalUserInfo = {
+        id: IG_GetString(16),
+        name: IG_GetString(16),
+        email: IG_GetString(16) + "@" + IG_GetString(16) + ".com"
+    }
+    m.testSuite.fakeGlobalContext = {}
+    m.testSuite.fakeRumContext = {
+        actionId: IG_GetString(32),
+        applicationId: IG_GetString(32),
+        sessionId: IG_GetString(32),
+        viewId: IG_GetString(32)
+    }
+    for i = 1 to 5
+        m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+        m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
+    m.testSuite.global.setField("datadogContext", {})
+    m.testSuite.global.setField("datadogUserInfo", {})
+    m.testSuite.global.setField("datadogRumContext", {})
+
+    ' Tested Task
+    m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_LogsAgent")
+    m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
+    m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
+    m.testSuite.testedNode.serviceName = m.testSuite.fakeServiceName
+    m.testSuite.testedNode.envName = m.testSuite.fakeEnvName
 end sub
 
 sub LogsAgentTest__TearDown()
@@ -1568,3 +1604,39 @@ function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
     return ""
 end function
 
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: initializing
+'  Then: ensure the dependencies are created if not present
+'----------------------------------------------------------------
+function LogsAgentTest__WhenDoNothing_ThenInitDependencies() as string
+    ' Given
+    m.testedNode.uploader = invalid
+    m.testedNode.writer = invalid
+    expectedTrackName = "logs_" + m.testedNode.threadInfo().node.address
+
+    ' When
+    m.testedNode@.logEmergency(IG_GetString(32), {})
+    sleep(300)
+
+    ' Then
+    writer = m.testedNode.writer
+    uploader = m.testedNode.uploader
+    Assert.that(writer).isNotInvalid().hasSubtype("datadogroku_WriterTask")
+    Assert.that(writer.trackType).isEqualTo("logs")
+    Assert.that(writer.payloadSeparator).isEqualTo(",")
+    Assert.that(uploader) .isNotInvalid().hasSubtype("datadogroku_MultiTrackUploaderTask")
+    Assert.that(uploader.clientToken).isEqualTo(m.fakeClientToken)
+    uploaderTracks = uploader.tracks
+    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
+    track = uploaderTracks[expectedTrackName]
+    Assert.that(track).isNotInvalid().contains({
+        endpointHost: m.fakeEndpointHost,
+        trackType: "logs",
+        payloadPrefix: "[",
+        payloadPostfix: "]",
+        contentType: "application/json",
+        queryParams: { ddsource: "roku" }
+    })
+    return ""
+end function

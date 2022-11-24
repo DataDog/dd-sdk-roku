@@ -28,7 +28,7 @@ sub rumAgentLoop()
     while (true)
         msg = wait(m.top.keepAliveDelayMs, m.port)
         ensureSetup()
-        m.rumScope.callfunc("handleEvent", keepAliveEvent(), m.writer)
+        m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
         msgType = type(msg)
         if (msgType = "roSGNodeEvent")
             fieldName = msg.getField()
@@ -49,7 +49,7 @@ end sub
 sub startView(name as string, url as string)
     ddLogThread("RumAgent.startView()")
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", startViewEvent(name, url), m.writer)
+    m.top.rumScope.callfunc("handleEvent", startViewEvent(name, url), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -60,7 +60,7 @@ end sub
 sub stopView(name as string, url as string)
     ddLogThread("RumAgent.stopView()")
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", stopViewEvent(name, url), m.writer)
+    m.top.rumScope.callfunc("handleEvent", stopViewEvent(name, url), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -70,7 +70,7 @@ end sub
 sub addAction(action as object)
     ddLogThread("RumAgent.addAction()")
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", addActionEvent(action), m.writer)
+    m.top.rumScope.callfunc("handleEvent", addActionEvent(action), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -80,7 +80,7 @@ end sub
 sub addError(exception as object)
     ddLogThread("RumAgent.addError()")
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", addErrorEvent(exception), m.writer)
+    m.top.rumScope.callfunc("handleEvent", addErrorEvent(exception), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -90,7 +90,7 @@ end sub
 sub addResource(resource as object)
     ddLogThread("RumAgent.addResource()")
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", addResourceEvent(resource), m.writer)
+    m.top.rumScope.callfunc("handleEvent", addResourceEvent(resource), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -107,14 +107,11 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureRumScope()
-    if (m.rumScope = invalid)
-        if (m.top.rumScope <> invalid)
-            m.rumScope = m.top.rumScope
-        else
-            m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        end if
-        m.rumScope.applicationId = m.top.applicationId
-        m.rumScope.serviceName = m.top.serviceName
+    if (m.top.rumScope = invalid)
+        ddLogVerbose("Creating RumApplicationScope")
+        m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
+        m.top.rumScope.applicationId = m.top.applicationId
+        m.top.rumScope.serviceName = m.top.serviceName
         m.global.addFields({
             datadogRumContext: {}
         })
@@ -129,20 +126,30 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    if (m.uploader = invalid)
-        if (m.top.uploader <> invalid)
-            m.uploader = m.top.uploader
-        else
-            m.uploader = CreateObject("roSGNode", "UploaderTask")
-        end if
-        ' Configure uploader
-        m.uploader.endpointHost = m.top.endpointHost
-        m.uploader.trackType = "rum"
-        m.uploader.payloadPrefix = ""
-        m.uploader.payloadPostfix = ""
-        m.uploader.clientToken = m.top.clientToken
-        m.uploader.contentType = "text/plain;charset=UTF-8"
+    uploader = m.top.uploader
+    if (m.top.uploader = invalid)
+        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
+    trackId = "rum_" + m.top.threadInfo().node.address
+    tracks = (function(uploader)
+            __bsConsequent = uploader.tracks
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(uploader)
+    tracks[trackId] = {
+        endpointHost: m.top.endpointHost
+        trackType: "rum"
+        payloadPrefix: ""
+        payloadPostfix: ""
+        contentType: "text/plain;charset=UTF-8"
+        queryParams: {}
+    }
+    uploader.tracks = tracks
+    uploader.clientToken = m.top.clientToken
+    m.top.uploader = uploader
 end sub
 
 ' ----------------------------------------------------------------
@@ -150,14 +157,12 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    if (m.writer = invalid)
-        if (m.top.writer <> invalid)
-            m.writer = m.top.writer
-        else
-            m.writer = CreateObject("roSGNode", "WriterTask")
-        end if
-        ' Configure writer
-        m.writer.trackType = "rum"
-        m.writer.payloadSeparator = chr(10)
+    writer = m.top.writer
+    if (writer = invalid)
+        ddLogVerbose("Creating WriterTask")
+        writer = CreateObject("roSGNode", "WriterTask")
     end if
+    writer.trackType = "rum"
+    writer.payloadSeparator = chr(10)
+    m.top.writer = writer
 end sub
