@@ -9,7 +9,7 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/logs/LogsAgent.bs" />
 
     <interface>
-        <field id="endpointHost" type="string" />
+        <field id="site" type="string" />
         <field id="clientToken" type="string" />
         <field id="service" type="string" />
         <field id="env" type="string" />

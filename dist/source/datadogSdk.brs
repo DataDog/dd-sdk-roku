@@ -31,6 +31,15 @@ end function
 ' ----------------------------------------------------------------
 ' @param site (Site) the site to use
 ' @param track (Track) the track to use
+' @return (string) the upload url for the given track and site
+' ----------------------------------------------------------------
+function getIntakeUrl(site as object, track as object) as string
+    return getEndpoint(site, track) + "/api/v2/" + track
+end function
+
+' ----------------------------------------------------------------
+' @param site (Site) the site to use
+' @param track (Track) the track to use
 ' @return (string) the endpoint for the given track and site
 ' ----------------------------------------------------------------
 function getEndpoint(site as object, track as object) as string

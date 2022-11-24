@@ -135,7 +135,7 @@ sub ensureUploader()
             end if
         end function)(uploader)
     tracks[trackId] = {
-        endpointHost: m.top.endpointHost
+        url: getIntakeUrl(m.top.site, "rum")
         trackType: "rum"
         payloadPrefix: ""
         payloadPostfix: ""

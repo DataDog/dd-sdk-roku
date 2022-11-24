@@ -165,7 +165,7 @@ sub ensureUploader()
     trackId = "logs_" + m.top.threadInfo().node.address
     tracks = uploader.tracks ?? {}
     tracks[trackId] = {
-        endpointHost: m.top.endpointHost,
+        url: getIntakeUrl(m.top.site, TrackType.logs),
         trackType: TrackType.logs,
         payloadPrefix: "[",
         payloadPostfix: "]",

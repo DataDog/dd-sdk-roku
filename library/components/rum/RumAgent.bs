@@ -131,7 +131,7 @@ sub ensureUploader()
     trackId = "rum_" + m.top.threadInfo().node.address
     tracks = uploader.tracks ?? {}
     tracks[trackId] = {
-        endpointHost: m.top.endpointHost,
+        url: getIntakeUrl(m.top.site, TrackType.rum),
         trackType: TrackType.rum,
         payloadPrefix: "",
         payloadPostfix: "",

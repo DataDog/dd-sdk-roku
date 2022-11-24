@@ -39,6 +39,14 @@ function agentSource() as string
     return "roku"
 end function
 
+' ----------------------------------------------------------------
+' @param site (Site) the site to use
+' @param track (Track) the track to use
+' @return (string) the upload url for the given track and site
+' ----------------------------------------------------------------
+function getIntakeUrl(site as Site, track as TrackType) as string
+    return getEndpoint(site, track) + "/api/v2/" + track
+end function
 
 
 ' ----------------------------------------------------------------

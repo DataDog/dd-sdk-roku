@@ -9,7 +9,7 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.bs" />
 
     <interface>
-        <field id="endpointHost" type="string" />
+        <field id="site" type="string" />
         <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />

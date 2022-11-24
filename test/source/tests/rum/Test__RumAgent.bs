@@ -29,7 +29,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.mockRumScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
-    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeSite = IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
@@ -41,7 +41,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.writer = m.testSuite.mockWriter
     m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
-    m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
+    m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
@@ -50,7 +50,7 @@ end sub
 sub RumAgentTest__SetUpNoMock()
 
     ' Fake data
-    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeSite = IG_GetString(10) + "." + IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
@@ -59,7 +59,7 @@ sub RumAgentTest__SetUpNoMock()
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_RumAgent")
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
-    m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
+    m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
@@ -69,7 +69,6 @@ sub RumAgentTest__TearDown()
     m.testSuite.testedNode.control = "STOP"
     m.testSuite.testedNode.writer.control = "STOP"
     m.testSuite.testedNode.uploader.control = "STOP"
-    sleep (100)
     m.testSuite.testedNode.Delete("uploader")
     m.testSuite.testedNode.Delete("writer")
     m.testSuite.Delete("mockUploader")
@@ -196,11 +195,14 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     ' Given
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
-    m.testedNode.rumScope = invalid
+    m.testedNode.rumScope = invalid 
+    site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
+    m.testedNode.site = site
+    expectedUrl = datadogroku_getIntakeUrl(site, "rum")
     expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
 
     ' When
-    sleep(300)
+    sleep(100)
 
     ' Then
     rumScope = m.testedNode.rumScope
@@ -216,7 +218,7 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
     track = uploaderTracks[expectedTrackName]
     Assert.that(track).isNotInvalid().contains({
-        endpointHost: m.fakeEndpointHost,
+        url: expectedUrl,
         trackType: "rum",
         payloadPrefix: "",
         payloadPostfix: "",
