@@ -23,12 +23,12 @@ sub RumApplicationScopeTest__SetUp()
 
     ' Fake data
     m.testSuite.fakeApplicationId = IG_GetString(32)
-    m.testSuite.fakeServiceName = IG_GetString(32)
+    m.testSuite.fakeService = IG_GetString(32)
 
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumApplicationScope")
     m.testSuite.testedScope.applicationId = m.testSuite.fakeApplicationId
-    m.testSuite.testedScope.serviceName = m.testSuite.fakeServiceName
+    m.testSuite.testedScope.service = m.testSuite.fakeService
 end sub
 
 sub RumApplicationScopeTest__TearDown()
@@ -58,7 +58,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a RumApplicationScope
 '  When: requesting the rum context
-'  Then: returns a rum context with applicationId and serviceName
+'  Then: returns a rum context with applicationId and service
 '----------------------------------------------------------------
 function RumApplicationScopeTest__WhenGetContext_ThenReturnsContext() as string
     ' Given
@@ -68,7 +68,7 @@ function RumApplicationScopeTest__WhenGetContext_ThenReturnsContext() as string
 
     ' Then
     Assert.that(context.applicationId).isEqualTo(m.fakeApplicationId)
-    Assert.that(context.serviceName).isEqualTo(m.fakeServiceName)
+    Assert.that(context.service).isEqualTo(m.fakeService)
     Assert.that(context.applicationVersion).isEqualTo("4.8.15")
     return ""
 end function

@@ -111,7 +111,7 @@ sub ensureRumScope()
         ddLogVerbose("Creating RumApplicationScope")
         m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
         m.top.rumScope.applicationId = m.top.applicationId
-        m.top.rumScope.serviceName = m.top.serviceName
+        m.top.rumScope.service = m.top.service
         m.global.addFields({
             datadogRumContext: {}
         })

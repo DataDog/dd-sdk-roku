@@ -12,8 +12,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="endpointHost" type="string" />
         <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
-        <field id="serviceName" type="string" />
-        <field id="keepAliveDelayMs" type="integer" value="15000"/>
+        <field id="service" type="string" />
+        <field id="keepAliveDelayMs" type="integer" value="15000" />
         <field id="stop" type="boolean" />
 
         <!-- Dependency Injection -->

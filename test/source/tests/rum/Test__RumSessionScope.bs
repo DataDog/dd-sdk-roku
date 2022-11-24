@@ -61,11 +61,11 @@ end function
 function RumSessionScopeTest__WhenGetContext_ThenReturnsContext() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeVersion = IG_GetString(16)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         applicationVersion: fakeVersion
     }
     m.mockParentScope@.stubCall("getRumContext", { _ph: invalid }, fakeParentContext)
@@ -75,7 +75,7 @@ function RumSessionScopeTest__WhenGetContext_ThenReturnsContext() as string
 
     ' Then
     Assert.that(context.applicationId).isEqualTo(fakeApplicationId)
-    Assert.that(context.serviceName).isEqualTo(fakeServiceName)
+    Assert.that(context.service).isEqualTo(fakeService)
     Assert.that(context.applicationVersion).isEqualTo(fakeVersion)
     Assert.that(context.sessionId).isNotEmpty()
     return ""

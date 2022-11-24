@@ -121,10 +121,10 @@ sub sendLog(status as LogStatus, message as string, attributes as object)
     ensureSetup()
     logEvent = {
         date: timestamp&,
-        ddtags: "env:" + m.top.envName + ",version:" + m.applicationVersion,
+        ddtags: "env:" + m.top.env + ",version:" + m.applicationVersion,
         message: message,
         status: status,
-        service: m.top.serviceName,
+        service: m.top.service,
         usr: m.global.datadogUserInfo
     }
     for each key in attributes
@@ -187,7 +187,7 @@ sub ensureWriter()
         ddLogVerbose("Creating WriterTask")
         writer = CreateObject("roSGNode", "WriterTask")
     end if
-    
+
     writer.trackType = TrackType.logs
     writer.payloadSeparator = ","
     m.top.writer = writer

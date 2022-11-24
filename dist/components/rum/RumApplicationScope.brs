@@ -21,7 +21,7 @@ end sub
 function getRumContext(_ph as dynamic) as object
     return {
         applicationId: m.top.applicationId
-        serviceName: m.top.serviceName
+        service: m.top.service
         applicationVersion: m.applicationVersion
     }
 end function

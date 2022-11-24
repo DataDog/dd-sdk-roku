@@ -32,7 +32,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
-    m.testSuite.fakeServiceName = IG_GetString(32)
+    m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeKeepAliveDelayMs = 10 + IG_GetInteger(30)
 
     ' Tested Task
@@ -41,7 +41,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
-    m.testSuite.testedNode.serviceName = m.testSuite.fakeServiceName
+    m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.uploader = m.testSuite.mockUploader
     m.testSuite.testedNode.writer = m.testSuite.mockWriter
     m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
@@ -53,7 +53,7 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
-    m.testSuite.fakeServiceName = IG_GetString(32)
+    m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeKeepAliveDelayMs = 10 + IG_GetInteger(30)
 
     ' Tested Task
@@ -62,7 +62,7 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
-    m.testSuite.testedNode.serviceName = m.testSuite.fakeServiceName
+    m.testSuite.testedNode.service = m.testSuite.fakeService
 end sub
 
 sub RumAgentTest__TearDown()
@@ -212,11 +212,11 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     track = uploaderTracks[expectedTrackName]
     Assert.that(track).isNotInvalid().contains({
         endpointHost: m.fakeEndpointHost,
-         trackType: "rum",
-         payloadPrefix: "",
-         payloadPostfix: "",
-         contentType: "text/plain;charset=UTF-8",
-         queryParams: {}
+        trackType: "rum",
+        payloadPrefix: "",
+        payloadPostfix: "",
+        contentType: "text/plain;charset=UTF-8",
+        queryParams: {}
     })
     return ""
 end function

@@ -119,10 +119,10 @@ sub sendLog(status as object, message as string, attributes as object)
     ensureSetup()
     logEvent = {
         date: timestamp&
-        ddtags: "env:" + m.top.envName + ",version:" + m.applicationVersion
+        ddtags: "env:" + m.top.env + ",version:" + m.applicationVersion
         message: message
         status: status
-        service: m.top.serviceName
+        service: m.top.service
         usr: m.global.datadogUserInfo
     }
     for each key in attributes

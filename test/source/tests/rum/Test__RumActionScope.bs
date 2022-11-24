@@ -92,13 +92,13 @@ end function
 function RumActionScopeTest__WhenGetContext_ThenReturnsContext() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeVersion = IG_GetString(16)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         applicationVersion: fakeVersion,
         sessionId: fakeSessionId,
         viewId: fakeViewId
@@ -110,7 +110,7 @@ function RumActionScopeTest__WhenGetContext_ThenReturnsContext() as string
 
     ' Then
     Assert.that(context.applicationId).isEqualTo(fakeApplicationId)
-    Assert.that(context.serviceName).isEqualTo(fakeServiceName)
+    Assert.that(context.service).isEqualTo(fakeService)
     Assert.that(context.applicationVersion).isEqualTo(fakeVersion)
     Assert.that(context.sessionId).isEqualTo(fakeSessionId)
     Assert.that(context.viewId).isEqualTo(fakeViewId)
@@ -162,14 +162,14 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent()
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -190,7 +190,7 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent()
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -218,14 +218,14 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteAc
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -247,7 +247,7 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteAc
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -276,14 +276,14 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteA
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -305,7 +305,7 @@ function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteA
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -334,14 +334,14 @@ function RumViewScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -365,7 +365,7 @@ function RumViewScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent() as string
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -393,14 +393,14 @@ function RumViewScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -421,7 +421,7 @@ function RumViewScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -449,14 +449,14 @@ function RumViewScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent() as str
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -480,7 +480,7 @@ function RumViewScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent() as str
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -508,14 +508,14 @@ function RumViewScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEv
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -536,7 +536,7 @@ function RumViewScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEv
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -564,14 +564,14 @@ function RumViewScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent() as
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -595,7 +595,7 @@ function RumViewScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent() as
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -623,14 +623,14 @@ function RumViewScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent() 
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -654,7 +654,7 @@ function RumViewScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent() 
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -682,14 +682,14 @@ function RumViewScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteAc
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -710,7 +710,7 @@ function RumViewScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteAc
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -738,14 +738,14 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediat
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -765,7 +765,7 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediat
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -793,14 +793,14 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediate
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
@@ -820,7 +820,7 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediate
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
-    Assert.that(actionEvent.service).isEqualTo(fakeServiceName)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
     Assert.that(actionEvent.session.type).isEqualTo("user")
@@ -848,14 +848,14 @@ function RumViewScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext() as str
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
-    fakeServiceName = IG_GetString(32)
+    fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
     fakeViewId = IG_GetString(32)
     fakeViewName = IG_GetString(32)
     fakeViewUrl = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
-        serviceName: fakeServiceName,
+        service: fakeService,
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
