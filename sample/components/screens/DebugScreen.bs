@@ -21,7 +21,7 @@ end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     datadogroku_ddLogVerbose("DebugScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
-    m.global.logsAgent@.logDebug("Key pressed", { screen: "Debug", key: key, press: press })
+    m.global.datadogLogsAgent@.logDebug("Key pressed", { screen: "Debug", key: key, press: press })
     if (not press)
         addAction(key, "custom")
     end if
@@ -46,13 +46,13 @@ end sub
 sub startView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
-    m.global.rumAgent@.startView(viewName, viewUrl)
+    m.global.datadogRumAgent@.startView(viewName, viewUrl)
 end sub
 
 sub stopView()
     viewName = "MainScreen"
     viewUrl = "http://example.com/components/MainScreen.brs"
-    m.global.rumAgent@.stopView(viewName, viewUrl)
+    m.global.datadogRumAgent@.stopView(viewName, viewUrl)
 end sub
 
 sub sendError()
@@ -62,19 +62,18 @@ sub sendError()
         explodingMethod(m.errorIdx)
     catch error
         datadogroku_ddLogError("Caught something", error)
-        m.global.rumAgent@.addError(error)
+        m.global.datadogRumAgent@.addError(error)
     end try
 end sub
 
 sub sendResource()
     task = createObject("roSGNode", "RequestTask")
     task.setField("query", "datadog")
-    task.setField("rumAgent", m.global.rumAgent)
     task.control = "RUN"
 end sub
 
 sub addAction(target as string, actionType as string)
-    m.global.rumAgent@.addAction({
+    m.global.datadogRumAgent@.addAction({
         target: target,
         type: actionType
     })
