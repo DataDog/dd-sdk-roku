@@ -37,14 +37,14 @@ sub RumAgentTest__SetUp()
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_RumAgent")
+    m.testSuite.testedNode.uploader = m.testSuite.mockUploader
+    m.testSuite.testedNode.writer = m.testSuite.mockWriter
+    m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
     m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
-    m.testSuite.testedNode.uploader = m.testSuite.mockUploader
-    m.testSuite.testedNode.writer = m.testSuite.mockWriter
-    m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
 end sub
 
 sub RumAgentTest__SetUpNoMock()
@@ -66,10 +66,15 @@ sub RumAgentTest__SetUpNoMock()
 end sub
 
 sub RumAgentTest__TearDown()
+    m.testSuite.testedNode.control = "STOP"
+    m.testSuite.testedNode.writer.control = "STOP"
+    m.testSuite.testedNode.uploader.control = "STOP"
+    sleep (100)
+    m.testSuite.testedNode.Delete("uploader")
+    m.testSuite.testedNode.Delete("writer")
     m.testSuite.Delete("mockUploader")
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("mockRumScope")
-    m.testSuite.testedNode.stop = true
     m.testSuite.Delete("testedNode")
 end sub
 

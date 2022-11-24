@@ -6,7 +6,6 @@
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
-        <field id="stop" type="boolean" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />

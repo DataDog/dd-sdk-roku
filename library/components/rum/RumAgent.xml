@@ -14,7 +14,6 @@ Copyright 2022-Today Datadog, Inc.
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
-        <field id="stop" type="boolean" />
 
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />

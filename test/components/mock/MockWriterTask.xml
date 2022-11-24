@@ -8,6 +8,10 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/mock/MockWriterTask.bs" />
 
     <interface>
+        <!-- Task -->
+        <field id="control" type="string" />
+
+        <!-- WriterTask -->
         <field id="trackType" type="string" />
         <field id="payloadSeparator" type="string" value="" />
         <field id="maxBatchSize" type="integer" value="16384" /> <!-- 16Kb -->

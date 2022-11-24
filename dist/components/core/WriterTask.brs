@@ -9,7 +9,7 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    ddLogThread("WriterNode.init()")
+    ddLogThread("WriterTask.init()")
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("writeEvent", m.port)
     m.top.functionName = "writerLoop"
@@ -20,7 +20,7 @@ end sub
 ' Main writer loop
 ' ----------------------------------------------------------------
 sub writerLoop()
-    ddLogThread("WriterNode.writerLoop()")
+    ddLogThread("WriterTask.writerLoop()")
     m.fileSystem = CreateObject("roFileSystem")
     while (true)
         msg = wait(0, m.port)
@@ -42,7 +42,7 @@ end sub
 ' @param event (string) the event serialized to string
 ' ----------------------------------------------------------------
 sub onWriteEvent(event as string)
-    ddLogThread("WriterNode.onWriteEvent()")
+    ddLogThread("WriterTask.onWriteEvent()")
     if (event = "")
         ' Ignore empty event
         return

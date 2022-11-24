@@ -17,7 +17,6 @@ import "pkg:/source/internalLogger.bs"
 sub init()
     ddLogThread("RumAgent.init()")
     m.port = createObject("roMessagePort")
-    m.top.observeFieldScoped("stop", m.port)
     m.top.functionName = "rumAgentLoop"
     m.top.control = "RUN"
 end sub
@@ -27,19 +26,13 @@ end sub
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
     ddLogThread("RumAgent.rumAgentLoop()")
-
     while(true)
         msg = wait(m.top.keepAliveDelayMs, m.port)
         ensureSetup()
         m.top.rumScope@.handleEvent(keepAliveEvent(), m.top.writer)
         msgType = type(msg)
-        if (msgType = "roSGNodeEvent")
-            fieldName = msg.getField()
-            if (fieldName = "stop")
-                return
-            else
-                ddLogWarning(fieldName + " not handled")
-            end if
+        if (msgType <> invalid)
+            ddLogWarning("Unexpected message " + msgType)
         end if
     end while
 end sub
@@ -131,6 +124,7 @@ end sub
 sub ensureUploader()
     uploader = m.top.uploader
     if (m.top.uploader = invalid)
+        ddLogVerbose("Creating MultiTrackUploaderTask")
         uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
 
