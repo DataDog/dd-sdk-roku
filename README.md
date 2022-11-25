@@ -4,7 +4,7 @@
 
 **NOTE** This library is still in early Developer Preview.
 
-## Getting Started
+## Getting Started
 
 ### Setup with ROPM (recommended)
 
@@ -14,7 +14,7 @@
 ropm install datadogroku
 ```
 
-### Configure Datadog
+### Configure Datadog
 
 To configure the Datadog SDK, copy the following code snippet into your `Scene`'s `init()` method : 
 
@@ -32,21 +32,21 @@ sub init()
 end sub
 ```
 
-### Track RUM events manually
+### Track RUM events manually
 
-#### Track RUM Views
+#### Track RUM Views
 
-In order to split user sessions into logical steps, you can manually start a View using the following code. Usually, every navigation to a new screen within your channel should correspond to a new RUM View.
+In order to split [user sessions][4] into logical steps, you can manually start a View using the following code. Usually, every navigation to a new screen within your channel should correspond to a new RUM View.
 
 ```brightscript
     viewName = "VideoDetails"
     viewUrl = "components/screens/VideoDetails.xml"
-     m.global.datadogRumAgent.callfunc("startView", viewName, viewUrl)
+    m.global.datadogRumAgent.callfunc("startView", viewName, viewUrl)
 ```
 
-#### Track RUM Actions
+#### Track RUM Actions
 
-RUM Actions represent the interactions your users have with your channel. You can forward actions to Datadog as follow:
+RUM Actions represent the interactions your users have with your channel. You can forward actions to Datadog as follows:
 
 ```brightscript
     target = "playButton" ' the name of the SG Node the user interacted with
@@ -54,9 +54,9 @@ RUM Actions represent the interactions your users have with your channel. You ca
     m.global.datadogRumAgent.callfunc("addAction", { target: targetName, type: type})
 ```
 
-#### Track RUM Errors
+#### Track RUM Errors
 
-Whenever you perform an operation that might throw an exception, you can forward the error to Datadog as follow:
+Whenever you perform an operation that might throw an exception, you can forward the error to Datadog as follows:
 
 ```brightscript
     try
@@ -66,9 +66,9 @@ Whenever you perform an operation that might throw an exception, you can forward
     end try
 ```
 
-#### Track RUM Resources
+#### Track RUM Resources
 
-##### `roUrlTransfer`
+##### `roUrlTransfer`
 
 Network requests made directly with a `roUrlTransfer` node need to be tracked manually. Following is a code snippet illustrating how one can report the request as a RUM Resource.
 
@@ -111,9 +111,9 @@ sub performRequest()
 end sub
 ```
 
-##### Streaming resources
+##### Streaming resources
 
-Whenever you use a `Video` or an `Audio` node to stream media, you can forward all `roSystemLogEvent` you receive to datadog as follow: 
+Whenever you use a `Video` or an `Audio` node to stream media, you can forward all `roSystemLogEvent` you receive to datadog as follows: 
 
 ```brightscript 
     sysLog = CreateObject("roSystemLog")
@@ -129,7 +129,7 @@ Whenever you use a `Video` or an `Audio` node to stream media, you can forward a
     end while
 ```
 
-### Identifying your users
+### Identifying your users
 
 Adding user information to your RUM sessions makes it easy to:
 * Follow the journey of a given user
@@ -158,7 +158,7 @@ In addition to the default attributes captured by the SDK automatically, you can
     m.global.setField("datadogContext", { foo: "Some value", bar: 123})
 ```
 
-### Send logs
+### Send logs
 
 In addition to standard RUM events, you can send individual logs to track any event or state of your channel, with at least a message, and optionnally custom attributes. The following code snippet illustrates the `logInfo` function, but all functions on the LogsAgent use the same signature:
 
@@ -178,7 +178,7 @@ In addition to standard RUM events, you can send individual logs to track any ev
     m.global.datadogLogsAgent.callfunc("logInfo", msg, attributes)
 ```
 
-### Troubleshooting
+### Troubleshooting
 
 If you want to see internal messages and warnings about how the SDK is behaving, you can enable the SDK verbosity to see debug inforamtion appear when you connect to your device with telnet on port `8085`.
 
@@ -205,3 +205,4 @@ Pull requests are welcome. First, open an issue to discuss what you would like t
 [1]: https://github.com/rokucommunity/ropm
 [2]: https://app.datadoghq.com/rum/explorer?query=%40type%3Asession%20source%3Aroku
 [3]: https://app.datadoghq.com/logs?query=source%3Aroku
+[4]: https://docs.datadoghq.com/real_user_monitoring/
