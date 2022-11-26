@@ -8,7 +8,7 @@
 
 ### Setup with ROPM (recommended)
 
-`ROPM` is a package manager for the Roku platform (based on NPM). If you're not already using `ROPM` in your Roku project, we recommend you read their [Getting started guide][1]. Once your project is set up to use `ROPM`, you can use the following command to install the Datadog dependency:
+`ROPM` is a package manager for the Roku platform (based on NPM). If you're not already using `ROPM` in your Roku project, read their [Getting started guide][1]. Once your project is set up to use `ROPM`, you can use the following command to install the Datadog dependency:
 
 ```shell
 ropm install datadogroku
@@ -16,16 +16,16 @@ ropm install datadogroku
 
 ### Configure Datadog
 
-To configure the Datadog SDK, copy the following code snippet into your `Scene`'s `init()` method : 
+To configure the Datadog SDK, copy the following code snippet into the `init()` method of the `Scene`: 
 
 ```brightscript
 sub init()
     datadogroku_initialize({
         clientToken: "pub00000000000000000000000000000000, ' replace with your client token
         applicationId: ""00000000-0000-0000-0000-000000000000", ' replace with your RUM application Id
-        site: "us1", ' replace with the site you're targetting: "us1", "us3", "us5", or "eu1" 
+        site: "us1", ' replace with the site you're targeting: "us1", "us3", "us5", or "eu1" 
         service: "roku-sample", ' replace with the service name you want to associate with the data collected
-        env: "prod" ' replace with the environment you're targetting, e.g.: prod, staging, …
+        env: "prod" ' replace with the environment you're targeting, e.g.: prod, staging, …
     })
 
     ' … your scene initialization here
@@ -36,7 +36,7 @@ end sub
 
 #### Track RUM Views
 
-In order to split [user sessions][4] into logical steps, you can manually start a View using the following code. Usually, every navigation to a new screen within your channel should correspond to a new RUM View.
+To split [user sessions][4] into logical steps, manually start a View using the following code. Every navigation to a new screen within your channel should correspond to a new RUM View.
 
 ```brightscript
     viewName = "VideoDetails"
@@ -70,7 +70,7 @@ Whenever you perform an operation that might throw an exception, you can forward
 
 ##### `roUrlTransfer`
 
-Network requests made directly with a `roUrlTransfer` node need to be tracked manually. Following is a code snippet illustrating how one can report the request as a RUM Resource.
+Network requests made directly with a `roUrlTransfer` node must be tracked manually. The following code snippet shows how to report the request as a RUM Resource:
 
 ```brightscript
 sub performRequest()
@@ -113,7 +113,7 @@ end sub
 
 ##### Streaming resources
 
-Whenever you use a `Video` or an `Audio` node to stream media, you can forward all `roSystemLogEvent` you receive to datadog as follows: 
+Whenever you use a `Video` or an `Audio` node to stream media, you can forward all `roSystemLogEvent` you receive to Datadog as follows: 
 
 ```brightscript 
     sysLog = CreateObject("roSystemLog")
@@ -132,11 +132,11 @@ Whenever you use a `Video` or an `Audio` node to stream media, you can forward a
 ### Identifying your users
 
 Adding user information to your RUM sessions makes it easy to:
-* Follow the journey of a given user
-* Know which users are the most impacted by errors
-* Monitor performance for your most important users
+* Follow the journey of a given user.
+* Know which users are the most impacted by errors.
+* Monitor performance for your most important users.
 
-The following attributes are **optional**, you should provide **at least one** of them:
+The following attributes are **optional**, but you should provide **at least one** of them:
 
 | Attribute | Type   | Description                                                                                              |
 | --------- | ------ | -------------------------------------------------------------------------------------------------------- |
@@ -152,7 +152,7 @@ To identify user sessions, use the `datadogUserInfo` global field, after initial
 
 ### Track custom global attributes
 
-In addition to the default attributes captured by the SDK automatically, you can choose to add additional contextual information, such as custom attributes, to your Logs and RUM events to enrich your observability within Datadog. Custom attributes allow you to slice and dice information about observed user behavior (such as cart value, merchant tier, or ad campaign) with code-level information (such as backend services, session timeline, error logs, and network health).
+In addition to the default attributes captured by the SDK automatically, you can choose to add additional contextual information, such as custom attributes, to your Logs and RUM events to enrich your observability within Datadog. Custom attributes allow you to filter and group information about observed user behavior (for example by cart value, merchant tier, or ad campaign) with code-level information (such as backend services, session timeline, error logs, and network health).
 
 ```brightscript
     m.global.setField("datadogContext", { foo: "Some value", bar: 123})
@@ -160,18 +160,19 @@ In addition to the default attributes captured by the SDK automatically, you can
 
 ### Send logs
 
-In addition to standard RUM events, you can send individual logs to track any event or state of your channel, with at least a message, and optionnally custom attributes. The following code snippet illustrates the `logInfo` function, but all functions on the LogsAgent use the same signature:
+In addition to standard RUM events, you can send individual logs to track any event or state of your channel, with a log message, and optionally additional custom attributes. 
 
-- `logOk`: sends a log with status "ok", ;
-- `logDebug`: sends a log with status "debug", for messages that contain information normally of use only when debugging a program;
-- `logInfo`: sends a log with status "info", for confirmation that the program is working as expected;
-- `logNotice`: sends a log with status "notice", for conditions that are not error conditions, but that may require special handling;
-- `logWarn`: sends a log with status "warning", for warning situations;
-- `logError`: sends a log with status "error", for errors;
-- `logCritical`: sends a log with status "critical", for situation when the application is in a critical state;
-- `logAlert`: sends a log with status "alert", for condition that should be corrected immediately, such as a corrupted system database;
-- `logEmergency`: sends a log with status "emergency", for a panic condition
+- `logOk`: Sends a log with status "ok".
+- `logDebug`: Sends a log with status "debug", for messages that contain information that is useful for debugging a program.
+- `logInfo`: Sends a log with status "info", for confirmation that the program is working as expected.
+- `logNotice`: Sends a log with status "notice", for conditions that are not error conditions, but that may require special handling.
+- `logWarn`: Sends a log with status "warning", for warning situations.
+- `logError`: Sends a log with status "error", for errors.
+- `logCritical`: Sends a log with status "critical", for situations when the application is in a critical state.
+- `logAlert`: Sends a log with status "alert", for conditions that should be corrected immediately, such as a corrupted system database.
+- `logEmergency`: Sends a log with status "emergency", for a panic condition.
 
+The following code snippet illustrates the `logInfo` function, but all functions on the LogsAgent use the same signature:
 ```brightscript
     msg = "Switching screen to video details"
     attributes = { video_id : 42 }
@@ -180,7 +181,7 @@ In addition to standard RUM events, you can send individual logs to track any ev
 
 ### Troubleshooting
 
-If you want to see internal messages and warnings about how the SDK is behaving, you can enable the SDK verbosity to see debug inforamtion appear when you connect to your device with telnet on port `8085`.
+To see internal messages and warnings about how the SDK is behaving,  enable the SDK verbosity to see debug information when you connect to your device with telnet on port `8085`.
 
 ```brightscript
     m.global.setField("datadogVerbosity", 3) ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
@@ -188,11 +189,11 @@ If you want to see internal messages and warnings about how the SDK is behaving,
 
 ## Looking up your RUM events
 
-When you open your console in Datadog, navigate to the [RUM Explorer][2]. In the side bar, you can select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
+Navigate to the [RUM Explorer][2]. In the side bar, select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
 
 ## Looking up your Logs
 
-When you open your console in Datadog, navigate to the [Log Explorer][3]. In the side bar, you can select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
+Navigate to the [Log Explorer][3]. In the side bar, select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
 
 ## Contributing
 
