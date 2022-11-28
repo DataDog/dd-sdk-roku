@@ -1,0 +1,304 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return (object) a configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__Datadog() as object
+    this = BaseTestSuite()
+    this.Name = "Datadog"
+
+    this.addTest("WhenGetEndpointRumUS1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumUS1_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointLogsUS1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointLogsUS1_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUnknownUS1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUnknownUS1_ThenCreateEndpoint)
+
+    this.addTest("WhenGetEndpointRumUS3_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumUS3_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointLogsUS3_ThenCreateEndpoint", DatadogTest__WhenGetEndpointLogsUS3_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUnknownUS3_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUnknownUS3_ThenCreateEndpoint)
+
+    this.addTest("WhenGetEndpointRumUS5_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumUS5_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointLogsUS5_ThenCreateEndpoint", DatadogTest__WhenGetEndpointLogsUS5_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUnknownUS5_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUnknownUS5_ThenCreateEndpoint)
+
+    this.addTest("WhenGetEndpointRumEU1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumEU1_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointLogsEU1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointLogsEU1_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUnknownEU1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUnknownEU1_ThenCreateEndpoint)
+
+    this.addTest("WhenGetEndpointRumUnknown_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointLogsUnknown_ThenCreateEndpoint", DatadogTest__WhenGetEndpointLogsUnknown_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUnknown_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUnknownUnknown_ThenCreateEndpoint)
+
+    return this
+end function
+
+'----------------------------------------------------------------
+' Given: a us1 site and rum track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointRumUS1_ThenCreateEndpoint() as string
+    ' Given
+    site = "us1"
+    track = "rum"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://rum.browser-intake-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us1 site and logs track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointLogsUS1_ThenCreateEndpoint() as string
+    ' Given
+    site = "us1"
+    track = "logs"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://logs.browser-intake-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us1 site and unknown track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUnknownUS1_ThenCreateEndpoint() as string
+    ' Given
+    site = "us1"
+    track = IG_GetString(8)
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us3 site and rum track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointRumUS3_ThenCreateEndpoint() as string
+    ' Given
+    site = "us3"
+    track = "rum"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://rum.browser-intake-us3-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us3 site and logs track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointLogsUS3_ThenCreateEndpoint() as string
+    ' Given
+    site = "us3"
+    track = "logs"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://logs.browser-intake-us3-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us3 site and unknown track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUnknownUS3_ThenCreateEndpoint() as string
+    ' Given
+    site = "us3"
+    track = IG_GetString(8)
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us5 site and rum track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointRumUS5_ThenCreateEndpoint() as string
+    ' Given
+    site = "us5"
+    track = "rum"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://rum.browser-intake-us5-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us5 site and logs track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointLogsUS5_ThenCreateEndpoint() as string
+    ' Given
+    site = "us5"
+    track = "logs"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://logs.browser-intake-us5-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a us5 site and unknown track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUnknownUS5_ThenCreateEndpoint() as string
+    ' Given
+    site = "us5"
+    track = IG_GetString(8)
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a eu1 site and rum track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointRumEU1_ThenCreateEndpoint() as string
+    ' Given
+    site = "eu1"
+    track = "rum"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://rum-http-intake.logs.datadoghq.eu")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a eu1 site and logs track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointLogsEU1_ThenCreateEndpoint() as string
+    ' Given
+    site = "eu1"
+    track = "logs"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://mobile-http-intake.logs.datadoghq.eu")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a eu1 site and unknown track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUnknownEU1_ThenCreateEndpoint() as string
+    ' Given
+    site = "eu1"
+    track = IG_GetString(8)
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: an unknown site and rum track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint() as string
+    ' Given
+    site = IG_GetString(8)
+    track = "rum"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: an unknown site and logs track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointLogsUnknown_ThenCreateEndpoint() as string
+    ' Given
+    site = IG_GetString(8)
+    track = "logs"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: an unknown site and unknown track
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returnd
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUnknownUnknown_ThenCreateEndpoint() as string
+    ' Given
+    site = IG_GetString(8)
+    track = IG_GetString(8)
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site, track)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("")
+    return ""
+end function

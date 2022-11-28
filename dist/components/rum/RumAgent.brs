@@ -15,7 +15,6 @@
 sub init()
     ddLogThread("RumAgent.init()")
     m.port = createObject("roMessagePort")
-    m.top.observeFieldScoped("stop", m.port)
     m.top.functionName = "rumAgentLoop"
     m.top.control = "RUN"
 end sub
@@ -30,13 +29,8 @@ sub rumAgentLoop()
         ensureSetup()
         m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
         msgType = type(msg)
-        if (msgType = "roSGNodeEvent")
-            fieldName = msg.getField()
-            if (fieldName = "stop")
-                return
-            else
-                ddLogWarning(fieldName + " not handled")
-            end if
+        if (msgType <> invalid)
+            ddLogWarning("Unexpected message " + msgType)
         end if
     end while
 end sub
@@ -128,6 +122,7 @@ end sub
 sub ensureUploader()
     uploader = m.top.uploader
     if (m.top.uploader = invalid)
+        ddLogVerbose("Creating MultiTrackUploaderTask")
         uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
     trackId = "rum_" + m.top.threadInfo().node.address
@@ -140,7 +135,7 @@ sub ensureUploader()
             end if
         end function)(uploader)
     tracks[trackId] = {
-        endpointHost: m.top.endpointHost
+        url: getIntakeUrl(m.top.site, "rum")
         trackType: "rum"
         payloadPrefix: ""
         payloadPostfix: ""

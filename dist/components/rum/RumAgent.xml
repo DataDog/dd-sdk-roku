@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <component name="RumAgent" extends="Task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
     <interface>
-        <field id="endpointHost" type="string" />
+        <field id="site" type="string" value="us1" />
         <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
-        <field id="stop" type="boolean" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />

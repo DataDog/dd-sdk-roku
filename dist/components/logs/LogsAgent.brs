@@ -173,7 +173,7 @@ sub ensureUploader()
             end if
         end function)(uploader)
     tracks[trackId] = {
-        endpointHost: m.top.endpointHost
+        url: getIntakeUrl(m.top.site, "logs")
         trackType: "logs"
         payloadPrefix: "["
         payloadPostfix: "]"

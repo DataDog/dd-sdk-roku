@@ -37,7 +37,7 @@ sub MultiTrackUploaderTaskTest__SetUp()
 
     ' Fake data
     m.testSuite.fakeTrackType = IG_GetString(10)
-    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeUrl = "https://" + IG_GetString(10) + "." + IG_GetString(3) + "/" + IG_GetString(10)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeWaitPeriodMs = 10
     m.testSuite.fakePrefix = IG_GetString(3)
@@ -56,7 +56,7 @@ sub MultiTrackUploaderTaskTest__SetUp()
     tracks = {}
     tracks[IG_GetString(8)] = {
         trackType: m.testSuite.fakeTrackType,
-        endpointHost: m.testSuite.fakeEndpointHost,
+        url: m.testSuite.fakeUrl,
         payloadPrefix: m.testSuite.fakePrefix,
         payloadPostfix: m.testSuite.fakePostfix,
         contentType: m.testSuite.fakeContentType,
@@ -212,14 +212,14 @@ end function
 function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as string
     ' Given
     fakeTrack2 = IG_GetString(8)
-    fakeEndpoint2 = IG_GetString(8) + ".com"
+    fakeUrl2 = "https://" + IG_GetString(10) + "." + IG_GetString(3) + "/" + IG_GetString(10)
     fakePrefix2 = IG_GetString(3)
     fakePostfix2 = IG_GetString(3)
     fakeContentType2 = IG_GetString(16)
     tracks = m.testedTask.tracks
     tracks[IG_GetString(8)] = {
         trackType: fakeTrack2,
-        endpointHost: fakeEndpoint2,
+        url: fakeUrl2,
         payloadPrefix: fakePrefix2,
         payloadPostfix: fakePostfix2,
         contentType: fakeContentType2,
@@ -230,11 +230,10 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as
     folderPath2 = datadogroku_trackFolderPath(fakeTrack2)
     filePath1 = folderPath1 + "/" + IG_GetInteger(65536).toStr()
     filePath2 = folderPath2 + "/" + IG_GetInteger(65536).toStr()
-    expectedUrl2 = "https://" + fakeEndpoint2 + "/api/v2/" + fakeTrack2
     expectedHeaders1 = __buildExpectedHeaders(m.fakeClientToken, m.fakeContentType)
     expectedHeaders2 = __buildExpectedHeaders(m.fakeClientToken, fakeContentType2)
     expectedCallArgs1 = { filePath: filePath1, headers: expectedHeaders1, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
-    expectedCallArgs2 = { url: expectedUrl2, filePath: filePath2, headers: expectedHeaders2, payloadPrefix: fakePrefix2, payloadPostfix: fakePostfix2 }
+    expectedCallArgs2 = { url: fakeUrl2, filePath: filePath2, headers: expectedHeaders2, payloadPrefix: fakePrefix2, payloadPostfix: fakePostfix2 }
     m.mockNetworkClient@.stubCall("postFromFile", {}, 202)
     datadogroku_mkdirs(folderPath1)
     datadogroku_mkdirs(folderPath2)
@@ -264,7 +263,7 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
     ' Given
     folderPath = datadogroku_trackFolderPath(m.fakeTrackType)
     filePath = folderPath + "/" + IG_GetInteger(65536).toStr()
-    expectedBaseUrl = "https://" + m.fakeEndpointHost + "/api/v2/" + m.fakeTrackType
+    expectedBaseUrl = m.fakeUrl
     expectedHeaders = __buildExpectedHeaders(m.fakeClientToken, m.fakeContentType)
     expectedCallArgs = { filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
     m.mockNetworkClient@.stubCall("postFromFile", expectedCallArgs, statusCode)

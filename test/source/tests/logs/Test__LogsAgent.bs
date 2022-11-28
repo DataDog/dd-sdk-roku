@@ -74,7 +74,7 @@ sub LogsAgentTest__SetUp()
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
 
     ' Fake data
-    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeSite = IG_GetString(3) 
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeEnv = IG_GetString(8)
@@ -101,7 +101,7 @@ sub LogsAgentTest__SetUp()
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_LogsAgent")
-    m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
+    m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.env = m.testSuite.fakeEnv
@@ -111,7 +111,7 @@ end sub
 
 sub LogsAgentTest__SetUpNoMock()
     ' Fake data
-    m.testSuite.fakeEndpointHost = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.site = IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeEnv = IG_GetString(8)
@@ -138,16 +138,19 @@ sub LogsAgentTest__SetUpNoMock()
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_LogsAgent")
-    m.testSuite.testedNode.endpointHost = m.testSuite.fakeEndpointHost
+    m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.env = m.testSuite.fakeEnv
 end sub
 
 sub LogsAgentTest__TearDown()
+    m.testSuite.testedNode.writer.control = "STOP"
+    m.testSuite.testedNode.uploader.control = "STOP"
+    m.testSuite.testedNode.Delete("uploader")
+    m.testSuite.testedNode.Delete("writer")
     m.testSuite.Delete("mockUploader")
     m.testSuite.Delete("mockWriter")
-    m.testSuite.testedNode.stop = true
     m.testSuite.Delete("testedNode")
 end sub
 
@@ -1613,11 +1616,14 @@ function LogsAgentTest__WhenDoNothing_ThenInitDependencies() as string
     ' Given
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
+    site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
+    m.testedNode.site = site
+    expectedUrl = datadogroku_getIntakeUrl(site, "logs")
     expectedTrackName = "logs_" + m.testedNode.threadInfo().node.address
 
     ' When
     m.testedNode@.logEmergency(IG_GetString(32), {})
-    sleep(300)
+    sleep(100)
 
     ' Then
     writer = m.testedNode.writer
@@ -1631,7 +1637,7 @@ function LogsAgentTest__WhenDoNothing_ThenInitDependencies() as string
     Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
     track = uploaderTracks[expectedTrackName]
     Assert.that(track).isNotInvalid().contains({
-        endpointHost: m.fakeEndpointHost,
+        url: expectedUrl,
         trackType: "logs",
         payloadPrefix: "[",
         payloadPostfix: "]",

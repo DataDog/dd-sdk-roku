@@ -251,7 +251,7 @@ class BaseAssert
             if (m.actual.count() <> 0)
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (found " + m.actual.count() + " items)"
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (found " + TF_Utils__AsString(m.actual.count()) + " items)"
                 }
             end if
         else if (TF_Utils__IsString(m.actual))
