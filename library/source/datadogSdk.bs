@@ -2,9 +2,49 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-'*****************************************************************
-'* "Constants" for the SDK
-'*****************************************************************
+' ----------------------------------------------------------------
+' Initializes the SDK
+' @param configuration (object) an Associative Array with the following fields
+'  - clientToken (string) the token used to upload data to Datadog
+'  - applicationId (string) the application id to be used in RUM events
+'  - site (string) the site to sned data to (one of "us1", "us3", "us5", "eu1")
+'  - service (string) the name of the service to report in logs and RUM events
+'  - env (string) the name of the environment to report in logs and RUM events
+' ----------------------------------------------------------------
+sub initialize(configuration as object)
+    ' Standard global fields
+    m.global.addFields({
+        datadogVerbosity: 0,
+        datadogContext: {},
+        datadogUserInfo: {}
+    })
+
+    if (m.global.datadogUploader = invalid)
+        ddLogInfo("No uploader, creating one")
+        m.global.addFields({ datadogUploader: CreateObject("roSGNode", "MultiTrackUploaderTask") })
+        m.global.datadogUploader.clientToken = configuration.clientToken
+    end if
+
+    if (m.global.datadogRumAgent = invalid)
+        ddLogInfo("No RUM agent, creating one")
+        m.global.addFields({ datadogRumAgent: CreateObject("roSGNode", "RumAgent") })
+        m.global.datadogRumAgent.site = configuration.site
+        m.global.datadogRumAgent.clientToken = configuration.clientToken
+        m.global.datadogRumAgent.applicationId = configuration.applicationId
+        m.global.datadogRumAgent.service = configuration.service
+        m.global.datadogRumAgent.uploader = m.global.datadogUploader
+    end if
+
+    if (m.global.datadogLogsAgent = invalid)
+        ddLogInfo("No Logs agent, creating one")
+        m.global.addFields({ datadogLogsAgent: CreateObject("roSGNode", "LogsAgent") })
+        m.global.datadogLogsAgent.site = configuration.site
+        m.global.datadogLogsAgent.clientToken = configuration.clientToken
+        m.global.datadogLogsAgent.service = configuration.service
+        m.global.datadogLogsAgent.env = configuration.env
+        m.global.datadogLogsAgent.uploader = m.global.datadogUploader
+    end if
+end sub
 
 ' ----------------------------------------------------------------
 ' The available track types for the uploader/writer
@@ -47,7 +87,6 @@ end function
 function getIntakeUrl(site as Site, track as TrackType) as string
     return getEndpoint(site, track) + "/api/v2/" + track
 end function
-
 
 ' ----------------------------------------------------------------
 ' @param site (Site) the site to use

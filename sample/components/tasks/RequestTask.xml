@@ -12,7 +12,6 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="query" type="string" />
-        <field id="rumAgent" type="node" />
     </interface>
 
 </component>
