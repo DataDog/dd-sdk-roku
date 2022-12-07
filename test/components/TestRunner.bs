@@ -45,16 +45,16 @@ sub runTests()
     Runner = TestRunner()
 
     Runner.SetFunctions([
-        ' TestSuite__Datadog,
-        ' TestSuite__FileUtils,
-        ' TestSuite__MultiTrackUploaderTask
-        ' TestSuite__WriterTask,
-        ' TestSuite__RumAgent,
-        ' TestSuite__RumApplicationScope,
+        TestSuite__Datadog,
+        TestSuite__FileUtils,
+        TestSuite__MultiTrackUploaderTask
+        TestSuite__WriterTask,
+        TestSuite__RumAgent,
+        TestSuite__RumApplicationScope,
         TestSuite__RumSessionScope,
-        ' TestSuite__RumActionScope,
-        ' TestSuite__RumViewScope,
-        ' TestSuite__LogsAgent
+        TestSuite__RumActionScope,
+        TestSuite__RumViewScope,
+        TestSuite__LogsAgent
     ])
 
     ' setup logger

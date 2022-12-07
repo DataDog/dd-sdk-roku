@@ -43,8 +43,14 @@ sub handleEvent(event as object, writer as object)
     ' TODO RUMM-2478 update session (+ update global rum context)
     updateSession(event.eventType)
 
+    if (m.sessionState = RumSessionState.tracked)
+        currentWriter = writer
+    else
+        currentWriter = { writer: "noOp", writeEvent: "" }
+    end if
+
     if (m.top.activeView <> invalid)
-        m.top.activeView@.handleEvent(event, writer)
+        m.top.activeView@.handleEvent(event, currentWriter)
         if (not m.top.activeView@.isActive())
             m.top.activeView = invalid
         end if
@@ -75,7 +81,7 @@ sub updateSession(eventType as dynamic)
     ddLogThread("RumSessionScope.updateSession()")
     timestampMs& = getTimestamp()
     isFirstSession = m.sessionId = invalid
-    isInteraction = (eventType = RawEvent.startView) or (eventType = RawEvent.addAction)
+    isInteraction = (eventType = RawEvent.startView) or (eventType = RawEvent.addAction) or (eventType = RawEvent.resetSession)
     lastInteractionMs& = m.lastInteractionTimestampMs& ?? 0
     sessionStartMs& = m.sessionStartMs ?? 0
     timeSinceLastInteractionMs = timestampMs& - lastInteractionMs&

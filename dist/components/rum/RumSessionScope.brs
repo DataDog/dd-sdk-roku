@@ -39,8 +39,16 @@ end function
 sub handleEvent(event as object, writer as object)
     ' TODO RUMM-2478 update session (+ update global rum context)
     updateSession(event.eventType)
+    if (m.sessionState = "tracked")
+        currentWriter = writer
+    else
+        currentWriter = {
+            writer: "noOp"
+            writeEvent: ""
+        }
+    end if
     if (m.top.activeView <> invalid)
-        m.top.activeView.callfunc("handleEvent", event, writer)
+        m.top.activeView.callfunc("handleEvent", event, currentWriter)
         if (not m.top.activeView.callfunc("isActive", invalid))
             m.top.activeView = invalid
         end if
@@ -70,7 +78,7 @@ sub updateSession(eventType as dynamic)
     ddLogThread("RumSessionScope.updateSession()")
     timestampMs& = getTimestamp()
     isFirstSession = m.sessionId = invalid
-    isInteraction = (eventType = "startView") or (eventType = "addAction")
+    isInteraction = (eventType = "startView") or (eventType = "addAction") or (eventType = "resetSession")
     lastInteractionMs& = (function(m)
             __bsConsequent = m.lastInteractionTimestampMs&
             if __bsConsequent <> invalid then

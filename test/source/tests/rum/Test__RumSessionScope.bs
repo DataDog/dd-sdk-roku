@@ -14,24 +14,41 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleAnyEvent_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenActiveViewNotActive_ThenDiscardIt", RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
 
-    this.addTest("WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    this.addTest("WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    this.addTest("WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
-    this.addTest("WhenHandleNonInteractiveEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    this.addTest("WhenHandleActionEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    this.addTest("WhenHandleViewEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleNonInteractiveEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleViewEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
-    this.addTest("WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    this.addTest("WhenHandleActionEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    this.addTest("WhenHandleViewEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleViewEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
     return this
 end function
 
 sub RumSessionScopeTest__SetUp()
+    ' Mocks
+    m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
+    m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
+
+    ' Fake data
+    m.testSuite.global.addFields({ datadogRumContext: {} })
+
+    ' Tested Task
+    m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
+    m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
+    m.testSuite.testedScope.inactivityThresholdMs = 100
+    m.testSuite.testedScope.maxDurationMs = 1000
+    m.testSuite.testedScope@.handleEvent({ mock: "event", eventType: "resetSession" }, { mock: "writer" })
+end sub
+
+sub RumSessionScopeTest__SetUpNoSession()
     ' Mocks
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
     m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
@@ -139,6 +156,34 @@ function RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope() as st
     ' Then
     Assert.that(m.testedScope.activeView.subtype()).isEqualTo("MockRumScope")
     return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=any) in an expired session
+'  Then: delegates the event to the child scope
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope() as string
+    ' Given
+    fakeInteractiveEvent = { mock: "event", eventType: "addAction" }
+    fakeWriter = { mock: "writer" }
+    m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    mockScope = CreateObject("roSGNode", "MockRumScope")
+    mockScope@.stubCall("isActive", {}, true)
+    m.testedScope.activeView = mockScope
+    fakeEvent = { mock: "event", eventType: "any" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    sleep(1000)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+
+    ' Then
+    Assert.that(m.testedScope.activeView.subtype()).isEqualTo("MockRumScope")
+    calls = mockScope@.captureFunctionCalls("handleEvent", { event: fakeEvent })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].writer).isNotInvalid().isNotEqualTo(fakeWriter)
+    return ""
 end function
 
 '----------------------------------------------------------------

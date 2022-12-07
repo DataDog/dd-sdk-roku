@@ -84,4 +84,5 @@ enum RawEvent
     addResource = "addResource"
     addAction = "addAction"
     keepAlive = "keepAlive"
+    resetSession = "resetSession"
 end enum
