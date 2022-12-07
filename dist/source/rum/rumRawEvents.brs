@@ -4,10 +4,6 @@
 '*****************************************************************
 '* Utilities to generate internal RUM events
 '*****************************************************************
-' ----------------------------------------------------------------
-' RawEvent: enum listing all the possible events handled by RUM scopes
-' ----------------------------------------------------------------
-
 
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
@@ -76,3 +72,6 @@ function keepAliveEvent() as object
         eventType: "keepAlive"
     }
 end function
+' ----------------------------------------------------------------
+' RawEvent: enum listing all the possible events handled by RUM scopes
+' ----------------------------------------------------------------

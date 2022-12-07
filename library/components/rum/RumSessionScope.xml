@@ -10,6 +10,11 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="activeView" type="node" />
+
+        <!-- Dependency Injection -->
+        <field id="inactivityThresholdMs" type="longinteger" value="900000" /> <!-- 15 minutes -->
+        <field id="maxDurationMs" type="longinteger" value="14400000" /> <!-- 4 hours -->
+
     </interface>
 
 </component>
