@@ -36,7 +36,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us1 site and rum track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointRumUS1_ThenCreateEndpoint() as string
     ' Given
@@ -54,7 +54,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us1 site and logs track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointLogsUS1_ThenCreateEndpoint() as string
     ' Given
@@ -72,7 +72,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us1 site and unknown track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointUnknownUS1_ThenCreateEndpoint() as string
     ' Given
@@ -90,7 +90,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us3 site and rum track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointRumUS3_ThenCreateEndpoint() as string
     ' Given
@@ -108,7 +108,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us3 site and logs track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointLogsUS3_ThenCreateEndpoint() as string
     ' Given
@@ -126,7 +126,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us3 site and unknown track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointUnknownUS3_ThenCreateEndpoint() as string
     ' Given
@@ -144,7 +144,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us5 site and rum track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointRumUS5_ThenCreateEndpoint() as string
     ' Given
@@ -162,7 +162,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us5 site and logs track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointLogsUS5_ThenCreateEndpoint() as string
     ' Given
@@ -180,7 +180,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a us5 site and unknown track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointUnknownUS5_ThenCreateEndpoint() as string
     ' Given
@@ -198,7 +198,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a eu1 site and rum track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointRumEU1_ThenCreateEndpoint() as string
     ' Given
@@ -216,7 +216,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a eu1 site and logs track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointLogsEU1_ThenCreateEndpoint() as string
     ' Given
@@ -234,7 +234,7 @@ end function
 '----------------------------------------------------------------
 ' Given: a eu1 site and unknown track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointUnknownEU1_ThenCreateEndpoint() as string
     ' Given
@@ -252,7 +252,7 @@ end function
 '----------------------------------------------------------------
 ' Given: an unknown site and rum track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint() as string
     ' Given
@@ -270,7 +270,7 @@ end function
 '----------------------------------------------------------------
 ' Given: an unknown site and logs track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointLogsUnknown_ThenCreateEndpoint() as string
     ' Given
@@ -288,7 +288,7 @@ end function
 '----------------------------------------------------------------
 ' Given: an unknown site and unknown track
 '  When: asking for the endpoint
-'  Then: the correct endpoint is returnd
+'  Then: the correct endpoint is returned
 '----------------------------------------------------------------
 function DatadogTest__WhenGetEndpointUnknownUnknown_ThenCreateEndpoint() as string
     ' Given

@@ -61,7 +61,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Returns the path to an existing or new writeable file
 ' @param eventSize (string) the size of the event to write
-' @return (string) the path to a valid writeatble file
+' @return (string) the path to a valid writeable file
 ' ----------------------------------------------------------------
 function getWriteableFile(eventSize as integer) as string
     folderPath = trackFolderPath(m.top.trackType)

@@ -55,7 +55,7 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Records a field as being updated
-' @param fieldname (string) the name of the field
+' @param fieldName (string) the name of the field
 ' @param value (dynamic) the value of the field
 ' ----------------------------------------------------------------
 sub Mock__recordFieldUpdate(fieldName as string, value as dynamic)

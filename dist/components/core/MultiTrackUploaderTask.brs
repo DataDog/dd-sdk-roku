@@ -181,23 +181,23 @@ sub handleResponse(responseCode as integer, filePath as string, trackInfo as obj
         retry = true
     else if (responseCode = 500)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
-        ddLogWarning("The intake server returned status code 500 Internal Server Error; if the issue persits, please contact the support.")
+        ddLogWarning("The intake server returned status code 500 Internal Server Error; if the issue persists, please contact the support.")
         retry = true
     else if (responseCode = 503)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
-        ddLogWarning("The intake server returned status code 503 Unavailable; if the issue persits, please contact the support.")
+        ddLogWarning("The intake server returned status code 503 Unavailable; if the issue persists, please contact the support.")
         retry = true
     else if (responseCode >= 500 and responseCode < 600)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
-        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
+        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
         retry = true
     else if (responseCode >= 400 and responseCode < 500)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
-        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
+        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
         retry = false
     else
         ddLogWarning("Upload to track " + trackInfo.trackType + " status unknown;")
-        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persits, please contact the support.")
+        ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
         retry = false
     end if
     if (not retry)
