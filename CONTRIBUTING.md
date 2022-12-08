@@ -7,7 +7,7 @@ To propose improvements, feel free to submit a PR or open an Issue.
 
 ## Setup your developer Environment
 
-To setup your enviroment, first make sure you followed the official [Roku Developer environment setup](https://developer.roku.com/en-gb/docs/developer-program/getting-started/developer-setup.md).
+To setup your environment, first make sure you followed the official [Roku Developer environment setup](https://developer.roku.com/en-gb/docs/developer-program/getting-started/developer-setup.md).
 
 You also need to have the [BrighterScript](https://npmjs.org/package/brighterscript), [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) and [ROPM](https://www.npmjs.com/package/ropm) `npm` packages installed: 
 

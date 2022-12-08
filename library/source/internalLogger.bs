@@ -136,7 +136,7 @@ end function
 
 ' ----------------------------------------------------------------
 ' Converts an integer to hexadecimal string (without prefix)
-' @param number (integer) the postitive number to convert
+' @param number (integer) the positive number to convert
 ' @return (string) the hexadecimal string
 ' ----------------------------------------------------------------
 function decToHex(number as integer) as string

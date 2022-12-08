@@ -200,7 +200,7 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, writer as object)
-    ' TODO RUMM-2586 handle mutliple consecutive actions
+    ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, writer)
     else

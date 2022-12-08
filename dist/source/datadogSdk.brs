@@ -7,7 +7,7 @@
 ' @param configuration (object) an Associative Array with the following fields
 '  - clientToken (string) the token used to upload data to Datadog
 '  - applicationId (string) the application id to be used in RUM events
-'  - site (string) the site to sned data to (one of "us1", "us3", "us5", "eu1")
+'  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1")
 '  - service (string) the name of the service to report in logs and RUM events
 '  - env (string) the name of the environment to report in logs and RUM events
 ' ----------------------------------------------------------------
