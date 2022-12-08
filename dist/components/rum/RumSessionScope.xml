@@ -2,7 +2,11 @@
 <component name="RumSessionScope" extends="RumScope" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
     <interface>
         <field id="activeView" type="node" />
+        <field id="inactivityThresholdMs" type="longinteger" value="900000" />
+        <field id="maxDurationMs" type="longinteger" value="14400000" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumSessionScope.brs" />
+    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
+    <script type="text/brightscript" uri="pkg:/source/rum/rumSessionState.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />
 </component>

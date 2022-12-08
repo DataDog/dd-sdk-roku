@@ -2,7 +2,9 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 'import "pkg:/source/internalLogger.bs"
+'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/rum/rumRawEvents.bs"
+'import "pkg:/source/rum/rumSessionState.bs"
 ' ****************************************************************
 ' * RumSessionScope: handles the Session level,
 ' * delegates most to the children
@@ -12,10 +14,6 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
-    datadogRumContext = m.global.datadogRumContext
-    datadogRumContext.sessionId = m.sessionId
-    m.global.setField("datadogRumContext", datadogRumContext)
 end sub
 
 ' ----------------------------------------------------------------
@@ -29,6 +27,7 @@ function getRumContext(_ph as dynamic) as object
         rumContext = m.top.parentScope.callfunc("getRumContext", invalid)
     end if
     rumContext.sessionId = m.sessionId
+    rumContext.sessionState = m.sessionState
     return rumContext
 end function
 
@@ -39,8 +38,17 @@ end function
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
     ' TODO RUMM-2478 update session (+ update global rum context)
+    updateSession(event.eventType)
+    if (m.sessionState = "tracked")
+        currentWriter = writer
+    else
+        currentWriter = {
+            writer: "noOp"
+            writeEvent: ""
+        }
+    end if
     if (m.top.activeView <> invalid)
-        m.top.activeView.callfunc("handleEvent", event, writer)
+        m.top.activeView.callfunc("handleEvent", event, currentWriter)
         if (not m.top.activeView.callfunc("isActive", invalid))
             m.top.activeView = invalid
         end if
@@ -66,9 +74,52 @@ end function
 ' ----------------------------------------------------------------
 ' Updates the internal session info based on Datadog logic
 ' ----------------------------------------------------------------
-sub updateSession()
-    ' TODO RUMM-2478 Implement session update logic
-    if (m.sessionId = invalid)
-        m.sessionId = m.deviceInfo.GetRandomUUID()
+sub updateSession(eventType as dynamic)
+    ddLogThread("RumSessionScope.updateSession()")
+    timestampMs& = getTimestamp()
+    isFirstSession = m.sessionId = invalid
+    isInteraction = (eventType = "startView") or (eventType = "addAction") or (eventType = "resetSession")
+    lastInteractionMs& = (function(m)
+            __bsConsequent = m.lastInteractionTimestampMs&
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return 0
+            end if
+        end function)(m)
+    sessionStartMs& = (function(m)
+            __bsConsequent = m.sessionStartMs
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return 0
+            end if
+        end function)(m)
+    timeSinceLastInteractionMs = timestampMs& - lastInteractionMs&
+    timeSinceSessionStartMs = timestampMs& - sessionStartMs&
+    isExpired = timeSinceLastInteractionMs >= m.top.inactivityThresholdMs
+    isTimedOut = timeSinceSessionStartMs >= m.top.maxDurationMs
+    if (isInteraction)
+        if (isFirstSession or isExpired or isTimedOut)
+            renewSession(timestampMs&)
+        end if
+        m.lastInteractionTimestampMs& = timestampMs&
+    else if (isExpired)
+        m.sessionState = "expired"
     end if
+end sub
+
+' ----------------------------------------------------------------
+' Renews the internal session
+' @param timestamp& (longinteger) the event timestamp in milliseconds
+' ----------------------------------------------------------------
+sub renewSession(timestamp& as longinteger)
+    ddLogWarning("Renewing the session")
+    m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
+    m.sessionStartMs = timestamp&
+    ' TODO RUMM-2762 Implement Session Sampling
+    m.sessionState = "tracked"
+    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext.sessionId = m.sessionId
+    m.global.setField("datadogRumContext", datadogRumContext)
 end sub

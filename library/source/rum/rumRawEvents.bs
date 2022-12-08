@@ -7,18 +7,6 @@
 '*****************************************************************
 
 ' ----------------------------------------------------------------
-' RawEvent: enum listing all the possible events handled by RUM scopes
-' ----------------------------------------------------------------
-enum RawEvent
-    startView = "startView"
-    stopView = "stopView"
-    addError = "addError"
-    addResource = "addResource"
-    addAction = "addAction"
-    keepAlive = "keepAlive"
-end enum
-
-' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
 ' @return (object) an event describing a startView action
@@ -85,3 +73,16 @@ function keepAliveEvent() as object
         eventType: RawEvent.keepAlive
     }
 end function
+
+' ----------------------------------------------------------------
+' RawEvent: enum listing all the possible events handled by RUM scopes
+' ----------------------------------------------------------------
+enum RawEvent
+    startView = "startView"
+    stopView = "stopView"
+    addError = "addError"
+    addResource = "addResource"
+    addAction = "addAction"
+    keepAlive = "keepAlive"
+    resetSession = "resetSession"
+end enum

@@ -14,8 +14,20 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleAnyEvent_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenActiveViewNotActive_ThenDiscardIt", RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
-    ' TODO RUMM-2478 Test session update logic
+
+    this.addTest("WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+
+    this.addTest("WhenHandleNonInteractiveEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleViewEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+
+    this.addTest("WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleViewEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
     return this
 end function
@@ -31,6 +43,24 @@ sub RumSessionScopeTest__SetUp()
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
+    m.testSuite.testedScope.inactivityThresholdMs = 100
+    m.testSuite.testedScope.maxDurationMs = 1000
+    m.testSuite.testedScope@.handleEvent({ mock: "event", eventType: "resetSession" }, { mock: "writer" })
+end sub
+
+sub RumSessionScopeTest__SetUpNoSession()
+    ' Mocks
+    m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
+    m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
+
+    ' Fake data
+    m.testSuite.global.addFields({ datadogRumContext: {} })
+
+    ' Tested Task
+    m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
+    m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
+    m.testSuite.testedScope.inactivityThresholdMs = 100
+    m.testSuite.testedScope.maxDurationMs = 1000
 end sub
 
 sub RumSessionScopeTest__TearDown()
@@ -71,6 +101,7 @@ function RumSessionScopeTest__WhenGetContext_ThenReturnsContext() as string
     m.mockParentScope@.stubCall("getRumContext", { _ph: invalid }, fakeParentContext)
 
     ' When
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
     context = m.testedScope@.getRumContext()
 
     ' Then
@@ -78,6 +109,7 @@ function RumSessionScopeTest__WhenGetContext_ThenReturnsContext() as string
     Assert.that(context.service).isEqualTo(fakeService)
     Assert.that(context.applicationVersion).isEqualTo(fakeVersion)
     Assert.that(context.sessionId).isNotEmpty()
+    Assert.that(context.sessionState).isEqualTo("tracked")
     return ""
 end function
 
@@ -128,6 +160,34 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumSessionScope
+'  When: calling handleEvent (type=any) in an expired session
+'  Then: delegates the event to the child scope
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope() as string
+    ' Given
+    fakeInteractiveEvent = { mock: "event", eventType: "addAction" }
+    fakeWriter = { mock: "writer" }
+    m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    mockScope = CreateObject("roSGNode", "MockRumScope")
+    mockScope@.stubCall("isActive", {}, true)
+    m.testedScope.activeView = mockScope
+    fakeEvent = { mock: "event", eventType: "any" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    sleep(1000)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+
+    ' Then
+    Assert.that(m.testedScope.activeView.subtype()).isEqualTo("MockRumScope")
+    calls = mockScope@.captureFunctionCalls("handleEvent", { event: fakeEvent })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].writer).isNotInvalid().isNotEqualTo(fakeWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
 '  When: calling handleEvent (type=any) and activeView.isActive() returns false
 '  Then: discard the activeView
 '----------------------------------------------------------------
@@ -145,4 +205,232 @@ function RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt() as string
     ' Then
     Assert.that(m.testedScope.activeView).isEqualTo(invalid)
     return mockScope@.assertFunctionCalled("handleEvent", { event: fakeEvent, writer: fakeWriter })
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=any) before expiration
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleNonInteractiveEventBeforeExpiration_ThenKeepSessionAlive() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeEvent = { mock: "event", eventType: "any" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=action) before expiration
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=view) before expiration
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeViewName = IG_GetString(16)
+    fakeViewUrl = "https://" + IG_GetString(16)
+    fakeEvent = { mock: "event", eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=any) after expiration
+'  Then: keep the current session id and mark it expired
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeEvent = { mock: "event", eventType: "any" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    sleep(100)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("expired")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=action) after expiration
+'  Then: renew the session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    sleep(100)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=view) after expiration
+'  Then: renew the session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleViewEventAfterExpiration_ThenRenewSession() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeViewName = IG_GetString(16)
+    fakeViewUrl = "https://" + IG_GetString(16)
+    fakeEvent = { mock: "event", eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    sleep(100)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=any) after timeout
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession() as string
+    ' Given
+    fakeInteractiveEvent = { mock: "event", eventType: "addAction" }
+    fakeWriter = { mock: "writer" }
+    fakeEvent = { mock: "event", eventType: "any" }
+    m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    initialContext = m.testedScope@.getRumContext()
+
+    ' When
+    for i = 0 to 20 :
+        sleep(50)
+        m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    end for
+    sleep(50)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=action) after timeout
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleActionEventAfterTimeout_ThenRenewSession() as string
+    ' Given
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeInteractiveEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+    m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    initialContext = m.testedScope@.getRumContext()
+
+    ' When
+    for i = 0 to 20 :
+        sleep(50)
+        m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    end for
+    sleep(50)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=view) after timeout
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession() as string
+    ' Given
+    fakeViewName = IG_GetString(16)
+    fakeViewUrl = "https://" + IG_GetString(16)
+    fakeInteractiveEvent = { mock: "event", eventType: "addAction" }
+    fakeWriter = { mock: "writer" }
+    fakeEvent = { mock: "event", eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl }
+    m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    initialContext = m.testedScope@.getRumContext()
+
+    ' When
+    for i = 0 to 20 :
+        sleep(50)
+        m.testedScope@.handleEvent(fakeInteractiveEvent, fakeWriter)
+    end for
+    sleep(50)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
 end function
