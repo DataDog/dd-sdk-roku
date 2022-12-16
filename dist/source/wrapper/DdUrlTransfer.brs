@@ -162,10 +162,10 @@ function __DdUrlTransfer_builder()
                         transferTime# = millisToSec(durationMs&)
                         httpCode = msg.GetResponseCode()
                         status = "ok"
-                        bytesdownloaded = CreateObject("roFileSystem").Stat(filename).size
+                        bytesDownloaded = CreateObject("roFileSystem").Stat(filename).size
                         if (httpCode < 0)
                             status = msg.GetFailureReason()
-                            bytesdownloaded = invalid
+                            bytesDownloaded = invalid
                         end if
                         resource = {
                             url: url
@@ -173,7 +173,7 @@ function __DdUrlTransfer_builder()
                             transferTime: transferTime#
                             httpCode: httpCode
                             status: status
-                            bytesdownloaded: bytesdownloaded
+                            bytesDownloaded: bytesDownloaded
                             traceId: traceId
                             spanId: spanId
                         }

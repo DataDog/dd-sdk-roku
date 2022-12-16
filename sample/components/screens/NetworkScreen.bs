@@ -49,12 +49,6 @@ sub onItemSelected()
     })
 
     performOperation(item)
-    ' catch error
-    '     datadogroku_ddLogError("performOperation threw an exception", error)
-    '     m.global.datadogRumAgent@.addError(error)
-    '     m.msgLabel.text = error.message
-    ' end try
-
 end sub
 
 sub performOperation(operationName as string)

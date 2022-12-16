@@ -302,7 +302,8 @@ sub sendResource(resource as object, writer as object)
             format_version: 2,
             session: { plan: 1 },
             trace_id: resource.traceId,
-            span_id: resource.spanId
+            span_id: resource.spanId,
+            rule_psr: resource.rulePsr ?? 1
         },
         action: {
             id: actionId

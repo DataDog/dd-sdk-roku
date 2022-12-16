@@ -295,6 +295,14 @@ sub sendResource(resource as object, writer as object)
             }
             trace_id: resource.traceId
             span_id: resource.spanId
+            rule_psr: (function(resource)
+                    __bsConsequent = resource.rulePsr
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return 1
+                    end if
+                end function)(resource)
         }
         action: {
             id: actionId
