@@ -12,10 +12,18 @@ sub init()
     m.top.backgroundURI = "pkg:/images/main_bg_hd.jpg"
     m.top.setFocus(true)
 
+    m.homeLabel = m.top.findNode("homeLabel")
+    m.videoLabel = m.top.findNode("videoLabel")
+    m.networkLabel = m.top.findNode("networkLabel")
+    m.debugLabel = m.top.findNode("debugLabel")
+
+    m.homeScreen = m.top.findNode("homeScreen")
     m.videoScreen = m.top.findNode("videoScreen")
+    m.networkScreen = m.top.findNode("networkScreen")
     m.debugScreen = m.top.findNode("debugScreen")
 
     credentials = parseJson(readAsciiFile("pkg:/credentials.json"))
+    m.global.addFields(credentials)
     datadogroku_initialize({
         clientToken: credentials.datadogClientToken,
         applicationId: credentials.datadogApplicationId,
@@ -27,34 +35,100 @@ sub init()
     m.global.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com" })
     m.global.setField("datadogContext", { channel: "roku sample channel" })
     m.global.setField("datadogVerbosity", 5)
-
-    switchScreen()
+    switchScreen("home")
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     datadogroku_ddLogVerbose("MainScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
-    if ((key = "options" or key = "back") and press)
-        m.global.datadogRumAgent@.addAction({ target: "options", type: "click" })
-        switchScreen()
-        return true
+    if (press)
+        m.global.datadogRumAgent@.addAction({ target: key, type: "click" })
+        if (key = "right")
+            switchScreen(getNextScreen())
+        else if (key = "left")
+            switchScreen(getPreviousScreen())
+        end if
     end if
+    ' if ((key = "options" or key = "back") and press)
+    '     m.global.datadogRumAgent@.addAction({ target: "options", type: "click" })
+    '     switchScreen()
+    '     return true
+    ' end if
     return false
 end function
 
-sub switchScreen()
-    if (m.debugScreen.visible)
-        m.global.datadogLogsAgent@.logOk("Switching screen to video", { screen: "Debug" })
-        m.global.datadogRumAgent@.startView("VideoScreen", "components/screens/VideoScreen.xml")
-        m.debugScreen.visible = false
-        m.debugScreen.setFocus(false)
-        m.videoScreen.visible = true
-        m.videoScreen.setFocus(true)
-    else
-        m.global.datadogLogsAgent@.logOk("Switching screen to debug", { screen: "Video" })
-        m.global.datadogRumAgent@.startView("DebugScreen", "components/screens/DebugScreen.xml")
-        m.videoScreen.visible = false
-        m.videoScreen.setFocus(false)
-        m.debugScreen.visible = true
-        m.debugScreen.setFocus(true)
-    end if
+sub switchScreen(name as string)
+    m.screen = name
+
+    ' hide all
+    m.homeScreen.visible = false
+    m.homeScreen.setFocus(false)
+    m.homeLabel.color = "0xffffff80"
+    m.videoScreen.visible = false
+    m.videoScreen.setFocus(false)
+    m.videoLabel.color = "0xffffff80"
+    m.networkScreen.visible = false
+    m.networkScreen.setFocus(false)
+    m.networkLabel.color = "0xffffff80"
+    m.debugScreen.visible = false
+    m.debugScreen.setFocus(false)
+    m.debugLabel.color = "0xffffff80"
+
+    m.global.datadogLogsAgent@.logOk("Switching screen to " + name, { screen: name })
+    m.global.datadogRumAgent@.startView(name, "components/screens/" + name + ".xml")
+
+    getScreenByName(name).visible = true
+    getScreenByName(name).setFocus(true)
+    getLabelByName(name).color = "0xffffffff"
 end sub
+
+function getScreenByName(name as string) as dynamic
+    if (name = "home")
+        return m.homeScreen
+    else if (name = "video")
+        return m.videoScreen
+    else if (name = "network")
+        return m.networkScreen
+    else if (name = "debug")
+        return m.debugScreen
+    end if
+    return invalid
+end function
+
+function getLabelByName(name as string) as dynamic
+    if (name = "home")
+        return m.homeLabel
+    else if (name = "video")
+        return m.videoLabel
+    else if (name = "network")
+        return m.networkLabel
+    else if (name = "debug")
+        return m.debugLabel
+    end if
+    return invalid
+end function
+
+function getNextScreen() as string
+    if (m.screen = "home")
+        return "video"
+    else if (m.screen = "video")
+        return "network"
+    else if (m.screen = "network")
+        return "debug"
+    else if (m.screen = "debug")
+        return "home"
+    end if
+    return "home"
+end function
+
+function getPreviousScreen() as string
+    if (m.screen = "home")
+        return "debug"
+    else if (m.screen = "video")
+        return "home"
+    else if (m.screen = "network")
+        return "video"
+    else if (m.screen = "debug")
+        return "network"
+    end if
+    return "home"
+end function

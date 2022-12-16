@@ -1,0 +1,85 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+
+sub init()
+    datadogroku_ddLogThread("NetworkScreen.init()")
+
+    m.msgLabel = m.top.findNode("messageLabel")
+    m.items = [
+        "GetToString",
+        "GetToFile",
+        "PostFromString",
+        "PostFromFile"
+    ]
+
+    m.networkLabelList = m.top.findNode("networkLabelList")
+    m.networkLabelList.observeField("itemSelected", "onItemSelected")
+
+    list = CreateObject("RoSGNode", "ContentNode")
+    list.role = "content"
+    for each item in m.items
+        node = list.createChild("ContentNode")
+        node.title = item
+    end for
+    m.networkLabelList.content = list
+
+    m.top.observeField("focusedChild", "onFocused")
+
+end sub
+
+sub onFocused()
+    m.networkLabelList.setFocus(true)
+end sub
+
+sub onItemSelected()
+    datadogroku_ddLogThread("onItemSelected")
+
+    item = m.items[m.networkLabelList.itemSelected]
+
+    m.msgLabel.text = "Testing " + item
+    target = "Network::Item#" + m.networkLabelList.itemSelected.toStr() + " " + item
+    m.global.datadogRumAgent@.addAction({
+        target: target,
+        type: "click"
+    })
+
+    performOperation(item)
+end sub
+
+sub performOperation(operationName as string)
+    if (m.task <> invalid)
+        datadogroku_ddLogError("Task already in progress")
+        return
+    end if
+
+    m.task = createObject("roSGNode", "NetworkTestTask")
+    m.task.observeField("result", "onOperationResult")
+    m.task.setField("operation", operationName)
+    m.task.control = "RUN"
+
+end sub
+
+sub onOperationResult()
+    result = m.task.result
+    print result
+    error = false
+
+    if (result.error <> invalid)
+        m.msgLabel.text = result.error
+        error = true
+    else
+        output = "✓ ddUrlTransfer implements " + result.operation
+        for each key in result
+            output += chr(10) + " - " + key + ": " + result[key]
+        end for
+        m.msgLabel.text = output
+    end if
+
+    m.delete("task")
+end sub
+

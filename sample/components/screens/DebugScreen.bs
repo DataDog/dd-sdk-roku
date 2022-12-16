@@ -9,37 +9,37 @@ import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
     datadogroku_ddLogThread("DebugScreen.init()")
-    m.titleLabel = m.top.findNode("titleLabel")
-    m.msgLabel = m.top.findNode("messageLabel")
-    m.titleLabel.font.size = 64
 
-    m.ButtonGroup = m.top.findNode("mainButtonGroup")
-    m.ButtonGroup.observeField("buttonSelected", "onBtnSelected")
+    m.msgLabel = m.top.findNode("messageLabel")
+    m.buttons = ["Start View", "Stop View", "Add error", "Add Resource", "Send logs"]
+
+    m.debugButtonGroup = m.top.findNode("debugButtonGroup")
+    m.debugButtonGroup.observeField("buttonSelected", "onBtnSelected")
+    m.debugButtonGroup.buttons = m.buttons
+
+    m.top.observeField("focusedChild", "onFocused")
 
     m.errorIdx = 0
 end sub
 
-function onKeyEvent(key as string, press as boolean) as boolean
-    datadogroku_ddLogVerbose("DebugScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
-    m.global.datadogLogsAgent@.logDebug("Key pressed", { screen: "Debug", key: key, press: press })
-    if (not press)
-        addAction(key, "custom")
-    end if
-    return false
-end function
+sub onFocused()
+    m.debugButtonGroup.setFocus(true)
+end sub
 
 sub onBtnSelected()
-    m.msgLabel.text = "Clicked on Button" + Str(m.ButtonGroup.buttonSelected)
-    addAction("Button#" + m.ButtonGroup.buttonSelected.toStr(), "click")
+    m.msgLabel.text = "Clicked on Button" + Str(m.debugButtonGroup.buttonSelected)
+    addAction("Debug::Button#" + m.debugButtonGroup.buttonSelected.toStr(), "click")
 
-    if (m.ButtonGroup.buttonSelected = 0)
+    if (m.debugButtonGroup.buttonSelected = 0)
         startView()
-    else if (m.ButtonGroup.buttonSelected = 1)
+    else if (m.debugButtonGroup.buttonSelected = 1)
         stopView()
-    else if (m.ButtonGroup.buttonSelected = 2)
+    else if (m.debugButtonGroup.buttonSelected = 2)
         sendError()
-    else if (m.ButtonGroup.buttonSelected = 3)
+    else if (m.debugButtonGroup.buttonSelected = 3)
         sendResource()
+    else if (m.debugButtonGroup.buttonSelected = 4)
+        sendLogs()
     end if
 end sub
 
@@ -77,4 +77,10 @@ sub addAction(target as string, actionType as string)
         target: target,
         type: actionType
     })
+end sub
+
+sub sendLogs()
+    m.global.datadogLogsAgent@.logOk("Some log", {})
+    m.global.datadogLogsAgent@.logError("Some log", {})
+    m.global.datadogLogsAgent@.logWarn("Some log", {})
 end sub

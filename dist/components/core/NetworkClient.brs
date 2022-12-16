@@ -10,6 +10,8 @@
 ' ----------------------------------------------------------------
 sub init()
     m.urlTransfer = CreateObject("roUrlTransfer")
+    m.urlTransfer.SetHttpVersion("http2")
+    m.urlTransfer.EnableEncodings(true) ' enables gzip
 end sub
 
 ' ----------------------------------------------------------------

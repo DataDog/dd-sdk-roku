@@ -9,7 +9,22 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/MainScene.bs" />
 
     <children>
+        <Label id="homeLabel" text="Home" translation="[50,50]" color="0xffffffff">
+            <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="videoLabel" text="Video" translation="[300,50]" color="0xffffff80">
+            <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="networkLabel" text="Network" translation="[550,50]" color="0xffffff80">
+            <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+        <Label id="debugLabel" text="Debug" translation="[800,50]" color="0xffffff80">
+            <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
+
+        <HomeScreen id="homeScreen" />
         <VideoScreen id="videoScreen" />
+        <NetworkScreen id="networkScreen" />
         <DebugScreen id="debugScreen" />
     </children>
 </component>

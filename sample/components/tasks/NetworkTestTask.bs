@@ -1,0 +1,96 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/wrapper/DdUrlTransfer.brs"
+
+sub init()
+    m.top.functionName = "performTest"
+end sub
+
+sub performTest()
+    datadogroku_ddLogThread("NetworkTestTask.performTest()")
+    result = {
+        operation: m.top.operation
+    }
+    operationName = m.top.operation
+
+    result = {}
+    try
+        if (operationName = "GetToString")
+            result = GetToString()
+        else if (operationName = "GetToFile")
+            result = GetToFile()
+        else if (operationName = "PostFromString")
+            result = PostFromString()
+        else if (operationName = "PostFromFile")
+            result = PostFromFile()
+        else
+            result.error = "Operation '" + m.top.operation + "' is not implemented yet"
+        end if
+    catch error
+        result.error = error.message
+        m.global.datadogRumAgent@.addError(error)
+        datadogroku_ddLogError("Oups", error)
+    end try
+
+    result.operation = operationName
+
+    m.top.result = result
+end sub
+
+function GetToString() as object
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    sleep(100)
+    url = m.global.mirrorUrl + "?via=GetToString"
+    ddUrlTransfer.SetUrl(url)
+    ddUrlTransfer.EnablePeerVerification(false)
+    ddUrlTransfer.EnableHostVerification(false)
+    result = ddUrlTransfer.GetToString()
+    return {
+        response: result
+    }
+end function
+
+function GetToFile() as object
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    url = m.global.mirrorUrl + "?via=GetToFile"
+    filename = "tmp:/localfile"
+    ddUrlTransfer.SetUrl(url)
+    ddUrlTransfer.setRequest("POST")
+    ddUrlTransfer.EnablePeerVerification(false)
+    ddUrlTransfer.EnableHostVerification(false)
+    result = ddUrlTransfer.GetToFile(filename)
+    return {
+        statusCode: result.toStr(),
+        response: ReadAsciiFile(filename)
+    }
+end function
+
+function PostFromString() as object
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    url = m.global.mirrorUrl + "?via=PostFromString"
+    postBody = "Lorem ipsum dolor sit amet"
+    ddUrlTransfer.SetUrl(url)
+    ddUrlTransfer.EnablePeerVerification(false)
+    ddUrlTransfer.EnableHostVerification(false)
+    result = ddUrlTransfer.PostFromString(postBody)
+    return {
+        statusCode: result.toStr()
+    }
+end function
+
+function PostFromFile() as object
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    url = m.global.mirrorUrl + "?via=PostFromFile"
+    filename = "tmp:/localfile"
+    postBody = "Lorem ipsum dolor sit amet"
+    WriteAsciiFile(filename, postBody)
+    ddUrlTransfer.SetUrl(url)
+    ddUrlTransfer.EnablePeerVerification(false)
+    ddUrlTransfer.EnableHostVerification(false)
+    result = ddUrlTransfer.PostFromFile(filename)
+    return {
+        statusCode: result.toStr()
+    }
+end function

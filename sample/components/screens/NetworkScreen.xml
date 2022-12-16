@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="NetworkScreen" extends="Group" initialFocus="mainButtonGroup">
+
+    <children>
+
+        <LabelList id="networkLabelList" translation="[64,192]">
+            <Font role="font" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+            <Font role="focusedFont" size="36" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </LabelList>
+
+        <Label id="messageLabel" text="Waiting for input…" translation="[768,192]" color="0xffffff80" wrap="true" numLines="16" maxLines="16" width="1024">
+            <Font role="font" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </Label>
+    </children>
+
+    <script type="text/brightscript" uri="pkg:/components/screens/NetworkScreen.bs" />
+
+</component>
