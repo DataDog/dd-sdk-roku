@@ -25,6 +25,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logOk(message as string, attributes as object)
     ddLogThread("LogsAgent.logOk()")
+    ddLogVerbose("[ OK ] " + message)
     sendLog("ok", message, attributes)
 end sub
 
@@ -35,6 +36,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logDebug(message as string, attributes as object)
     ddLogThread("LogsAgent.logDebug()")
+    ddLogVerbose("[ DEBUG ] " + message)
     sendLog("debug", message, attributes)
 end sub
 
@@ -45,6 +47,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logInfo(message as string, attributes as object)
     ddLogThread("LogsAgent.logInfo()")
+    ddLogInfo("[ INFO ] " + message)
     sendLog("info", message, attributes)
 end sub
 
@@ -55,6 +58,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logNotice(message as string, attributes as object)
     ddLogThread("LogsAgent.logNotice()")
+    ddLogInfo("[ NOTICE ] " + message)
     sendLog("notice", message, attributes)
 end sub
 
@@ -65,6 +69,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logWarn(message as string, attributes as object)
     ddLogThread("LogsAgent.logWarn()")
+    ddLogWarning("[ WARN ] " + message)
     sendLog("warn", message, attributes)
 end sub
 
@@ -75,6 +80,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logError(message as string, attributes as object)
     ddLogThread("LogsAgent.logError()")
+    ddLogError("[ ERROR ] " + message)
     sendLog("error", message, attributes)
 end sub
 
@@ -85,6 +91,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logCritical(message as string, attributes as object)
     ddLogThread("LogsAgent.logCritical()")
+    ddLogError("[ CRITICAL ] " + message)
     sendLog("critical", message, attributes)
 end sub
 
@@ -95,6 +102,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logAlert(message as string, attributes as object)
     ddLogThread("LogsAgent.logAlert()")
+    ddLogError("[ ALERT ] " + message)
     sendLog("alert", message, attributes)
 end sub
 
@@ -105,6 +113,7 @@ end sub
 ' ----------------------------------------------------------------
 sub logEmergency(message as string, attributes as object)
     ddLogThread("LogsAgent.logEmergency()")
+    ddLogError("[ EMERGENCY ] " + message)
     sendLog("emergency", message, attributes)
 end sub
 
