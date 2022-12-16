@@ -92,7 +92,7 @@ end function
 ' ----------------------------------------------------------------
 function getUploadUrl(trackInfo as object) as string
 
-    url = trackInfo.url 
+    url = trackInfo.url
     if (trackInfo.queryParams <> invalid)
         first = true
         for each key in trackInfo.queryParams
@@ -168,6 +168,7 @@ sub handleResponse(responseCode as integer, filePath as string, trackInfo as obj
     else if (responseCode = 400)
         ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 400 Bad Request, try updating the SDK to the latest version, or contact the support.")
+        ddLogError("Uploaded data was:" + chr(10) + ReadAsciiFile(filePath))
         retry = false
     else if (responseCode = 401)
         ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")

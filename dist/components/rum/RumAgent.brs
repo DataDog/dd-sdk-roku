@@ -29,8 +29,8 @@ sub rumAgentLoop()
         ensureSetup()
         m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
         msgType = type(msg)
-        if (msgType <> invalid)
-            ddLogWarning("Unexpected message " + msgType)
+        if (msgType <> "Invalid")
+            ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
         end if
     end while
 end sub

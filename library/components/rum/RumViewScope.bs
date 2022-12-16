@@ -196,7 +196,7 @@ end sub
 ' ----------------------------------------------------------------
 sub addResource(resource as object, writer as object)
     if (isValidResource(resource))
-        sendResource(resource.url, resource.transferTime, resource.method, resource.httpCode, resource.bytesDownloaded, writer)
+        sendResource(resource, writer)
     else
         sendResourceError(resource.status, resource.url, resource.method, writer)
     end if
@@ -276,14 +276,17 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Sends a resource event
-' @param url (string) the resource url
-' @param transferTime (double) the duration of the transfer (in seconds)
-' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
-' @param httpCode (dynamic) the HTTP status code as integer (200, 404, …) or invalid
-' @param bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
+' @param resource (object) the resource associative array, with the following entries
+'  - url (string) the resource url
+'  - transferTime (double) the duration of the transfer (in seconds)
+'  - method (dynamic) the method as string ("POST", "GET", …) or invalid
+'  - httpCode (dynamic) the HTTP status code as integer (200, 404, …) or invalid
+'  - bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
+'  - traceId (dynamic) the id of the trace forwarded in the request header (as string), or invalid
+'  - spanId (dynamic) the id of the span forwarded in the request header (as string), or invalid
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub sendResource(url as string, transferTime as double, method as dynamic, httpCode as dynamic, bytesDownloaded as dynamic, writer as object)
+sub sendResource(resource as object, writer as object)
     timestamp& = getTimestamp()
     ddLogVerbose("Sending a resource")
 
@@ -292,12 +295,14 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
     if (m.top.activeAction <> invalid)
         actionId = m.top.activeAction@.getRumContext().actionId
     end if
-    startTimestampMs& = timestamp& - secToMillis(transferTime)
+    startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
 
     resourceEvent = {
         _dd: {
             format_version: 2,
-            session: { plan: 1 }
+            session: { plan: 1 },
+            trace_id: resource.traceId,
+            span_id: resource.spanId
         },
         action: {
             id: actionId
@@ -310,11 +315,11 @@ sub sendResource(url as string, transferTime as double, method as dynamic, httpC
         resource: {
             id: CreateObject("roDeviceInfo").GetRandomUUID(),
             type: "native",
-            url: url,
-            method: method,
-            status_code: httpCode,
-            size: bytesDownloaded,
-            duration: secToNanos(transferTime)
+            url: resource.url,
+            method: resource.method,
+            status_code: resource.httpCode,
+            size: resource.bytesDownloaded,
+            duration: secToNanos(resource.transferTime)
         },
         service: context.service,
         session: {
