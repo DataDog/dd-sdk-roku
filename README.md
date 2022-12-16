@@ -70,7 +70,22 @@ Whenever you perform an operation that might throw an exception, you can forward
 
 ##### `roUrlTransfer`
 
-Network requests made directly with a `roUrlTransfer` node must be tracked manually. The following code snippet shows how to report the request as a RUM Resource:
+Network requests made directly with a `roUrlTransfer` node must be tracked. 
+
+For **synchronous requests**, you can use our wrapper to track the resource automatically, by using our `datadogroku_DdUrlTransfer` wrapper, 
+which supports most features or the `roUrlTransfer` component (except anything related to asynyc network calls).
+
+For example, here's how to do a `GetToString` call:
+
+```
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    ddUrlTransfer.SetUrl(url)
+    ddUrlTransfer.EnablePeerVerification(false)
+    ddUrlTransfer.EnableHostVerification(false)
+    result = ddUrlTransfer.GetToString()
+```
+
+For **asynchronous request**, there's no automatic instrumentation yet, meaning you need to track the resource manually. The following code snippet shows how to report the request as a RUM Resource:
 
 ```brightscript
 sub performRequest()
