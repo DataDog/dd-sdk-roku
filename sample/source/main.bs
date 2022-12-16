@@ -43,7 +43,6 @@ sub RunUserInterface(args as dynamic)
         else if (msgType = "roSystemLogEvent")
             sysLogEvent = msg.getInfo()
             datadogroku_ddLogInfo("Received system event: " + sysLogEvent.LogType)
-            print sysLogEvent
             m.global.datadogRumAgent@.addResource(sysLogEvent)
         else if (msgType = "roInputEvent")
             datadogroku_ddLogInfo("Received input event" + msg.getInfo())

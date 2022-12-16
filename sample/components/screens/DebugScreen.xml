@@ -4,19 +4,18 @@ Unless explicitly stated otherwise all files in this repository are licensed und
 This product includes software developed at Datadog (https://www.datadoghq.com/).
 Copyright 2022-Today Datadog, Inc.
 -->
-<component name="DebugScreen" extends="Group" initialFocus="mainButtonGroup">
+<component name="DebugScreen" extends="Group">
 
     <children>
-        <Label id="titleLabel" text="Debug screen" translation="[50,200]" />
 
-        <ButtonGroup id="mainButtonGroup" translation="[50,300]">
-            <Button text="Start View" showFocusFootprint="true" />
-            <Button text="Stop View" showFocusFootprint="true" />
-            <Button text="Trigger Error" showFocusFootprint="true" />
-            <Button text="Trigger Resource" showFocusFootprint="true" />
+        <ButtonGroup id="debugButtonGroup" translation="[50,200]">
+            <Font role="textFont" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+            <Font role="focusedTextFont" size="36" uri="pkg:/fonts/FiraCode-Regular.ttf" />
         </ButtonGroup>
 
-        <Label id="messageLabel" text="hello" translation="[50,900]" color="0x886688ff" />
+        <Label id="messageLabel" text="Waiting for input…" translation="[50,900]" color="0xffffff80">
+            <Font role="font" size="24" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </Label>
     </children>
 
     <script type="text/brightscript" uri="pkg:/components/screens/DebugScreen.bs" />

@@ -12,7 +12,7 @@ sub init()
     m.devTube = m.top.findNode("devTube")
     displaySize = CreateObject("roDeviceInfo").GetDisplaySize()
     ' center horizontally
-    m.devTube.translation = [(displaySize.w - 1280) / 2, (displaySize.h - 720) / 4]
+    m.devTube.translation = [(displaySize.w - 1280) / 2, (displaySize.h - 720) / 2]
 
     setVideoContent()
 end sub
