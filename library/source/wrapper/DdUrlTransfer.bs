@@ -622,8 +622,8 @@ end class
 function generateUniqueId() as string
     radix = 10
     maxInt = 4294967295
-    low& = Rnd(maxInt)
-    high& = Rnd(maxInt)
+    low& = Rnd(maxInt) - 1
+    high& = Rnd(maxInt) - 1
 
     id = ""
 

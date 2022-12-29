@@ -54,5 +54,6 @@ sub ensureSessionScope()
     if (m.top.sessionScope = invalid)
         m.top.sessionScope = CreateObject("roSGNode", "RumSessionScope")
         m.top.sessionScope.parentScope = m.top
+        m.top.sessionScope.sessionSampleRate = m.top.sessionSampleRate
     end if
 end sub
