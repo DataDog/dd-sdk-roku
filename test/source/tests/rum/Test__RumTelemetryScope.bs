@@ -48,7 +48,7 @@ end sub
 function RumTelemetryScopeTest__WhenHandleConfigEvent_ThenWriteConfigEvent() as string
     ' Given
     fakeSampleRate = IG_GetInteger(100)
-    fakeConfigEvent = { mock: "event", eventType: "telemetryConfig", sessionSampleRate: fakeSampleRate }
+    fakeConfigEvent = { mock: "event", eventType: "telemetryConfig", configuration: { sessionSampleRate: fakeSampleRate } }
     m.global.setField("datadogRumContext", m.fakeRumContext)
 
     ' When

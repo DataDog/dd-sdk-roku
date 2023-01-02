@@ -68,7 +68,7 @@ sub sendConfigEvent(event as object, writer as object)
         telemetry: {
             type: "configuration"
             configuration: {
-                session_sample_rate: event.sessionSampleRate
+                session_sample_rate: event.configuration.sessionSampleRate
             }
         }
         type: "telemetry"

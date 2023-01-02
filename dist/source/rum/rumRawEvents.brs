@@ -72,6 +72,39 @@ function keepAliveEvent() as object
         eventType: "keepAlive"
     }
 end function
+
+' ----------------------------------------------------------------
+' @param configuration (object) the configuration object
+' @return (object) an event describing an addTelemetryConfigEvent action
+' ----------------------------------------------------------------
+function addTelemetryConfigEvent(configuration as object) as object
+    return {
+        eventType: "telemetryConfig"
+        configuration: configuration
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param exception (object) the exception object
+' @return (object) an event describing an addTelemetryErrorEvent action
+' ----------------------------------------------------------------
+function addTelemetryErrorEvent(exception as object) as object
+    return {
+        eventType: "telemetryError"
+        exception: exception
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param message (string) the message
+' @return (object) an event describing an addTelemetryDebugEvent action
+' ----------------------------------------------------------------
+function addTelemetryDebugEvent(message as string) as object
+    return {
+        eventType: "telemetryDebug"
+        message: message
+    }
+end function
 ' ----------------------------------------------------------------
 ' RawEvent: enum listing all the possible events handled by RUM scopes
 ' ----------------------------------------------------------------
