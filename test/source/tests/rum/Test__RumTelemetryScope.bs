@@ -1,0 +1,170 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return (object) a configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__RumTelemetryScope() as object
+    this = BaseTestSuite()
+    this.Name = "RumTelemetryScope"
+
+    this.addTest("WhenHandleConfigEvent_ThenWriteConfigEvent", RumTelemetryScopeTest__WhenHandleConfigEvent_ThenWriteConfigEvent, RumTelemetryScopeTest__SetUp, RumTelemetryScopeTest__TearDown)
+    this.addTest("WhenHandleDebugEvent_ThenWriteDebugEvent", RumTelemetryScopeTest__WhenHandleDebugEvent_ThenWriteDebugEvent, RumTelemetryScopeTest__SetUp, RumTelemetryScopeTest__TearDown)
+    this.addTest("WhenHandleErrorEvent_ThenWriteErrorEvent", RumTelemetryScopeTest__WhenHandleErrorEvent_ThenWriteErrorEvent, RumTelemetryScopeTest__SetUp, RumTelemetryScopeTest__TearDown)
+    this.addTest("WhenHandleInvalidErrorEvent_ThenDoNothing", RumTelemetryScopeTest__WhenHandleInvalidErrorEvent_ThenDoNothing, RumTelemetryScopeTest__SetUp, RumTelemetryScopeTest__TearDown)
+
+    return this
+end function
+
+sub RumTelemetryScopeTest__SetUp()
+    ' Mocks
+    m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
+
+    ' Fake data
+    m.testSuite.fakeRumContext = {
+        applicationId: IG_GetString(32),
+        sessionId: IG_GetString(32),
+        viewId: IG_GetString(32),
+        actionId: IG_GetString(32)
+    }
+    m.testSuite.global.addFields({ datadogRumContext: {} })
+
+    ' Tested Task
+    m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumTelemetryScope")
+end sub
+
+sub RumTelemetryScopeTest__TearDown()
+    m.testSuite.Delete("mockWriter")
+    m.testSuite.Delete("testedScope")
+end sub
+
+'----------------------------------------------------------------
+' Given: a RumTelemetryScope
+'  When: handling a config event
+'  Then: writes a config event
+'----------------------------------------------------------------
+function RumTelemetryScopeTest__WhenHandleConfigEvent_ThenWriteConfigEvent() as string
+    ' Given
+    fakeSampleRate = IG_GetInteger(100)
+    fakeConfigEvent = { mock: "event", eventType: "telemetryConfig", sessionSampleRate: fakeSampleRate }
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    eventTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeConfigEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    configEvent = ParseJson(updates[0])
+    Assert.that(configEvent).isNotInvalid()
+    Assert.that(configEvent.application.id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(configEvent.date).isInRange(eventTimestamp&, eventTimestamp& + 50)
+    Assert.that(configEvent.service).isEqualTo("dd-sdk-roku")
+    Assert.that(configEvent.session.id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(configEvent.source).isEqualTo("roku")
+    Assert.that(configEvent.type).isEqualTo("telemetry")
+    Assert.that(configEvent.version).isEqualTo(datadogroku_sdkVersion())
+    Assert.that(configEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(configEvent.action.id).isEqualTo(m.fakeRumContext.actionId)
+    Assert.that(configEvent.telemetry.type).isEqualTo("configuration")
+    Assert.that(configEvent.telemetry.configuration.session_sample_rate).isEqualTo(fakeSampleRate)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumTelemetryScope
+'  When: handling a debug event
+'  Then: writes a debug event
+'----------------------------------------------------------------
+function RumTelemetryScopeTest__WhenHandleDebugEvent_ThenWriteDebugEvent() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeDebugEvent = { mock: "event", eventType: "telemetryDebug", message: fakeMessage }
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    eventTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeDebugEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    debugEvent = ParseJson(updates[0])
+    Assert.that(debugEvent).isNotInvalid()
+    Assert.that(debugEvent.application.id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(debugEvent.date).isInRange(eventTimestamp&, eventTimestamp& + 50)
+    Assert.that(debugEvent.service).isEqualTo("dd-sdk-roku")
+    Assert.that(debugEvent.session.id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(debugEvent.source).isEqualTo("roku")
+    Assert.that(debugEvent.type).isEqualTo("telemetry")
+    Assert.that(debugEvent.version).isEqualTo(datadogroku_sdkVersion())
+    Assert.that(debugEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(debugEvent.action.id).isEqualTo(m.fakeRumContext.actionId)
+    Assert.that(debugEvent.telemetry.type).isEqualTo("log")
+    Assert.that(debugEvent.telemetry.status).isEqualTo("debug")
+    Assert.that(debugEvent.telemetry.message).isEqualTo(fakeMessage)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumTelemetryScope
+'  When: handling a error event
+'  Then: writes a error event
+'----------------------------------------------------------------
+function RumTelemetryScopeTest__WhenHandleErrorEvent_ThenWriteErrorEvent() as string
+    ' Given
+    fakeMessage = IG_GetString(128)
+    fakeErrorNumber = IG_GetInteger(256)
+    fakeBacktrace = IG_GetBacktrace()
+    fakeException = { number: fakeErrorNumber, message: fakeMessage, backtrace: fakeBacktrace }
+    fakeErrorEvent = { mock: "event", eventType: "telemetryError", exception: fakeException }
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    eventTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeErrorEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    errorEvent = ParseJson(updates[0])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(m.fakeRumContext.applicationId)
+    Assert.that(errorEvent.date).isInRange(eventTimestamp&, eventTimestamp& + 50)
+    Assert.that(errorEvent.service).isEqualTo("dd-sdk-roku")
+    Assert.that(errorEvent.session.id).isEqualTo(m.fakeRumContext.sessionId)
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("telemetry")
+    Assert.that(errorEvent.version).isEqualTo(datadogroku_sdkVersion())
+    Assert.that(errorEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
+    Assert.that(errorEvent.action.id).isEqualTo(m.fakeRumContext.actionId)
+    Assert.that(errorEvent.telemetry.type).isEqualTo("log")
+    Assert.that(errorEvent.telemetry.status).isEqualTo("error")
+    Assert.that(errorEvent.telemetry.message).isEqualTo(fakeMessage)
+    Assert.that(errorEvent.telemetry.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
+    Assert.that(errorEvent.telemetry.error.kind).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumTelemetryScope
+'  When: handling a error event
+'  Then: do nothing
+'----------------------------------------------------------------
+function RumTelemetryScopeTest__WhenHandleInvalidErrorEvent_ThenDoNothing() as string
+    ' Given
+    fakeErrorEvent = { mock: "event", eventType: "telemetryError" }
+    m.global.setField("datadogRumContext", m.fakeRumContext)
+
+    ' When
+    eventTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeErrorEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    return ""
+end function

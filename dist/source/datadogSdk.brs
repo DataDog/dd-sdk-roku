@@ -58,6 +58,13 @@ end sub
 
 
 ' ----------------------------------------------------------------
+' @return (string) the service name of the library
+' ----------------------------------------------------------------
+function sdkServiceName() as string
+    return "dd-sdk-roku"
+end function
+
+' ----------------------------------------------------------------
 ' @return (string) the version of the library
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------

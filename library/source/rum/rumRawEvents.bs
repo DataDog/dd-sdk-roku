@@ -85,4 +85,7 @@ enum RawEvent
     addAction = "addAction"
     keepAlive = "keepAlive"
     resetSession = "resetSession"
+    telemetryConfig = "telemetryConfig"
+    telemetryDebug = "telemetryDebug"
+    telemetryError = "telemetryError"
 end enum
