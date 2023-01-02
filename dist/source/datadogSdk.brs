@@ -10,6 +10,8 @@
 '  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1")
 '  - service (string) the name of the service to report in logs and RUM events
 '  - env (string) the name of the environment to report in logs and RUM events
+'  - sessionSampleRate (integer) the rate of session to keep and send to Datadog
+'     as an integer between 0 and 100
 ' ----------------------------------------------------------------
 sub initialize(configuration as object)
     ' Standard global fields
@@ -35,6 +37,7 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.applicationId = configuration.applicationId
         m.global.datadogRumAgent.service = configuration.service
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
+        m.global.datadogRumAgent.sessionSampleRate = configuration.sessionSampleRate
     end if
     if (m.global.datadogLogsAgent = invalid)
         ddLogInfo("No Logs agent, creating one")
