@@ -3,6 +3,7 @@
     <interface>
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
+        <field id="sessionSampleRate" type="integer" value="100" />
         <field id="sessionScope" type="node" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumApplicationScope.brs" />

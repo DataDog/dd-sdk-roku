@@ -197,7 +197,7 @@ class BaseAssert
 
         if ((m.actual < min) or (m.actual > max))
             if (msg = "")
-                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be in the range [" + TF_Utils__AsString(min) + ", " + TF_Utils__AsString(min) + "]"
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be in the range [" + TF_Utils__AsString(min) + ", " + TF_Utils__AsString(max) + "]"
             end if
 
             throw {
@@ -406,7 +406,7 @@ class BaseAssert
                     }
                 end if
             end for
-        else 
+        else
             throw {
                 number: m.errorCode,
                 message: "Expected " + TF_Utils__AsString(m.actual) + " to be an array or an associative array but was " + type(m.actual)

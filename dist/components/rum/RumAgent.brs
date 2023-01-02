@@ -106,6 +106,7 @@ sub ensureRumScope()
         m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
         m.top.rumScope.applicationId = m.top.applicationId
         m.top.rumScope.service = m.top.service
+        m.top.rumScope.sessionSampleRate = m.top.sessionSampleRate
         m.global.addFields({
             datadogRumContext: {}
         })

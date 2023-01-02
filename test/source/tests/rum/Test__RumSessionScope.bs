@@ -21,8 +21,10 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleActionEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleViewEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
-    this.addTest("WhenHandleNonInteractiveEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterExpiration_ThenExpireSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleActionEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventAfterExpiration_ThenRenewSession (42%)", RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession_42, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleActionEventAfterExpiration_ThenRenewSession (0%)", RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession_0, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleViewEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
     this.addTest("WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleNonInteractiveEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
@@ -320,6 +322,84 @@ function RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSess
     ' Then
     Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
     Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with sampling rate 42%
+'  When: calling handleEvent (type=action) after expiration
+'  Then: renew the session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession_42() as string
+    ' Given
+    m.testedScope.sessionSampleRate = 42
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+    nbTracked = 0
+    nbNottracked = 0
+    nbUnknown = 0
+
+    ' When
+    for i = 1 to 100
+        sleep(100)
+        m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+        updatedContext = m.testedScope@.getRumContext()
+        Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+        if (updatedContext.sessionState = "tracked")
+            nbTracked++
+        else if (updatedContext.sessionState = "not_tracked")
+            nbNottracked++
+        else
+            nbUnknown++
+        end if
+    end for
+
+    ' Then
+    Assert.that(nbTracked).isInRange(37, 47) ' 42 ± 5
+    Assert.that(nbNottracked).isInRange(53, 63) ' 58 ± 5
+    Assert.that(nbUnknown).isEqualTo(0)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with sampling rate 0%
+'  When: calling handleEvent (type=action) after expiration
+'  Then: renew the session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSession_0() as string
+    ' Given
+    m.testedScope.sessionSampleRate = 0
+    m.testedScope@.handleEvent({ mock: "event", eventType: "addAction" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+    nbTracked = 0
+    nbNottracked = 0
+    nbUnknown = 0
+
+    ' When
+    for i = 1 to 100
+        sleep(100)
+        m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+        updatedContext = m.testedScope@.getRumContext()
+        Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+        if (updatedContext.sessionState = "tracked")
+            nbTracked++
+        else if (updatedContext.sessionState = "not_tracked")
+            nbNottracked++
+        else
+            nbUnknown++
+        end if
+    end for
+
+    ' Then
+    Assert.that(nbTracked).isEqualTo(0)
+    Assert.that(nbNottracked).isEqualTo(100)
+    Assert.that(nbUnknown).isEqualTo(0)
     return ""
 end function
 

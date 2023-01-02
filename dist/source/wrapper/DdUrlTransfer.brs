@@ -578,8 +578,8 @@ end function
 function generateUniqueId() as string
     radix = 10
     maxInt = 4294967295
-    low& = Rnd(maxInt)
-    high& = Rnd(maxInt)
+    low& = Rnd(maxInt) - 1
+    high& = Rnd(maxInt) - 1
     id = ""
     ddLogInfo("generateUniqueId(): " + high&.toStr() + " / " + low&.toStr())
     while (high& > 0 or low& > 0)

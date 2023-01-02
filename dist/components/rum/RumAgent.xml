@@ -6,6 +6,7 @@
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
+        <field id="sessionSampleRate" type="integer" value="100" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />

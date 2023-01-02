@@ -117,8 +117,12 @@ sub renewSession(timestamp& as longinteger)
     ddLogWarning("Renewing the session")
     m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
     m.sessionStartMs = timestamp&
-    ' TODO RUMM-2762 Implement Session Sampling
-    m.sessionState = "tracked"
+    rndSession = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
+    if (rndSession < m.top.sessionSampleRate)
+        m.sessionState = "tracked"
+    else
+        m.sessionState = "not_tracked"
+    end if
     datadogRumContext = m.global.datadogRumContext
     datadogRumContext.sessionId = m.sessionId
     m.global.setField("datadogRumContext", datadogRumContext)
