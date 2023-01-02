@@ -279,7 +279,6 @@ class DdUrlTransfer
         port = CreateObject("roMessagePort")
         m.roUrlTransfer.SetMessagePort(port)
 
-
         url = m.roUrlTransfer.GetUrl()
         traceId = generateUniqueId()
         spanId = generateUniqueId()
@@ -504,7 +503,6 @@ class DdUrlTransfer
         return m.roUrlTransfer.AddHeader(name, value)
     end function
 
-
     ' ----------------------------------------------------------------
     ' Sets the HTTP headers to be sent in the HTTP request.
     '
@@ -550,7 +548,6 @@ class DdUrlTransfer
     function SetCertificatesFile(path as string) as boolean
         return m.roUrlTransfer.SetCertificatesFile(path)
     end function
-
 
     ' ----------------------------------------------------------------
     ' Sets the maximum depth of the certificate chain that will be accepted.
@@ -609,7 +606,6 @@ class DdUrlTransfer
         return m.roUrlTransfer.AddCookies(cookies)
     end function
 
-
     ' ----------------------------------------------------------------
     ' Removes all cookies from the cookie cache.
     ' ----------------------------------------------------------------
@@ -617,7 +613,6 @@ class DdUrlTransfer
         m.roUrlTransfer.ClearCookies()
     end sub
 end class
-
 
 function generateUniqueId() as string
     radix = 10

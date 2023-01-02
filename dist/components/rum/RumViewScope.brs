@@ -115,9 +115,10 @@ sub addError(exception as object, writer as object)
     else
         errorType = "&h" + decToHex(exception.number)
     end if
-    errorMsg = "Unknown exception"
     if (exception.message <> invalid)
         errorMsg = exception.message
+    else
+        errorMsg = "Unknown exception"
     end if
     sendError(errorMsg, errorType, exception.backtrace, writer)
 end sub
