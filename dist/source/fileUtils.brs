@@ -31,12 +31,18 @@ function mkdirs(path as string) as boolean
         return true
     end if
     ' Early exit, path contains invalid chars
-    folderPath = CreateObject("roPath", path)
-    if (not folderPath.IsValid())
-        ddLogWarning("Can't make folder, path is invalid: " + path)
+    dirPath = CreateObject("roPath", path)
+    if (not dirPath.IsValid())
+        message = "Can't make directory, path is invalid: " + path
+        ddLogWarning(message)
+        m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
+            number: 0
+            message: message
+            backtrace: []
+        })
         return false
     end if
-    folderData = folderPath.Split()
+    folderData = dirPath.Split()
     ' Ensure parent exists
     if (folderData.parent <> "" and folderData.parent <> (folderData.phy + "/"))
         if (not mkdirs(folderData.parent))
@@ -45,7 +51,13 @@ function mkdirs(path as string) as boolean
     end if
     ' Create dir
     if (not CreateDirectory(path))
-        ddLogWarning("Failed to create directory " + path)
+        message = "Failed to create directory " + path
+        ddLogWarning(message)
+        m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
+            number: 0
+            message: message
+            backtrace: []
+        })
         return false
     end if
     return true

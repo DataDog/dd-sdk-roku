@@ -50,6 +50,7 @@ sub initialize(configuration as object)
         m.global.datadogLogsAgent.env = configuration.env
         m.global.datadogLogsAgent.uploader = m.global.datadogUploader
     end if
+    m.global.datadogRumAgent.callfunc("addConfigTelemetry", configuration)
 end sub
 ' ----------------------------------------------------------------
 ' The available track types for the uploader/writer

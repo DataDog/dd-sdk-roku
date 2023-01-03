@@ -114,7 +114,7 @@ end sub
 ' @param timestamp& (longinteger) the event timestamp in milliseconds
 ' ----------------------------------------------------------------
 sub renewSession(timestamp& as longinteger)
-    ddLogWarning("Renewing the session")
+    ddLogInfo("Renewing the session")
     m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
     m.sessionStartMs = timestamp&
     rndSession = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
