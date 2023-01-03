@@ -103,12 +103,14 @@ function getEndpoint(site as object, track as object) as string
             us3: "https://rum.browser-intake-us3-datadoghq.com"
             us5: "https://rum.browser-intake-us5-datadoghq.com"
             eu1: "https://rum-http-intake.logs.datadoghq.eu"
+            staging: "https://rum.browser-intake-datad0g.com"
         }
         logs: {
             us1: "https://logs.browser-intake-datadoghq.com"
             us3: "https://logs.browser-intake-us3-datadoghq.com"
             us5: "https://logs.browser-intake-us5-datadoghq.com"
             eu1: "https://mobile-http-intake.logs.datadoghq.eu"
+            staging: "https://logs.browser-intake-datad0g.com"
         }
     }
     trackEndpoints = endpoints[track]
