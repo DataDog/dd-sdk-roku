@@ -27,7 +27,10 @@ sub onFocused()
 end sub
 
 sub onBtnSelected()
-    m.msgLabel.text = "Clicked on Button" + Str(m.debugButtonGroup.buttonSelected)
+    dateTime = CreateObject("roDateTime")
+    dateTime.ToLocalTime()
+
+    m.msgLabel.text = "Clicked on Button" + Str(m.debugButtonGroup.buttonSelected) + " at " + dateTime.ToISOString()
     addAction("Debug::Button#" + m.debugButtonGroup.buttonSelected.toStr(), "click")
 
     if (m.debugButtonGroup.buttonSelected = 0)

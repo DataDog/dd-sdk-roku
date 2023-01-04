@@ -110,7 +110,7 @@ sub addErrorTelemetry(exception as object)
 end sub
 
 ' ----------------------------------------------------------------
-' Adds a telemetry error event
+' Adds a telemetry debug event
 ' @param message (string) the message to send
 ' ----------------------------------------------------------------
 sub addDebugTelemetry(message as string)

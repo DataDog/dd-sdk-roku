@@ -196,8 +196,8 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
-'  When: call the addResource method
-'  Then: delegates to the root RumScope
+'  When: call the addErrorTelemetry method
+'  Then: delegates to the root TelemetryScope
 '----------------------------------------------------------------
 function RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope() as string
     ' Given
@@ -214,8 +214,8 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
-'  When: call the addResource method
-'  Then: delegates to the root RumScope
+'  When: call the addDebugTelemetry method
+'  Then: delegates to the root TelemetryScope
 '----------------------------------------------------------------
 function RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope() as string
     ' Given

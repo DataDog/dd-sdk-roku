@@ -89,7 +89,7 @@ sub sendDebugEvent(event as object, writer as object)
 
     rumContext = m.global.datadogRumContext ?? {}
 
-    configEvent = {
+    debugEvent = {
         _dd: {
             format_version: 2
         },
@@ -117,7 +117,7 @@ sub sendDebugEvent(event as object, writer as object)
         }
     }
 
-    writer.writeEvent = FormatJson(configEvent)
+    writer.writeEvent = FormatJson(debugEvent)
 end sub
 
 ' ----------------------------------------------------------------
@@ -137,7 +137,7 @@ sub sendErrorEvent(event as object, writer as object)
     errorMsg = exception.message
     rumContext = m.global.datadogRumContext ?? {}
 
-    configEvent = {
+    errorEvent = {
         _dd: {
             format_version: 2
         },
@@ -169,5 +169,5 @@ sub sendErrorEvent(event as object, writer as object)
         }
     }
 
-    writer.writeEvent = FormatJson(configEvent)
+    writer.writeEvent = FormatJson(errorEvent)
 end sub

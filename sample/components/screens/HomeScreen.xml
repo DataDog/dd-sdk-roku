@@ -7,8 +7,6 @@ Copyright 2022-Today Datadog, Inc.
 <component name="HomeScreen" extends="Group" initialFocus="mainButtonGroup">
 
     <children>
-
-
     </children>
 
     <script type="text/brightscript" uri="pkg:/components/screens/HomeScreen.bs" />

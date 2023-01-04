@@ -96,7 +96,7 @@ sub sendDebugEvent(event as object, writer as object)
                 return {}
             end if
         end function)(m)
-    configEvent = {
+    debugEvent = {
         _dd: {
             format_version: 2
         }
@@ -123,7 +123,7 @@ sub sendDebugEvent(event as object, writer as object)
             id: rumContext.viewId
         }
     }
-    writer.writeEvent = FormatJson(configEvent)
+    writer.writeEvent = FormatJson(debugEvent)
 end sub
 
 ' ----------------------------------------------------------------
@@ -148,7 +148,7 @@ sub sendErrorEvent(event as object, writer as object)
                 return {}
             end if
         end function)(m)
-    configEvent = {
+    errorEvent = {
         _dd: {
             format_version: 2
         }
@@ -179,5 +179,5 @@ sub sendErrorEvent(event as object, writer as object)
             id: rumContext.viewId
         }
     }
-    writer.writeEvent = FormatJson(configEvent)
+    writer.writeEvent = FormatJson(errorEvent)
 end sub
