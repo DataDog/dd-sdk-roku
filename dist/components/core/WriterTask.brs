@@ -56,6 +56,7 @@ sub onWriteEvent(event as string)
         end if
     end if
     AppendAsciiFile(filePath, event)
+    ddLogVerbose(event)
 end sub
 
 ' ----------------------------------------------------------------

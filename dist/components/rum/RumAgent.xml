@@ -10,11 +10,15 @@
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
+        <field id="telemetryScope" type="node" />
         <function name="startView" />
         <function name="stopView" />
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
+        <function name="addConfigTelemetry" />
+        <function name="addErrorTelemetry" />
+        <function name="addDebugTelemetry" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />

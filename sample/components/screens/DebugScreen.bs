@@ -11,7 +11,7 @@ sub init()
     datadogroku_ddLogThread("DebugScreen.init()")
 
     m.msgLabel = m.top.findNode("messageLabel")
-    m.buttons = ["Start View", "Stop View", "Add error", "Add Resource", "Send logs"]
+    m.buttons = ["Start View", "Stop View", "Add error", "Add Resource", "Send logs", "Send Config Telemetry", "Send Error Telemetry", "Send Debug Telemetry"]
 
     m.debugButtonGroup = m.top.findNode("debugButtonGroup")
     m.debugButtonGroup.observeField("buttonSelected", "onBtnSelected")
@@ -27,7 +27,10 @@ sub onFocused()
 end sub
 
 sub onBtnSelected()
-    m.msgLabel.text = "Clicked on Button" + Str(m.debugButtonGroup.buttonSelected)
+    dateTime = CreateObject("roDateTime")
+    dateTime.ToLocalTime()
+
+    m.msgLabel.text = "Clicked on Button" + Str(m.debugButtonGroup.buttonSelected) + " at " + dateTime.ToISOString()
     addAction("Debug::Button#" + m.debugButtonGroup.buttonSelected.toStr(), "click")
 
     if (m.debugButtonGroup.buttonSelected = 0)
@@ -40,6 +43,12 @@ sub onBtnSelected()
         sendResource()
     else if (m.debugButtonGroup.buttonSelected = 4)
         sendLogs()
+    else if (m.debugButtonGroup.buttonSelected = 5)
+        sendErrorTelemetry()
+    else if (m.debugButtonGroup.buttonSelected = 6)
+        sendErrorTelemetry()
+    else if (m.debugButtonGroup.buttonSelected = 7)
+        sendDebugTelemetry()
     end if
 end sub
 
@@ -83,4 +92,23 @@ sub sendLogs()
     m.global.datadogLogsAgent@.logOk("Some log", {})
     m.global.datadogLogsAgent@.logError("Some log", {})
     m.global.datadogLogsAgent@.logWarn("Some log", {})
+end sub
+
+sub sendConfigTelemetry()
+    m.global.datadogRumAgent@.addConfigTelemetry({ sessionSampleRate: 100 })
+end sub
+
+sub sendErrorTelemetry()
+    m.errorIdx++
+    try
+        datadogroku_ddLogWarning("About to explode")
+        explodingMethod(m.errorIdx)
+    catch error
+        datadogroku_ddLogError("Caught something", error)
+        m.global.datadogRumAgent@.addErrorTelemetry(error)
+    end try
+end sub
+
+sub sendDebugTelemetry()
+    m.global.datadogRumAgent@.addDebugTelemetry("Some debug log")
 end sub

@@ -90,7 +90,7 @@ function getUploadUrl(trackInfo as object) as string
     if (trackInfo.queryParams <> invalid)
         first = true
         for each key in trackInfo.queryParams
-            ddLogInfo("Found query params " + key)
+            ddLogVerbose("Found query params " + key)
             prefix = ""
             if (first)
                 prefix = "?"
@@ -102,9 +102,8 @@ function getUploadUrl(trackInfo as object) as string
             first = false
         end for
     else
-        ddLogWarning("No query parameters")
+        ddLogVerbose("No query parameters")
     end if
-    ddLogInfo("URL:" + url)
     return url
 end function
 
@@ -204,7 +203,13 @@ sub handleResponse(responseCode as integer, filePath as string, trackInfo as obj
     if (not retry)
         ddLogVerbose("Deleting file at " + filePath)
         if (not DeleteFile(filePath))
-            ddLogWarning("Unable to delete file at " + filePath)
+            message = "Unable to delete batch file at " + filePath
+            ddLogWarning(message)
+            m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
+                number: 0
+                message: message
+                backtrace: []
+            })
         end if
     end if
 end sub

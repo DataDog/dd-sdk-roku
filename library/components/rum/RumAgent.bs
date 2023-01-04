@@ -90,16 +90,47 @@ sub addResource(resource as object)
 end sub
 
 ' ----------------------------------------------------------------
+' Adds a telemetry config event
+' @param configuration (object) the configuration information
+' ----------------------------------------------------------------
+sub addConfigTelemetry(configuration as object)
+    ddLogThread("RumAgent.addConfigTelemetry()")
+    ensureSetup()
+    m.top.telemetryScope@.handleEvent(addTelemetryConfigEvent(configuration), m.top.writer)
+end sub
+
+' ----------------------------------------------------------------
+' Adds a telemetry error event
+' @param exception (object) the caught exception object
+' ----------------------------------------------------------------
+sub addErrorTelemetry(exception as object)
+    ddLogThread("RumAgent.addErrorTelemetry()")
+    ensureSetup()
+    m.top.telemetryScope@.handleEvent(addTelemetryErrorEvent(exception), m.top.writer)
+end sub
+
+' ----------------------------------------------------------------
+' Adds a telemetry debug event
+' @param message (string) the message to send
+' ----------------------------------------------------------------
+sub addDebugTelemetry(message as string)
+    ddLogThread("RumAgent.addDebugTelemetry()")
+    ensureSetup()
+    m.top.telemetryScope@.handleEvent(addTelemetryDebugEvent(message), m.top.writer)
+end sub
+
+' ----------------------------------------------------------------
 ' Ensure all dependencies are present (from DI or generated)
 ' ----------------------------------------------------------------
 sub ensureSetup()
     ensureRumScope()
+    ensureTelemetryScope()
     ensureUploader()
     ensureWriter()
 end sub
 
 ' ----------------------------------------------------------------
-' Sets the uploader node from the top node's field,
+' Sets the root RUM scope node from the top node's field,
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureRumScope()
@@ -115,6 +146,17 @@ sub ensureRumScope()
         datadogRumContext = m.global.datadogRumContext
         datadogRumContext.applicationId = m.top.applicationId
         m.global.setField("datadogRumContext", datadogRumContext)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Sets the telemetry scope node from the top node's field,
+' or instantiate one.
+' ----------------------------------------------------------------
+sub ensureTelemetryScope()
+    if (m.top.telemetryScope = invalid)
+        ddLogVerbose("Creating RumTelemetryScope")
+        m.top.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
     end if
 end sub
 

@@ -10,6 +10,8 @@
 '  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1")
 '  - service (string) the name of the service to report in logs and RUM events
 '  - env (string) the name of the environment to report in logs and RUM events
+'  - sessionSampleRate (integer) the rate of session to keep and send to Datadog
+'     as an integer between 0 and 100
 ' ----------------------------------------------------------------
 sub initialize(configuration as object)
     ' Standard global fields
@@ -35,6 +37,7 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.applicationId = configuration.applicationId
         m.global.datadogRumAgent.service = configuration.service
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
+        m.global.datadogRumAgent.sessionSampleRate = configuration.sessionSampleRate
     end if
     if (m.global.datadogLogsAgent = invalid)
         ddLogInfo("No Logs agent, creating one")
@@ -47,6 +50,7 @@ sub initialize(configuration as object)
         m.global.datadogLogsAgent.env = configuration.env
         m.global.datadogLogsAgent.uploader = m.global.datadogUploader
     end if
+    m.global.datadogRumAgent.callfunc("addConfigTelemetry", configuration)
 end sub
 ' ----------------------------------------------------------------
 ' The available track types for the uploader/writer
@@ -56,6 +60,13 @@ end sub
 ' The available Datadog sites for the uploader
 ' ----------------------------------------------------------------
 
+
+' ----------------------------------------------------------------
+' @return (string) the service name of the library
+' ----------------------------------------------------------------
+function sdkServiceName() as string
+    return "dd-sdk-roku"
+end function
 
 ' ----------------------------------------------------------------
 ' @return (string) the version of the library
@@ -93,12 +104,14 @@ function getEndpoint(site as object, track as object) as string
             us3: "https://rum.browser-intake-us3-datadoghq.com"
             us5: "https://rum.browser-intake-us5-datadoghq.com"
             eu1: "https://rum-http-intake.logs.datadoghq.eu"
+            staging: "https://rum.browser-intake-datad0g.com"
         }
         logs: {
             us1: "https://logs.browser-intake-datadoghq.com"
             us3: "https://logs.browser-intake-us3-datadoghq.com"
             us5: "https://logs.browser-intake-us5-datadoghq.com"
             eu1: "https://mobile-http-intake.logs.datadoghq.eu"
+            staging: "https://logs.browser-intake-datad0g.com"
         }
     }
     trackEndpoints = endpoints[track]

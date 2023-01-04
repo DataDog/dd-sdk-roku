@@ -15,24 +15,24 @@ function TestSuite__RumActionScope() as object
     this.addTest("WhenIsActive_ThenReturnsTrue", RumActionScopeTest__WhenIsActive_ThenReturnsTrue, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumActionScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
-    this.addTest("WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent", RumViewScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent", RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent", RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent", RumActionScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent", RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent", RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
-    this.addTest("WhenHandleErrorEvent_ThenWriteActionEvent", RumViewScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent", RumViewScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleErrorEvent_ThenWriteActionEvent", RumActionScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent", RumActionScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
-    this.addTest("WhenHandleResourceEvent_ThenWriteActionEvent", RumViewScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleResourceEventAfterTimeout_ThenWriteActionEvent", RumViewScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleLongResourceEvent_ThenWriteActionEvent", RumViewScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleResourceEvent_ThenWriteActionEvent", RumActionScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleResourceEventAfterTimeout_ThenWriteActionEvent", RumActionScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleLongResourceEvent_ThenWriteActionEvent", RumActionScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
-    this.addTest("WhenHandleFailedResourceEvent_ThenWriteActionEvent", RumViewScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleFailedResourceEventAfterTimeout_ThenWriteActionEvent", RumViewScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleFailedResourceEvent_ThenWriteActionEvent", RumActionScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleFailedResourceEventAfterTimeout_ThenWriteActionEvent", RumActionScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteActionEvent, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
-    this.addTest("WhenHandleStartViewEvent_ThenWriteActionEventImmediately", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediately, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
-    this.addTest("WhenHandleStopViewEvent_ThenWriteActionEventImmediately", RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediately, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleStartViewEvent_ThenWriteActionEventImmediately", RumActionScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediately, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenHandleStopViewEvent_ThenWriteActionEventImmediately", RumActionScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediately, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
-    this.addTest("WhenWritingAction_ThenUpdateGlobalRumContext", RumViewScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenWritingAction_ThenUpdateGlobalRumContext", RumActionScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
 
     return this
 end function
@@ -158,7 +158,7 @@ end function
 '  When: handling an event after timeout
 '  Then: writes an action event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -214,7 +214,7 @@ end function
 '  When: handling an event after timeout
 '  Then: writes an action event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -272,7 +272,7 @@ end function
 '  When: handling an event after timeout
 '  Then: writes an action event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -330,7 +330,7 @@ end function
 '  When: handling an error event; and any event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -389,7 +389,7 @@ end function
 '  When: handling an error event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -445,7 +445,7 @@ end function
 '  When: handling an resource event; and any event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -504,7 +504,7 @@ end function
 '  When: handling an resource event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -560,7 +560,7 @@ end function
 '  When: handling an resource event; and any event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -619,7 +619,7 @@ end function
 '  When: handling an resource event; and any event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -678,7 +678,7 @@ end function
 '  When: handling an resource event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteActionEvent() as string
+function RumActionScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWriteActionEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -734,7 +734,7 @@ end function
 '  When: handling an resource event; and any event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediately() as string
+function RumActionScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmediately() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -789,7 +789,7 @@ end function
 '  When: handling an resource event; and any event after timeout
 '  Then: writes an action event with duration
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediately() as string
+function RumActionScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmediately() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -844,7 +844,7 @@ end function
 '  When: handling any event after timeout
 '  Then: check the global rum context is updated with null action id
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext() as string
+function RumActionScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)

@@ -317,14 +317,14 @@ class BaseAssert
             if (m.actual.count() <> expected)
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.count()
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.count().toStr()
                 }
             end if
         else if (TF_Utils__IsString(m.actual))
             if (m.actual.Len() <> expected)
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.Len()
+                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.Len().toStr()
                 }
             end if
         else

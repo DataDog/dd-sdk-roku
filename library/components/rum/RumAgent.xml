@@ -23,6 +23,7 @@ Copyright 2022-Today Datadog, Inc.
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
+        <field id="telemetryScope" type="node" />
 
         <!-- Events -->
         <function name="startView" />
@@ -30,6 +31,12 @@ Copyright 2022-Today Datadog, Inc.
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
+
+        <!-- Internal telemetry -->
+        <function name="addConfigTelemetry" />
+        <function name="addErrorTelemetry" />
+        <function name="addDebugTelemetry" />
+
     </interface>
 
 </component>

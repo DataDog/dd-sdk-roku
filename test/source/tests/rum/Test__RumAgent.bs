@@ -15,6 +15,11 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddAction_ThenDelegateToRumScope", RumAgentTest__WhenAddAction_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddError_ThenDelegateToRumScope", RumAgentTest__WhenAddError_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+
+    this.addTest("WhenAddConfigTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddConfigTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddDebugTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+
     this.addTest("WhenDoNothing_ThenTriggerKeepAlive", RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     this.addTest("WhenDoNothing_ThenInitDependencies", RumAgentTest__WhenDoNothing_ThenInitDependencies, RumAgentTest__SetUpNoMock, RumAgentTest__TearDown)
@@ -27,6 +32,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.mockUploader = CreateObject("roSGNode", "MockUploaderTask")
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
     m.testSuite.mockRumScope = CreateObject("roSGNode", "MockRumScope")
+    m.testSuite.mockTelemetryScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
     m.testSuite.fakeSite = IG_GetString(3)
@@ -40,6 +46,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.uploader = m.testSuite.mockUploader
     m.testSuite.testedNode.writer = m.testSuite.mockWriter
     m.testSuite.testedNode.rumScope = m.testSuite.mockRumScope
+    m.testSuite.testedNode.telemetryScope = m.testSuite.mockTelemetryScope
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
     m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
@@ -171,6 +178,60 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the addConfigTelemetry method
+'  Then: delegates to the root TelemetryScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddConfigTelemetry_ThenDelegateToTelemetryScope() as string
+    ' Given
+    fakeConfiguration = { sessionSamplingRate: IG_GetInteger() }
+
+    ' When
+    m.testedNode@.addConfigTelemetry(fakeConfiguration)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "telemetryConfig", configuration: fakeConfiguration }, writer: m.mockWriter }
+    return m.mockTelemetryScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the addErrorTelemetry method
+'  Then: delegates to the root TelemetryScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope() as string
+    ' Given
+    fakeException = { number: IG_GetInteger(128), message: IG_GetString(128), backtrace: [] }
+
+    ' When
+    m.testedNode@.addErrorTelemetry(fakeException)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "telemetryError", exception: fakeException }, writer: m.mockWriter }
+    return m.mockTelemetryScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the addDebugTelemetry method
+'  Then: delegates to the root TelemetryScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope() as string
+    ' Given
+    fakeMessage = IG_GetString(128)
+
+    ' When
+    m.testedNode@.addDebugTelemetry(fakeMessage)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "telemetryDebug", message: fakeMessage }, writer: m.mockWriter }
+    return m.mockTelemetryScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: nothing
 '  Then: sends keep alive regularly
 '----------------------------------------------------------------
@@ -195,7 +256,7 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     ' Given
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
-    m.testedNode.rumScope = invalid 
+    m.testedNode.rumScope = invalid
     site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
     m.testedNode.site = site
     expectedUrl = datadogroku_getIntakeUrl(site, "rum")
