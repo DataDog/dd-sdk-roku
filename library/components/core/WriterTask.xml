@@ -7,10 +7,6 @@ Copyright 2022-Today Datadog, Inc.
 <component name="WriterTask" extends="Task" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
 
     <script type="text/brightscript" uri="pkg:/components/core/WriterTask.bs" />
-    <script type="text/brightscript" uri="pkg:/source/datadogSdk.bs" />
-    <script type="text/brightscript" uri="pkg:/source/fileUtils.bs" />
-    <script type="text/brightscript" uri="pkg:/source/internalLogger.bs" />
-    <script type="text/brightscript" uri="pkg:/source/timeUtils.bs" />
 
     <interface>
         <field id="trackType" type="string" />

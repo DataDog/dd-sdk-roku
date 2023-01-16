@@ -14,12 +14,28 @@
 '     as an integer between 0 and 100
 ' ----------------------------------------------------------------
 sub initialize(configuration as object)
+    launchArgs = (function(configuration)
+            __bsConsequent = configuration.launchArgs
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(configuration)
+    print "Launch args:"
+    for each key in configuration.launchArgs
+        print key; " -> "; configuration.launchArgs[key]; " ["; type(key); "]"
+    end for
     ' Standard global fields
     m.global.addFields({
         datadogVerbosity: 0
         datadogContext: {}
         datadogUserInfo: {}
     })
+    if (configuration.clientToken = invalid or configuration.clientToken = "")
+        ddLogError("Trying to initialize the Datadog SDK without a Client Token, please check your configuration.")
+        return
+    end if
     if (m.global.datadogUploader = invalid)
         ddLogInfo("No uploader, creating one")
         m.global.addFields({
@@ -27,7 +43,10 @@ sub initialize(configuration as object)
         })
         m.global.datadogUploader.clientToken = configuration.clientToken
     end if
-    if (m.global.datadogRumAgent = invalid)
+    if (configuration.applicationId = invalid or configuration.applicationId = "")
+        ddLogWarning("Trying to initialize the Datadog SDK without a RUM Application Id, please check your configuration.")
+        return
+    else if (m.global.datadogRumAgent = invalid)
         ddLogInfo("No RUM agent, creating one")
         m.global.addFields({
             datadogRumAgent: CreateObject("roSGNode", "RumAgent")
@@ -35,9 +54,24 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.site = configuration.site
         m.global.datadogRumAgent.clientToken = configuration.clientToken
         m.global.datadogRumAgent.applicationId = configuration.applicationId
-        m.global.datadogRumAgent.service = configuration.service
+        m.global.datadogRumAgent.service = (function(configuration)
+                __bsConsequent = configuration.service
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return "roku"
+                end if
+            end function)(configuration)
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
-        m.global.datadogRumAgent.sessionSampleRate = configuration.sessionSampleRate
+        m.global.datadogRumAgent.sessionSampleRate = (function(configuration)
+                __bsConsequent = configuration.sessionSampleRate
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return 100
+                end if
+            end function)(configuration)
+        m.global.datadogRumAgent.lastExitOrTerminationReason = launchArgs.lastExitOrTerminationReason
     end if
     if (m.global.datadogLogsAgent = invalid)
         ddLogInfo("No Logs agent, creating one")

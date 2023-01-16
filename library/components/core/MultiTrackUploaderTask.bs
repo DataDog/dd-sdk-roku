@@ -66,8 +66,9 @@ sub uploadAvailableFilesForTrack(trackInfo as object)
         for each filename in filenames
             filePath = folderPath + "/" + filename
             if (isFileValidForUpload(filename))
-                responseCode = uploadFile(filePath, trackInfo)
-                handleResponse(responseCode, filePath, trackInfo)
+                requestId = m.deviceInfo.GetRandomUUID()
+                responseCode = uploadFile(filePath, trackInfo, requestId)
+                handleResponse(requestId, responseCode, filePath, trackInfo)
             end if
         end for
     end if
@@ -118,12 +119,12 @@ end function
 ' Uploads the content of the given file to Datadog
 ' @param path (string) the path of the file to upload
 ' @param trackInfo (object) the configuration for the current track
+' @param requestId (string) the unique identifier for this request
 ' @return (integer) the upload status code
 ' ----------------------------------------------------------------
-function uploadFile(path as string, trackInfo as object) as integer
+function uploadFile(path as string, trackInfo as object, requestId as string) as integer
     ensureNetworkClient()
 
-    requestId = m.deviceInfo.GetRandomUUID()
     url = getUploadUrl(trackInfo)
     headers = {}
     headers["Content-Type"] = trackInfo.contentType
@@ -139,6 +140,7 @@ end function
 
 ' ----------------------------------------------------------------
 ' Handles the response code by deleting or keeping the file for retry.
+' @param requestId (string) the unique identifier for this request
 ' @param responseCode (integer) the HTTP status code of the upload request
 ' - 202 Accepted: the request has been accepted for processing
 ' - 400 Bad Request: the server cannot or will not process the request (client error).
@@ -160,13 +162,14 @@ end function
 ' @param filePath (string) the path of the file that was uploaded
 ' @param trackInfo (object) the configuration for the current track
 ' ----------------------------------------------------------------
-sub handleResponse(responseCode as integer, filePath as string, trackInfo as object)
+sub handleResponse(requestId as string, responseCode as integer, filePath as string, trackInfo as object)
     if (responseCode = 202)
         ddLogInfo("Upload to track " + trackInfo.trackType + " succeeded.")
         retry = false
     else if (responseCode = 400)
         ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 400 Bad Request, try updating the SDK to the latest version, or contact the support.")
+        ddLogError("DD-REQUEST-ID:" + requestId)
         ddLogError("Uploaded data was:" + chr(10) + ReadAsciiFile(filePath))
         retry = false
     else if (responseCode = 401)

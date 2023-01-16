@@ -44,6 +44,7 @@ sub startView(name as string, url as string)
     ddLogThread("RumAgent.startView()")
     ensureSetup()
     m.top.rumScope.callfunc("handleEvent", startViewEvent(name, url), m.top.writer)
+    m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------

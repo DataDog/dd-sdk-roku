@@ -2,8 +2,13 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/datadogSdk.bs"
+import "pkg:/source/fileUtils.bs"
+import "pkg:/source/internalLogger.bs"
+import "pkg:/source/timeUtils.bs"
+
 ' *****************************************************************
-' * : a node capable of writing data to a file on disk
+' * WriterTask : a node capable of writing data to a file on disk
 ' *****************************************************************
 
 ' ----------------------------------------------------------------

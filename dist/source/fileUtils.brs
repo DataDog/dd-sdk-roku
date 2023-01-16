@@ -35,11 +35,13 @@ function mkdirs(path as string) as boolean
     if (not dirPath.IsValid())
         message = "Can't make directory, path is invalid: " + path
         ddLogWarning(message)
-        m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
-            number: 0
-            message: message
-            backtrace: []
-        })
+        if (m.global.datadogRumAgent <> invalid)
+            m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
+                number: 0
+                message: message
+                backtrace: []
+            })
+        end if
         return false
     end if
     folderData = dirPath.Split()
@@ -53,11 +55,13 @@ function mkdirs(path as string) as boolean
     if (not CreateDirectory(path))
         message = "Failed to create directory " + path
         ddLogWarning(message)
-        m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
-            number: 0
-            message: message
-            backtrace: []
-        })
+        if (m.global.datadogRumAgent <> invalid)
+            m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
+                number: 0
+                message: message
+                backtrace: []
+            })
+        end if
         return false
     end if
     return true

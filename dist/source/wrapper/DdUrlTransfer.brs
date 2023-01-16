@@ -89,6 +89,9 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToString()
+        if (not result)
+            return ""
+        end if
         while (true)
             msg = wait(5000, port)
             if (msg <> invalid)
@@ -152,6 +155,9 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToFile(filename)
+        if (not result)
+            return - 1
+        end if
         while (true)
             msg = wait(5000, port)
             if (msg <> invalid)
@@ -187,7 +193,7 @@ function __DdUrlTransfer_builder()
                 end if
             end if
         end while
-        return ""
+        return - 1
     end function
     ' ----------------------------------------------------------------
     ' Uses the HTTP POST method to send the supplied string to the current
@@ -210,6 +216,9 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromString(request)
+        if (not result)
+            return - 1
+        end if
         while (true)
             msg = wait(5000, port)
             if (msg <> invalid)
@@ -242,7 +251,7 @@ function __DdUrlTransfer_builder()
                 end if
             end if
         end while
-        return 0
+        return - 1
     end function
     ' ----------------------------------------------------------------
     ' Uses the HTTP POST method to send the contents of the specified
@@ -266,6 +275,9 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromFile(filename)
+        if (not result)
+            return - 1
+        end if
         while (true)
             msg = wait(5000, port)
             if (msg <> invalid)
@@ -298,7 +310,7 @@ function __DdUrlTransfer_builder()
                 end if
             end if
         end while
-        return 0
+        return - 1
     end function
     ' ----------------------------------------------------------------
     ' Returns the body of the response even if the HTTP status code indicates
