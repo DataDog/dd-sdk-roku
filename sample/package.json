@@ -8,8 +8,8 @@
     "rootDir": "."
   },
   "devDependencies": {
-    "@rokucommunity/bslint": "^0.7.4",
-    "brighterscript": "^0.60.6"
+    "@rokucommunity/bslint": "^0.8.1",
+    "brighterscript": "^0.61.3"
   },
   "dependencies": {
     "datadog-roku": "../"

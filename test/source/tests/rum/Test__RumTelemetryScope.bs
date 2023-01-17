@@ -160,7 +160,6 @@ function RumTelemetryScopeTest__WhenHandleInvalidErrorEvent_ThenDoNothing() as s
     m.global.setField("datadogRumContext", m.fakeRumContext)
 
     ' When
-    eventTimestamp& = datadogroku_getTimestamp()
     m.testedScope@.handleEvent(fakeErrorEvent, m.mockWriter)
 
     ' Then

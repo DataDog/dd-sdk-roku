@@ -368,8 +368,6 @@ class BaseAssert
             number: m.errorCode,
             message: "Expected " + m.actual + " to have substring " + expected + ")"
         }
-
-        return m
     end function
 
     ' ----------------------------------------------------------------
@@ -445,8 +443,6 @@ class BaseAssert
             number: m.errorCode,
             message: "Expected " + TF_Utils__AsString(m.actual) + " to be an associative array but was " + type(m.actual)
         }
-
-        return m
     end function
 
     ' ----------------------------------------------------------------
