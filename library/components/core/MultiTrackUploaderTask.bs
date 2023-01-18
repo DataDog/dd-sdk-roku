@@ -80,6 +80,11 @@ end sub
 ' @return (boolean) if the file is valid for upload
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
+    if (filename.Left(1) = "_")
+        ddLogVerbose("Ignoring file " + filename)
+        return false
+    end if
+
     fileTimestamp& = strToLong(filename)
     uploadTimestamp& = fileTimestamp& + 30000
     currentTimestamp& = getTimestamp()
