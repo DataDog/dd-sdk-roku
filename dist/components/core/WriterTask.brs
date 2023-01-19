@@ -73,7 +73,7 @@ function getWriteableFile(eventSize as integer) as string
     folderExists = m.fileSystem.Exists(folderPath)
     if (not folderExists)
         ddLogVerbose("Folder for track " + m.top.trackType + " doesn't exist")
-        mkdirs(folderPath)
+        mkDirs(folderPath)
     end if
     currentTimestamp& = getTimestamp()
     filenames = ListDir(folderPath).ToArray()

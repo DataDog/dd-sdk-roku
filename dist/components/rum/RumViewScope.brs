@@ -4,8 +4,9 @@
 'import "pkg:/source/datadogSdk.bs"
 'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/timeUtils.bs"
-'import "pkg:/source/rum/rumRawEvents.bs"
 'import "pkg:/source/rum/rumHelper.bs"
+'import "pkg:/source/rum/rumRawEvents.bs"
+'import "pkg:/source/rum/rumSessionState.bs"
 ' ****************************************************************
 ' * RumViewScope: handles the View level
 ' *  - send view updates when required
@@ -25,6 +26,14 @@ sub init()
     m.resourceCount = 0
     datadogRumContext = m.global.datadogRumContext
     datadogRumContext.viewId = m.viewId
+    m.instanceId = (function(datadogRumContext)
+            __bsConsequent = datadogRumContext.instanceId
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return ""
+            end if
+        end function)(datadogRumContext)
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub
 
@@ -411,7 +420,7 @@ end sub
 ' ----------------------------------------------------------------
 sub sendViewUpdate(writer as object)
     timestamp& = getTimestamp()
-    ddLogVerbose("Sending view update")
+    ddLogThread("Sending view update")
     context = getRumContext(invalid)
     m.documentVersionUpdate++
     timeSpentNs& = (timestamp& - m.startTimestamp&) * 1000000 ' convert ms to ns
@@ -454,5 +463,20 @@ sub sendViewUpdate(writer as object)
             }
         }
     }
-    writer.writeEvent = FormatJson(viewEvent)
+    jsonEvent = FormatJson(viewEvent)
+    writer.writeEvent = jsonEvent
+    if (m.instanceId <> invalid and m.instanceId <> "")
+        path = lastViewEventFilePath(m.instanceId)
+        DeleteFile(path)
+        if (context.sessionState = "tracked")
+            ddLogVerbose("Keeping track of the last known view into " + path)
+            viewEvent._dd.lastEvent = true
+            jsonEvent = FormatJson(viewEvent)
+            WriteAsciiFile(path, jsonEvent)
+        else
+            ddLogInfo("Session not tracked, clear last known view")
+        end if
+    else
+        ddLogWarning("Invalid or empty instance id... ignoring for now")
+    end if
 end sub
