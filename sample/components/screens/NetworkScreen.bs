@@ -21,7 +21,6 @@ sub init()
     m.networkLabelList.observeField("itemSelected", "onItemSelected")
 
     list = CreateObject("RoSGNode", "ContentNode")
-    list.role = "content"
     for each item in m.items
         node = list.createChild("ContentNode")
         node.title = item
