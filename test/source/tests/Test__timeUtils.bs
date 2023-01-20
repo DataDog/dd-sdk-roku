@@ -1,0 +1,168 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return A configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__TimeUtils() as object
+    this = BaseTestSuite()
+    this.Name = "TimeUtils"
+
+    this.addTest("WhenGetTimestamp_ThenReturnsTimestampInMilliseconds", TimeUtilsTest__WhenGetTimestamp_ThenReturnsTimestampInMilliseconds)
+
+    this.addTest("WhenNanosToMillis_ThenConvertsToMillis", TimeUtilsTest__WhenNanosToMillis_ThenConvertsToMillis)
+    this.addTest("WhenMillisToNanos_ThenConvertsToNanos", TimeUtilsTest__WhenMillisToNanos_ThenConvertsToNanos)
+    this.addTest("WhenMillisToSecs_ThenConvertsToSeconds", TimeUtilsTest__WhenMillisToSecs_ThenConvertsToSeconds)
+    this.addTest("WhenSecsToNanos_ThenConvertsToNanos", TimeUtilsTest__WhenSecsToNanos_ThenConvertsToNanos)
+    this.addTest("WhenSecsToMillis_ThenConvertsToMillis", TimeUtilsTest__WhenSecsToMillis_ThenConvertsToMillis)
+
+    return this
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenGetTimestamp_ThenReturnsTimestampInMilliseconds() as string
+    ' Given
+    ' hardcoded values to get a valid range
+    timestampMS_1jan2023 = 1672527600000
+    timestampMS_1jan2024 = 1704063600000
+
+    ' When
+    result = datadogroku_getTimestamp()
+
+    ' Then
+    Assert.that(result).isInRange(timestampMS_1jan2023, timestampMS_1jan2024)
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenNanosToMillis_ThenConvertsToMillis() as string
+    ' Given
+    hardcoded = [
+        { ms: 4815, ns: 4815162342 },
+        { ms: 42, ns: 42164851 },
+        { ms: 15, ns: 15764985 },
+        { ms: 1, ns: 1000000 },
+        { ms: 0, ns: 756491 },
+        { ms: 0, ns: 104862 },
+        { ms: 0, ns: 1 },
+        { ms: 0, ns: 0 },
+    ]
+
+    for each testcase in hardcoded
+        ' When
+        result = datadogroku_nanosToMillis(testcase.ns)
+
+        ' Then
+        Assert.that(result).isEqualTo(testcase.ms, "Failed to convert " + testcase.ns.toStr() + "ns to " + testcase.ms.toStr() + "ms (was " + result.toStr() + "ms)")
+    end for
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenMillisToNanos_ThenConvertsToNanos() as string
+    ' Given
+    hardcoded = [
+        { ms: 4815, ns: 4815000000 },
+        { ms: 42, ns: 42000000 },
+        { ms: 15, ns: 15000000 },
+        { ms: 1, ns: 1000000 },
+        { ms: 0, ns: 0 },
+    ]
+
+    for each testcase in hardcoded
+        ' When
+        result = datadogroku_millisToNanos(testcase.ms)
+
+        ' Then
+        Assert.that(result).isEqualTo(testcase.ns, "Failed to convert " + testcase.ms.toStr() + "ms to " + testcase.ns.toStr() + "ns (was " + result.toStr() + "ns)")
+    end for
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenMillisToSecs_ThenConvertsToSeconds() as string
+    ' Given
+    hardcoded = [
+        { ms: 48151623, s: 48151.623 },
+        { ms: 1337, s: 1.337 },
+        { ms: 42, s: 0.042 },
+        { ms: 15, s: 0.015 },
+        { ms: 1, s: 0.001 },
+        { ms: 0, s: 0 },
+    ]
+    offset = 0.01 ' 10 ms threshold for floating point errors
+
+    for each testcase in hardcoded
+        ' When
+        result = datadogroku_millisToSec(testcase.ms)
+
+        ' Then
+        Assert.that(result).isCloseTo(testcase.s, offset, "Failed to convert " + testcase.ms.toStr() + "ms to " + testcase.s.toStr() + "s (was " + result.toStr() + "s)")
+    end for
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenSecsToNanos_ThenConvertsToNanos() as string
+    ' Given
+    hardcoded = [
+        { s: 4.815162342, ns: 4815162342 },
+        { s: 0.1337, ns: 133700000 },
+        { s: 0.042, ns: 42000000 },
+        { s: 0.015, ns: 15000000 },
+        { s: 0.001, ns: 1000000 },
+        { s: 0, ns: 0 },
+    ]
+    offset = 2000000 ' 2 ms threshold because of floating point error
+
+    for each testcase in hardcoded
+        ' When
+        result = datadogroku_secToNanos(testcase.s)
+
+        ' Then
+        Assert.that(result).isCloseTo(testcase.ns, offset, "Failed to convert " + testcase.s.toStr() + "s to " + testcase.ns.toStr() + "ns (was " + result.toStr() + "ns)")
+    end for
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenSecsToMillis_ThenConvertsToMillis() as string
+    ' Given
+    hardcoded = [
+        { ms: 48151623, s: 48151.623 },
+        { ms: 1337, s: 1.337 },
+        { ms: 42, s: 0.042 },
+        { ms: 15, s: 0.015 },
+        { ms: 1, s: 0.001 },
+        { ms: 0, s: 0 },
+    ]
+    offset = 2 ' 2 ms threshold because of floating point error
+
+    for each testcase in hardcoded
+        ' When
+        result = datadogroku_secToMillis(testcase.s)
+
+        ' Then
+        Assert.that(result).isCloseTo(testcase.ms, offset, "Failed to convert " + testcase.s.toStr() + "s to " + testcase.ms.toStr() + "ms (was " + result.toStr() + "ms)")
+    end for
+
+    return ""
+end function

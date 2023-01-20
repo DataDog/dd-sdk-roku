@@ -243,6 +243,45 @@ class BaseAssert
     end function
 
     ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected value to be close to the actual
+    ' @param offset (dynamic) the allowed offset between the actual and expected values
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function isCloseTo(expected as dynamic, offset = Constants.EPSILON as dynamic, msg = "" as string) as BaseAssert
+        if (not TF_Utils__IsNumber(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a number (integer, longinteger, float or double) but was " + type(m.actual)
+            }
+        else if (not TF_Utils__IsNumber(expected))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(expected) + " to be a number (integer, longinteger, float or double) but was " + type(expected)
+            }
+        else if (not TF_Utils__IsNumber(offset))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(offset) + " to be a number (integer, longinteger, float or double) but was " + type(offset)
+            }
+        end if
+
+        diff = Abs(m.actual - expected)
+        if (diff > offset)
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be close to " + TF_Utils__AsString(expected)
+            end if
+
+            throw {
+                number: m.errorCode,
+                message: msg
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
     ' @param msg (string) the error message to use
     ' @return (BaseAssert) this for chaining purposes
     ' ----------------------------------------------------------------
