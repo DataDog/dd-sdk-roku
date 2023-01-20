@@ -1,0 +1,272 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/rum/rumHelper.brs"
+import "pkg:/source/roku_modules/datadogroku/fileUtils.brs"
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return (object) a configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__RumCrashReporterTask() as object
+    this = BaseTestSuite()
+    this.Name = "RumCrashReporterTask"
+
+    this.addTest("WhenReasonIsValid_ThenWriteErrorAndViewEvents", RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenLastViewIsCurrentSession_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenExitreasonInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+
+    return this
+end function
+
+sub RumCrashReporterTaskTest__SetUp()
+    ' Mocks
+    m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
+
+    ' Fake data
+    m.testSuite.fakeInstanceId = IG_GetString(32)
+    m.testSuite.fakeGlobalUserInfo = {
+        id: IG_GetString(16),
+        name: IG_GetString(16),
+        email: IG_GetString(16) + "@" + IG_GetString(16) + ".com"
+    }
+    m.testSuite.fakeGlobalContext = {}
+    for i = 1 to 5
+        m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+        m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' Tested Task
+    m.testSuite.testedTask = CreateObject("roSGNode", "datadogroku_RumCrashReporterTask")
+    m.testSuite.testedTask.writer = m.testSuite.mockWriter
+    m.testSuite.testedTask.instanceId = m.testSuite.fakeInstanceId
+
+    ' Filesystem
+    folder = datadogroku_trackFolderPath("rum")
+    datadogroku_mkDirs(folder)
+end sub
+
+sub RumCrashReporterTaskTest__TearDown()
+    m.testSuite.Delete("mockWriter")
+    m.testSuite.Delete("testedTask")
+end sub
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: last view exists, and exit reason is relevant
+'  Then: writes an error and view events
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents() as string
+    ' Given
+    fakeExitStatus = IG_GetOneOf([
+        "EXIT_BRIGHTSCRIPT_CRASH",
+        "EXIT_BRIGHTSCRIPT_TIMEOUT",
+        "EXIT_GRAPHICS_NOT_RELEASED",
+        "EXIT_SIGNAL_TIMEOUT",
+        "EXIT_OUT_OF_MEMORY",
+        "EXIT_MEM_LIMIT_EXCEEDED_FG",
+        "EXIT_MEM_LIMIT_EXCEEDED_BG"
+    ])
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeExitStatus
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(2)
+    errorEvent = ParseJson(updates[0])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakePreviousViewEvent.application.id)
+    Assert.that(errorEvent.date).isEqualTo(fakePreviousViewEvent.date + 100)
+    Assert.that(errorEvent.service).isEqualTo(fakePreviousViewEvent.service)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isEqualTo(fakePreviousViewEvent.session.id)
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(errorEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
+    Assert.that(errorEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
+    Assert.that(errorEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Channel stopped unexpectedly")
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo("")
+    Assert.that(errorEvent.error.is_crash).isEqualTo(true)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeExitStatus)
+
+    viewEvent = ParseJson(updates[1])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(fakePreviousViewEvent._dd.document_version + 1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakePreviousViewEvent.application.id)
+    Assert.that(viewEvent.date).isEqualTo(fakePreviousViewEvent.date)
+    Assert.that(viewEvent.service).isEqualTo(fakePreviousViewEvent.service)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isEqualTo(fakePreviousViewEvent.session.id)
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo(fakePreviousViewEvent.source)
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(viewEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
+    Assert.that(viewEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
+    Assert.that(viewEvent.view.time_spent).isEqualTo(fakePreviousViewEvent.view.time_spent + 100000000)
+    Assert.that(viewEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
+    Assert.that(viewEvent.view.action.count).isEqualTo(fakePreviousViewEvent.view.action.count)
+    Assert.that(viewEvent.view.error.count).isEqualTo(fakePreviousViewEvent.view.error.count + 1)
+    Assert.that(viewEvent.view.crash.count).isEqualTo(1)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(fakePreviousViewEvent.view.resource.count)
+
+    Assert_that(CreateObject("roFileSystem").Exists(lastViewFilePath)).isFalse("Expected file " + lastViewFilePath + " to be deleted")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: last view exists for current instance
+'  Then: ignore and does nothing
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing() as string
+    ' Given
+    fakeExitStatus = IG_GetOneOf([
+        "EXIT_BRIGHTSCRIPT_CRASH",
+        "EXIT_BRIGHTSCRIPT_TIMEOUT",
+        "EXIT_GRAPHICS_NOT_RELEASED",
+        "EXIT_SIGNAL_TIMEOUT",
+        "EXIT_OUT_OF_MEMORY",
+        "EXIT_MEM_LIMIT_EXCEEDED_FG",
+        "EXIT_MEM_LIMIT_EXCEEDED_BG"
+    ])
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    lastViewFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeExitStatus
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    Assert_that(CreateObject("roFileSystem").Exists(lastViewFilePath)).isTrue("Expected file " + lastViewFilePath + " to be kept")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: last view exists for current instance
+'  Then: ignore and does nothing
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing() as string
+    ' Given
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = IG_GetString(16)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    Assert_that(CreateObject("roFileSystem").Exists(lastViewFilePath)).isFalse("Expected file " + lastViewFilePath + " to be deleted")
+    return ""
+end function
