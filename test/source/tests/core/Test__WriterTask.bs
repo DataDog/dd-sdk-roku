@@ -30,7 +30,7 @@ sub WriterTaskTest__SetUp()
     m.testSuite.fakeSeparator = IG_GetString(2)
 
     m.testSuite.folderPath = datadogroku_trackFolderPath(fakeTrackType)
-    datadogroku_mkdirs(m.testSuite.folderPath)
+    datadogroku_mkDirs(m.testSuite.folderPath)
 
     ' Tested Node
     m.testSuite.testedTask = CreateObject("roSGNode", "datadogroku_WriterTask")
