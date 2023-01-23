@@ -8,12 +8,12 @@ Copyright 2022-Today Datadog, Inc.
 
     <children>
 
-        <ButtonGroup id="debugButtonGroup" translation="[50,200]">
-            <Font role="textFont" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
-            <Font role="focusedTextFont" size="36" uri="pkg:/fonts/FiraCode-Regular.ttf" />
-        </ButtonGroup>
+        <LabelList id="debugLabelList" translation="[64,192]">
+            <Font role="font" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+            <Font role="focusedFont" size="36" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </LabelList>
 
-        <Label id="messageLabel" text="Waiting for input…" translation="[50,900]" color="0xffffff80">
+        <Label id="messageLabel" text="Waiting for input…" translation="[64,896]" color="0xffffff80">
             <Font role="font" size="24" uri="pkg:/fonts/FiraCode-Regular.ttf" />
         </Label>
     </children>

@@ -8,9 +8,7 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/screens/VideoScreen.bs" />
 
     <children>
-
-        <video id="devtube" width="1280" height="720" horizAlignment="center" vertAlignment="center" />
-
+        <video id="devtube" width="1280" height="720" />
     </children>
 </component>
     

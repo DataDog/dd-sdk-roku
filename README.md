@@ -26,7 +26,8 @@ sub init()
         site: "us1", ' replace with the site you're targeting: "us1", "us3", "us5", or "eu1" 
         service: "roku-sample", ' replace with the service name you want to associate with the data collected
         env: "prod" ' replace with the environment you're targeting, e.g.: prod, staging, …
-        sessionSampleRate: 100 ' the percentage (integer) of sessions to track
+        sessionSampleRate: 100, ' the percentage (integer) of sessions to track
+        launchArgs: launchArgs ' the launch arguments passed into the RunUserInterface method, required for crash reporting
     })
 
     ' … your scene initialization here

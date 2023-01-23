@@ -14,6 +14,7 @@ sub RunUserInterface(args as dynamic)
     screen = CreateObject("roSGScreen")
 
     m.global = screen.getGlobalNode()
+    m.global.addFields({ launchArgs: args })
 
     m.port = CreateObject("roMessagePort")
 
