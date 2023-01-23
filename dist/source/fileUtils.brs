@@ -17,13 +17,32 @@ function trackFolderPath(trackType as string, version = 1 as integer) as string
 end function
 
 ' ----------------------------------------------------------------
+' Makes sure the parent folder for the given path exists (e.g. to
+' be able to write to the path)
+' @param path (string) the path to a file or folder
+' @return (string) true if the directory was created or already exists
+' ----------------------------------------------------------------
+function mkParentDirs(path as string) as boolean
+    ddLogVerbose("mkParentDirs(" + path + ")")
+    ' Early exit, path contains invalid chars
+    dirPath = CreateObject("roPath", path)
+    if (not dirPath.IsValid())
+        message = "Can't make parent directory, path is invalid: " + path
+        ddLogWarning(message)
+        return false
+    end if
+    folderData = dirPath.Split()
+    return mkDirs(folderData.parent)
+end function
+
+' ----------------------------------------------------------------
 ' Create a directory (and all intermediate directories), similar
 ' to the `mkdir -p` command in linux
 ' @param path (string) the path to a folder
 ' @return (boolean) true if the directory was created or already exists
 ' ----------------------------------------------------------------
-function mkdirs(path as string) as boolean
-    ddLogVerbose("mkdirs(" + path + ")")
+function mkDirs(path as string) as boolean
+    ddLogVerbose("mkDirs(" + path + ")")
     fileSystem = CreateObject("roFileSystem")
     ' Early exist, dir already exists
     if (fileSystem.Exists(path))
@@ -47,7 +66,7 @@ function mkdirs(path as string) as boolean
     folderData = dirPath.Split()
     ' Ensure parent exists
     if (folderData.parent <> "" and folderData.parent <> (folderData.phy + "/"))
-        if (not mkdirs(folderData.parent))
+        if (not mkDirs(folderData.parent))
             return false
         end if
     end if

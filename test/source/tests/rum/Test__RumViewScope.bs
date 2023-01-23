@@ -2,6 +2,8 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/roku_modules/datadogroku/rum/rumHelper.brs"
+
 '----------------------------------------------------------------
 ' Main setup function.
 ' @return (object) a configured TestSuite object.
@@ -22,6 +24,8 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleStopViewEventTwice_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStopUnknownView_ThenDoNothing", RumViewScopeTest__WhenStopUnknownView_ThenDoNothing, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHanldeViewUpdate_ThenKeepLastKnownViewEvent", RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent", RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddErrorEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -62,6 +66,7 @@ sub RumViewScopeTest__SetUp()
     m.testSuite.mockActionScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
+    m.testSuite.fakeInstanceId = IG_GetString(32)
     m.testSuite.fakeViewName = IG_GetString(16)
     m.testSuite.fakeViewUrl = "https://" + IG_GetString(32)
     m.testSuite.fakeActionId = IG_GetString(32)
@@ -78,6 +83,7 @@ sub RumViewScopeTest__SetUp()
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
     m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
+    m.testSuite.global.setField("datadogRumContext", { instanceId: m.testSuite.fakeInstanceId })
 
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()
@@ -443,6 +449,88 @@ function RumViewScopeTest__WhenStopUnknownView_ThenDoNothing() as string
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     Assert.that(updates).hasSize(0)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (stopView)
+'  Then: writes a last known view event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeInstanceId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        sessionState: "tracked"
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    lastKnownFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
+    Assert_that(CreateObject("roFileSystem").Exists(lastKnownFilePath)).isTrue("Expected file " + lastKnownFilePath + " to still be present")
+
+    viewEvent = ParseJson(ReadAsciiFile(lastKnownFilePath))
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.service).isEqualTo(fakeService)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope in a non tracked session
+'  When: handling an event (stopView)
+'  Then: discard the last known view event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeInstanceId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        sessionState: "not_tracked"
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    lastKnownFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
+    Assert_that(CreateObject("roFileSystem").Exists(lastKnownFilePath)).isFalse("Expected file " + lastKnownFilePath + " to be deleted")
     return ""
 end function
 

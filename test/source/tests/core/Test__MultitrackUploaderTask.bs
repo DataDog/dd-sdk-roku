@@ -24,6 +24,7 @@ function TestSuite__MultiTrackUploaderTask() as object
     this.addTest("WhenInit_UploadsExistingFile_5xx", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_5xx, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
 
     this.addTest("WhenInit_IgnoreRecentFile", MultiTrackUploaderTaskTest__WhenInit_IgnoreRecentFile, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+    this.addTest("WhenInit_IgnoreLastEventFile", MultiTrackUploaderTaskTest__WhenInit_IgnoreLastEventFile, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadFilesFromMultipleTracks", MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
 
     this.testUploader = __testUploader
@@ -183,7 +184,7 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_5xx() as strin
 end function
 
 '----------------------------------------------------------------
-' Given: an uploader and a non-uploadable file
+' Given: an uploader and a non-uploadable file (too recent)
 '  When: waiting for the loop to run
 '  Then: the file is not uploaded and kept
 '----------------------------------------------------------------
@@ -193,7 +194,29 @@ function MultiTrackUploaderTaskTest__WhenInit_IgnoreRecentFile() as string
     currentTimeStamp& = datadogroku_getTimestamp()
     filePath = folderPath + "/" + currentTimeStamp&.toStr()
     m.mockNetworkClient@.stubCall("postFromFile", {}, 202)
-    datadogroku_mkdirs(folderPath)
+    datadogroku_mkDirs(folderPath)
+    WriteAsciiFile(filePath, IG_GetString(128))
+
+    ' When
+    sleep(100)
+
+    ' Then
+    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    return m.mockNetworkClient@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: an uploader and a non-uploadable file (filename doesn't match)
+'  When: waiting for the loop to run
+'  Then: the file is not uploaded and kept
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenInit_IgnoreLastEventFile() as string
+    ' Given
+    folderPath = datadogroku_trackFolderPath(m.fakeTrackType)
+    fakeId = IG_GetString(16)
+    filePath = folderPath + "/_last_view_" + fakeId
+    m.mockNetworkClient@.stubCall("postFromFile", {}, 202)
+    datadogroku_mkDirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
 
     ' When
@@ -235,8 +258,8 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as
     expectedCallArgs1 = { filePath: filePath1, headers: expectedHeaders1, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
     expectedCallArgs2 = { url: fakeUrl2, filePath: filePath2, headers: expectedHeaders2, payloadPrefix: fakePrefix2, payloadPostfix: fakePostfix2 }
     m.mockNetworkClient@.stubCall("postFromFile", {}, 202)
-    datadogroku_mkdirs(folderPath1)
-    datadogroku_mkdirs(folderPath2)
+    datadogroku_mkDirs(folderPath1)
+    datadogroku_mkDirs(folderPath2)
     WriteAsciiFile(filePath1, IG_GetString(128))
     WriteAsciiFile(filePath2, IG_GetString(128))
 
@@ -267,7 +290,7 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
     expectedHeaders = __buildExpectedHeaders(m.fakeClientToken, m.fakeContentType)
     expectedCallArgs = { filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
     m.mockNetworkClient@.stubCall("postFromFile", expectedCallArgs, statusCode)
-    datadogroku_mkdirs(folderPath)
+    datadogroku_mkDirs(folderPath)
     WriteAsciiFile(filePath, IG_GetString(128))
     datadogroku_ddLogInfo("Wrote data at " + filePath)
 

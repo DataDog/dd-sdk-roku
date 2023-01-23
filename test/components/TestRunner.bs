@@ -12,6 +12,7 @@ import "pkg:/source/testFramework/UTF.brs"
 import "pkg:/source/asserts/Asserts.bs"
 
 import "pkg:/source/tests/Test__fileUtils.bs"
+import "pkg:/source/tests/Test__timeUtils.bs"
 import "pkg:/source/tests/Test__datadog.bs"
 import "pkg:/source/tests/core/Test__MultitrackUploaderTask.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"
@@ -21,7 +22,9 @@ import "pkg:/source/tests/rum/Test__RumAgent.bs"
 import "pkg:/source/tests/rum/Test__RumApplicationScope.bs"
 import "pkg:/source/tests/rum/Test__RumSessionScope.bs"
 import "pkg:/source/tests/rum/Test__RumViewScope.bs"
+import "pkg:/source/tests/rum/Test__RumViewScope.bs"
 import "pkg:/source/tests/rum/Test__RumTelemetryScope.bs"
+import "pkg:/source/tests/rum/Test__RumCrashReporterTask.bs"
 
 import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
 import "pkg:/source/roku_modules/datadogroku/fileUtils.brs"
@@ -48,6 +51,7 @@ sub runTests()
     Runner.SetFunctions([
         TestSuite__Datadog,
         TestSuite__FileUtils,
+        TestSuite__TimeUtils,
         TestSuite__MultiTrackUploaderTask
         TestSuite__WriterTask,
         TestSuite__RumAgent,
@@ -56,6 +60,7 @@ sub runTests()
         TestSuite__RumActionScope,
         TestSuite__RumViewScope,
         TestSuite__RumTelemetryScope,
+        TestSuite__RumCrashReporterTask,
         TestSuite__LogsAgent
     ])
 

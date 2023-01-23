@@ -70,11 +70,16 @@ sub uploadAvailableFilesForTrack(trackInfo as object)
 end sub
 
 ' ----------------------------------------------------------------
-' Verify if the given file is uploadable
+' Verify if the given file is uploadable, meaning it's name is a timestamp,
+' and it's old enough that no writer will attempt appending data in it.
 ' @param path (string) the path of the file to upload
 ' @return (boolean) if the file is valid for upload
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
+    if (filename.Left(1) = "_")
+        ddLogVerbose("Ignoring file " + filename)
+        return false
+    end if
     fileTimestamp& = strToLong(filename)
     uploadTimestamp& = fileTimestamp& + 30000
     currentTimestamp& = getTimestamp()

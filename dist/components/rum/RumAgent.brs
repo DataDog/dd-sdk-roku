@@ -2,6 +2,7 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 'import "pkg:/source/rum/rumRawEvents.bs"
+'import "pkg:/source/rum/rumHelper.bs"
 'import "pkg:/source/datadogSdk.bs"
 'import "pkg:/source/internalLogger.bs"
 ' *****************************************************************
@@ -24,9 +25,10 @@ end sub
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
     ddLogThread("RumAgent.rumAgentLoop()")
+    ensureSetup()
+    sendCrash(m.top.lastExitOrTerminationReason)
     while (true)
         msg = wait(m.top.keepAliveDelayMs, m.port)
-        ensureSetup()
         m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
         msgType = type(msg)
         if (msgType <> "Invalid")
@@ -89,6 +91,20 @@ sub addResource(resource as object)
 end sub
 
 ' ----------------------------------------------------------------
+' Sends a crash report from a previous view
+' @param lastExitOrTerminationReason (object) the lastExitOrTerminationReason parameter
+' from the channel's RunUserInterface
+' ----------------------------------------------------------------
+sub sendCrash(lastExitOrTerminationReason as string)
+    ensureSetup()
+    crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
+    crashReporter.writer = m.top.writer
+    crashReporter.lastExitOrTerminationReason = lastExitOrTerminationReason
+    crashReporter.instanceId = m.instanceId
+    crashReporter.control = "RUN"
+end sub
+
+' ----------------------------------------------------------------
 ' Adds a telemetry config event
 ' @param configuration (object) the configuration information
 ' ----------------------------------------------------------------
@@ -134,17 +150,20 @@ end sub
 ' ----------------------------------------------------------------
 sub ensureRumScope()
     if (m.top.rumScope = invalid)
-        ddLogVerbose("Creating RumApplicationScope")
-        m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        m.top.rumScope.applicationId = m.top.applicationId
-        m.top.rumScope.service = m.top.service
-        m.top.rumScope.sessionSampleRate = m.top.sessionSampleRate
+        m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
+        ddLogWarning("RumViewScope.instanceId:" + m.instanceId)
         m.global.addFields({
             datadogRumContext: {}
         })
         datadogRumContext = m.global.datadogRumContext
         datadogRumContext.applicationId = m.top.applicationId
+        datadogRumContext.instanceId = m.instanceId
         m.global.setField("datadogRumContext", datadogRumContext)
+        ddLogVerbose("Creating RumApplicationScope")
+        m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
+        m.top.rumScope.applicationId = m.top.applicationId
+        m.top.rumScope.service = m.top.service
+        m.top.rumScope.sessionSampleRate = m.top.sessionSampleRate
     end if
 end sub
 
