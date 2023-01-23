@@ -16,10 +16,6 @@
 sub initialize(configuration as object)
 
     launchArgs = configuration.launchArgs ?? {}
-    print "Launch args:"
-    for each key in configuration.launchArgs
-        print key; " -> "; configuration.launchArgs[key]; " ["; type(key); "]"
-    end for
 
     ' Standard global fields
     m.global.addFields({

@@ -22,10 +22,6 @@ sub initialize(configuration as object)
                 return {}
             end if
         end function)(configuration)
-    print "Launch args:"
-    for each key in configuration.launchArgs
-        print key; " -> "; configuration.launchArgs[key]; " ["; type(key); "]"
-    end for
     ' Standard global fields
     m.global.addFields({
         datadogVerbosity: 0

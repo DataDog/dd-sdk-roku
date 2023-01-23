@@ -35,6 +35,7 @@ sub sendCrashReport()
     for each status in unexpectedExitStatus
         if (m.top.lastExitOrTerminationReason = status)
             keep = true
+            exit for
         end if
     end for
     if (not keep)
@@ -44,7 +45,7 @@ sub sendCrashReport()
     filenames = ListDir(folderPath)
     for each filename in filenames
         filePath = folderPath + "/" + filename
-        ddLogVerbose("RumCrashreporterTask, checking file: " + filename)
+        ddLogVerbose("RumCrashReporterTask, checking file: " + filename)
         if (filePath = currentSessionlastViewEventFilePath)
             ddLogVerbose("Ignoring current session file: " + filename)
         else if (filename.Left(10) = "_last_view")
@@ -56,7 +57,7 @@ sub sendCrashReport()
             DeleteFile(filePath)
         end if
     end for
-    ddLogVerbose("RumCrashreporterTask, all checks done")
+    ddLogVerbose("RumCrashReporterTask, all checks done")
 end sub
 
 ' ----------------------------------------------------------------
@@ -77,11 +78,9 @@ sub sendCrashReportFromViewEventFile(filepath as string)
         ddLogError(lastViewEventJson)
         return
     end if
-    print "LastView:"; lastViewEvent
-    timeSpentNs& = lastViewEvent.view.time_spent + 100000000 ' 100 ms after last known timestamp
+    timeSpentNs& = lastViewEvent.view.time_spent + millisToNanos(100) ' 100 ms after last known timestamp
     timeSpentMs& = nanosToMillis(timeSpentNs&)
     timestamp& = timeSpentMs& + lastViewEvent.date
-    print "estimated timestamp: "; timestamp&
     crashEvent = {
         _dd: {
             format_version: 2
@@ -119,7 +118,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
             name: lastViewEvent.view.name
         }
     }
-    ddLogInfo("RumCrashreporterTask, writing crash")
+    ddLogInfo("RumCrashReporterTask, writing crash")
     m.top.writer.writeEvent = FormatJson(crashEvent)
     sleep(50)
     lastViewEvent._dd.document_version = lastViewEvent._dd.document_version + 1
@@ -130,6 +129,6 @@ sub sendCrashReportFromViewEventFile(filepath as string)
         count: 1
     }
     lastViewEvent.view.time_spent = timeSpentNs&
-    ddLogInfo("RumCrashreporterTask, writing view update")
+    ddLogInfo("RumCrashReporterTask, writing view update")
     m.top.writer.writeEvent = FormatJson(lastViewEvent)
 end sub
