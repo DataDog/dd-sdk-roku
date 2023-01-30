@@ -3,7 +3,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022-Today Datadog, Inc.
 
-# usage: build.sh folder
+# usage: build.sh folder...
 
 cwd=`pwd` 
 
