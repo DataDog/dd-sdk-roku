@@ -68,6 +68,7 @@ sub initialize(configuration as object)
                 end if
             end function)(configuration)
         m.global.datadogRumAgent.lastExitOrTerminationReason = launchArgs.lastExitOrTerminationReason
+        m.global.datadogRumAgent.configuration = configuration
     end if
     if (m.global.datadogLogsAgent = invalid)
         ddLogInfo("No Logs agent, creating one")
@@ -80,7 +81,6 @@ sub initialize(configuration as object)
         m.global.datadogLogsAgent.env = configuration.env
         m.global.datadogLogsAgent.uploader = m.global.datadogUploader
     end if
-    m.global.datadogRumAgent.callfunc("addConfigTelemetry", configuration)
 end sub
 ' ----------------------------------------------------------------
 ' The available track types for the uploader/writer
