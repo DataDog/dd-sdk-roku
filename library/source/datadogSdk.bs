@@ -49,6 +49,7 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
         m.global.datadogRumAgent.sessionSampleRate = configuration.sessionSampleRate ?? 100
         m.global.datadogRumAgent.lastExitOrTerminationReason = launchArgs.lastExitOrTerminationReason
+        m.global.datadogRumAgent.configuration = configuration
     end if
 
     if (m.global.datadogLogsAgent = invalid)
@@ -60,8 +61,6 @@ sub initialize(configuration as object)
         m.global.datadogLogsAgent.env = configuration.env
         m.global.datadogLogsAgent.uploader = m.global.datadogUploader
     end if
-
-    m.global.datadogRumAgent@.addConfigTelemetry(configuration)
 end sub
 
 ' ----------------------------------------------------------------

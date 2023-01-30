@@ -18,7 +18,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="service" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
         <field id="sessionSampleRate" type="integer" value="100" />
-        <field id="lastExitOrTerminationReason" type="string" />
+        <field id="lastExitOrTerminationReason" type="string" value=""/>
+        <field id="configuration" type="assocarray" value="{}"/>
 
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />
