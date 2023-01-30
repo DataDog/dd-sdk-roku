@@ -7,6 +7,7 @@ roku_modules
 # NPM
 node_modules
 package-lock.json
+.npmrc
 
 # Visual Studio Code
 .vscode
