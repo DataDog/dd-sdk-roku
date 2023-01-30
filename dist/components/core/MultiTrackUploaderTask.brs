@@ -64,6 +64,8 @@ sub uploadAvailableFilesForTrack(trackInfo as object)
                 requestId = m.deviceInfo.GetRandomUUID()
                 responseCode = uploadFile(filePath, trackInfo, requestId)
                 handleResponse(requestId, responseCode, filePath, trackInfo)
+            else
+                ddLogVerbose("Ignoring file " + filename)
             end if
         end for
     end if
@@ -77,7 +79,6 @@ end sub
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
     if (filename.Left(1) = "_")
-        ddLogVerbose("Ignoring file " + filename)
         return false
     end if
     fileTimestamp& = strToLong(filename)

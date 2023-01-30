@@ -204,7 +204,10 @@ sub ensureUploader()
         payloadPrefix: ""
         payloadPostfix: ""
         contentType: "text/plain;charset=UTF-8"
-        queryParams: {}
+        queryParams: {
+            ddsource: agentSource()
+            ddtags: "sdk_version:" + sdkVersion()
+        }
     }
     uploader.tracks = tracks
     uploader.clientToken = m.top.clientToken
