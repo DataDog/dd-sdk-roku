@@ -14,6 +14,13 @@
 ropm install datadogroku
 ```
 
+### Setup manually
+
+If your project does not use `ROPM`, install the library manually by downloading the [Roku SDK][5] zip archive, 
+and unzipping it in your project's root folder.
+
+Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your projet.
+
 ### Configure Datadog
 
 To configure the Datadog SDK, copy the following code snippet into the `init()` method of the `Scene`: 
@@ -224,3 +231,4 @@ Pull requests are welcome. First, open an issue to discuss what you would like t
 [2]: https://app.datadoghq.com/rum/explorer?query=%40type%3Asession%20source%3Aroku
 [3]: https://app.datadoghq.com/logs?query=source%3Aroku
 [4]: https://docs.datadoghq.com/real_user_monitoring/
+[5]: https://github.com/DataDog/dd-sdk-roku/releases/latest
