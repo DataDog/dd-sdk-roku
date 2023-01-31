@@ -16,10 +16,10 @@ ropm install datadogroku
 
 ### Setup manually
 
-If your project doesn't use `ROPM`, you can install the library manually by downloading the [Roku SDK][5] zip archive, 
+If your project does not use `ROPM`, install the library manually by downloading the [Roku SDK][5] zip archive, 
 and unzipping it in your project's root folder.
 
-Make sure that you do have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your projet.
+Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your projet.
 
 ### Configure Datadog
 
