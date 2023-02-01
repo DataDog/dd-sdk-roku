@@ -45,6 +45,8 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAddActionEvent_ThenCreateChildScope", RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddSecondActionEvent_ThenIgnore", RumViewScopeTest__WhenHandleAddSecondActionEvent_ThenIgnore, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddSecondActionEventAfterTimeout_ThenCreateChildScope", RumViewScopeTest__WhenHandleAddSecondActionEventAfterTimeout_ThenCreateChildScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddCustomActionEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddCustomActionEventWithUserInfo_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithUserInfo_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -1488,6 +1490,58 @@ function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as st
     Assert.that(actionScope.subType()).isEqualTo("datadogroku_RumActionScope")
     Assert.that(actionScope.target).isEqualTo(fakeAction.target)
     Assert.that(actionScope.actionType).isEqualTo(fakeAction.type)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addAction then another action)
+'  Then: create a child action scope
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddSecondActionEvent_ThenIgnore() as string
+    ' Given
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeAction2 = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeEvent2 = { mock: "event", eventType: "addAction", action: fakeAction2 }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent2, m.mockWriter)
+
+    ' Then
+    actionScope = m.testedScope.activeAction
+    Assert.that(type(actionScope)).isEqualTo("roSGNode")
+    Assert.that(actionScope.subType()).isEqualTo("datadogroku_RumActionScope")
+    Assert.that(actionScope.target).isEqualTo(fakeAction.target)
+    Assert.that(actionScope.actionType).isEqualTo(fakeAction.type)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addAction then another action after a timeout period)
+'  Then: create a child action scope
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddSecondActionEventAfterTimeout_ThenCreateChildScope() as string
+    ' Given
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeAction2 = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeEvent2 = { mock: "event", eventType: "addAction", action: fakeAction2 }
+    timeoutMs = 100 + IG_GetInteger(50)
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    sleep(timeoutMs)
+    m.testedScope@.handleEvent(fakeEvent2, m.mockWriter)
+
+    ' Then
+    actionScope = m.testedScope.activeAction
+    Assert.that(type(actionScope)).isEqualTo("roSGNode")
+    Assert.that(actionScope.subType()).isEqualTo("datadogroku_RumActionScope")
+    Assert.that(actionScope.target).isEqualTo(fakeAction2.target)
+    Assert.that(actionScope.actionType).isEqualTo(fakeAction2.type)
     return ""
 end function
 

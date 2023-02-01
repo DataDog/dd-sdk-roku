@@ -213,7 +213,7 @@ sub addAction(action as object, writer as object)
     ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, writer)
-    else
+    else if (m.top.activeAction = invalid)
         m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
         m.top.activeAction.target = action.target
         m.top.activeAction.actionType = action.type
