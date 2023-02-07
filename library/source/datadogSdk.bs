@@ -99,6 +99,43 @@ function sdkVersion() as string
 end function
 
 ' ----------------------------------------------------------------
+' @return (string) the service name of the host channel
+' (read from the manifest)
+' ----------------------------------------------------------------
+function channelServiceName() as string
+    title = LCase(CreateObject("roAppInfo").GetTitle()) ' use lowercase version of title
+    titleLen = title.Len()
+    serviceName = ""
+
+    for i = 1 to (titleLen)
+        c = Asc(Mid(title, i, 1))
+        ' allowed characters :
+        '   - 45
+        '   "." 46
+        '   / 47
+        '   "0-9" 48 to 57
+        '   ":" 58
+        '   "_" 95
+        '   "a-z" 97 to 122
+        if (c < 45 or (c > 58 and c < 95) or c = 96 or c > 122)
+            serviceName = serviceName + "_"
+        else
+            serviceName = serviceName + chr(c)
+        end if
+    end for
+
+    return serviceName
+end function
+
+' ----------------------------------------------------------------
+' @return (string) the version of the host channel
+' (read from the manifest)
+' ----------------------------------------------------------------
+function channelVersion() as string
+    return CreateObject("roAppInfo").GetVersion()
+end function
+
+' ----------------------------------------------------------------
 ' @return (string) the source to report in events
 ' ----------------------------------------------------------------
 function agentSource() as string

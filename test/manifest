@@ -2,7 +2,8 @@
 # manifest is a key=value properties file
 
 # Required Identity
-title=Datadog_test
+# The title is used in the tests to check sanitization of service names
+title=Datadog "TEST-channel" 42.1/k!
 major_version=4
 minor_version=8
 build_version=15
