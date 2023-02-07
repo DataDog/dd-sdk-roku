@@ -92,7 +92,7 @@ function getWriteableFile(eventSize as integer) as string
         uploadTimestamp& = fileTimestamp& + 25000
         if ((uploadTimestamp& > currentTimestamp&))
             lastFilePath = folderPath + "/" + lastFilename
-            lastFileSize = m.fileSystem.Stat(lastFilePath).size
+            lastFileSize = m.fileSystem.Stat(lastFilePath).size ?? m.top.maxBatchSize
             if (lastFileSize + m.top.payloadSeparator.Len() + eventSize < m.top.maxBatchSize)
                 return folderPath + "/" + lastFilename
             end if
