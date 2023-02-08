@@ -11,7 +11,6 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    m.applicationVersion = CreateObject("roAppInfo").GetVersion()
 end sub
 
 ' ----------------------------------------------------------------
@@ -23,7 +22,7 @@ function getRumContext(_ph as dynamic) as object
     return {
         applicationId: m.top.applicationId,
         service: m.top.service,
-        applicationVersion: m.applicationVersion
+        applicationVersion: m.top.version
     }
 end function
 

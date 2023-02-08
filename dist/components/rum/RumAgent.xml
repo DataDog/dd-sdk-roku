@@ -5,6 +5,7 @@
         <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
+        <field id="version" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value="" />

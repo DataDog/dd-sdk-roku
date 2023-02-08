@@ -15,7 +15,6 @@
 ' ----------------------------------------------------------------
 sub init()
     ddLogThread("LogsAgent.init()")
-    m.applicationVersion = CreateObject("roAppInfo").GetVersion()
 end sub
 
 ' ----------------------------------------------------------------
@@ -128,7 +127,7 @@ sub sendLog(status as object, message as string, attributes as object)
     ensureSetup()
     logEvent = {
         date: timestamp&
-        ddtags: "env:" + m.top.env + ",version:" + m.applicationVersion
+        ddtags: "env:" + m.top.env + ",version:" + m.top.version
         message: message
         status: status
         service: m.top.service

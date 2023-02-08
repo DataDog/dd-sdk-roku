@@ -16,6 +16,8 @@
 sub initialize(configuration as object)
 
     launchArgs = configuration.launchArgs ?? {}
+    service = configuration.service ?? channelServiceName()
+    version = configuration.version ?? channelVersion()
 
     ' Standard global fields
     m.global.addFields({
@@ -23,7 +25,6 @@ sub initialize(configuration as object)
         datadogContext: {},
         datadogUserInfo: {}
     })
-
 
     if (configuration.clientToken = invalid or configuration.clientToken = "")
         ddLogError("Trying to initialize the Datadog SDK without a Client Token, please check your configuration.")
@@ -45,7 +46,8 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.site = configuration.site
         m.global.datadogRumAgent.clientToken = configuration.clientToken
         m.global.datadogRumAgent.applicationId = configuration.applicationId
-        m.global.datadogRumAgent.service = configuration.service ?? "roku"
+        m.global.datadogRumAgent.service = service
+        m.global.datadogRumAgent.version = version
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
         m.global.datadogRumAgent.sessionSampleRate = configuration.sessionSampleRate ?? 100
         m.global.datadogRumAgent.lastExitOrTerminationReason = launchArgs.lastExitOrTerminationReason

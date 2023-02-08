@@ -22,6 +22,22 @@ sub initialize(configuration as object)
                 return {}
             end if
         end function)(configuration)
+    service = (function(channelServiceName, configuration)
+            __bsConsequent = configuration.service
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return channelServiceName()
+            end if
+        end function)(channelServiceName, configuration)
+    version = (function(channelVersion, configuration)
+            __bsConsequent = configuration.version
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return channelVersion()
+            end if
+        end function)(channelVersion, configuration)
     ' Standard global fields
     m.global.addFields({
         datadogVerbosity: 0
@@ -50,14 +66,8 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.site = configuration.site
         m.global.datadogRumAgent.clientToken = configuration.clientToken
         m.global.datadogRumAgent.applicationId = configuration.applicationId
-        m.global.datadogRumAgent.service = (function(configuration)
-                __bsConsequent = configuration.service
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return "roku"
-                end if
-            end function)(configuration)
+        m.global.datadogRumAgent.service = service
+        m.global.datadogRumAgent.version = version
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
         m.global.datadogRumAgent.sessionSampleRate = (function(configuration)
                 __bsConsequent = configuration.sessionSampleRate

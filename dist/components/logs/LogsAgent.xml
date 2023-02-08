@@ -4,6 +4,7 @@
         <field id="site" type="string" value="us1" />
         <field id="clientToken" type="string" />
         <field id="service" type="string" />
+        <field id="version" type="string" />
         <field id="env" type="string" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />

@@ -165,6 +165,7 @@ sub ensureRumScope()
         m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
         m.top.rumScope.applicationId = m.top.applicationId
         m.top.rumScope.service = m.top.service
+        m.top.rumScope.version = m.top.version
         m.top.rumScope.sessionSampleRate = m.top.sessionSampleRate
     end if
 end sub

@@ -24,11 +24,13 @@ sub RumApplicationScopeTest__SetUp()
     ' Fake data
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
+    m.testSuite.fakeVersion = IG_GetString(32)
 
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumApplicationScope")
     m.testSuite.testedScope.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedScope.service = m.testSuite.fakeService
+    m.testSuite.testedScope.version = m.testSuite.fakeVersion
 end sub
 
 sub RumApplicationScopeTest__TearDown()
@@ -69,7 +71,7 @@ function RumApplicationScopeTest__WhenGetContext_ThenReturnsContext() as string
     ' Then
     Assert.that(context.applicationId).isEqualTo(m.fakeApplicationId)
     Assert.that(context.service).isEqualTo(m.fakeService)
-    Assert.that(context.applicationVersion).isEqualTo("4.8.15")
+    Assert.that(context.applicationVersion).isEqualTo(m.fakeVersion)
     return ""
 end function
 
