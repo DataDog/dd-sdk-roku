@@ -28,7 +28,6 @@ sub init()
         clientToken: credentials.datadogClientToken,
         applicationId: credentials.datadogApplicationId,
         site: credentials.site,
-        service: "roku-sample",
         env: "prod",
         launchArgs: m.global.launchArgs
     })
