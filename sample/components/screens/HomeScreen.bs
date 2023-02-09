@@ -9,5 +9,12 @@ import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
     datadogroku_ddLogThread("HomeScreen.init()")
-    
+
+    m.msgLabel = m.top.findNode("messageLabel")
+
+    m.top.observeField("focusedChild", "onFocused")
+end sub
+
+sub onFocused()
+    m.msgLabel.text = "Sending data to org " + m.global.datadogOrgName + " (" + m.global.datadogSite + "/" + m.global.datadogOrgId.toStr() + ")"
 end sub

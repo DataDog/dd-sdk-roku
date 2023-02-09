@@ -21,20 +21,6 @@ sub init()
     m.videoScreen = m.top.findNode("videoScreen")
     m.networkScreen = m.top.findNode("networkScreen")
     m.debugScreen = m.top.findNode("debugScreen")
-
-    credentials = parseJson(readAsciiFile("pkg:/credentials.json"))
-    m.global.addFields(credentials)
-    datadogroku_initialize({
-        clientToken: credentials.datadogClientToken,
-        applicationId: credentials.datadogApplicationId,
-        site: credentials.site,
-        env: "prod",
-        launchArgs: m.global.launchArgs
-    })
-
-    m.global.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com" })
-    m.global.setField("datadogContext", { channel: "roku sample channel" })
-    m.global.setField("datadogVerbosity", 5)
     switchScreen("home")
 end sub
 
@@ -73,8 +59,12 @@ sub switchScreen(name as string)
     m.debugScreen.setFocus(false)
     m.debugLabel.color = "0xffffff80"
 
-    m.global.datadogLogsAgent@.logOk("Switching screen to " + name, { screen: name })
-    m.global.datadogRumAgent@.startView(name, "components/screens/" + name + ".xml")
+    if (m.global.datadogLogsAgent <> invalid)
+        m.global.datadogLogsAgent@.logOk("Switching screen to " + name, { screen: name })
+    end if
+    if (m.global.datadogRumAgent <> invalid)
+        m.global.datadogRumAgent@.startView(name, "components/screens/" + name + ".xml")
+    end if
 
     getScreenByName(name).visible = true
     getScreenByName(name).setFocus(true)
