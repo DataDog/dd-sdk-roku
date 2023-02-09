@@ -22,6 +22,22 @@ sub initialize(configuration as object)
                 return {}
             end if
         end function)(configuration)
+    service = (function(channelServiceName, configuration)
+            __bsConsequent = configuration.service
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return channelServiceName()
+            end if
+        end function)(channelServiceName, configuration)
+    version = (function(channelVersion, configuration)
+            __bsConsequent = configuration.version
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return channelVersion()
+            end if
+        end function)(channelVersion, configuration)
     ' Standard global fields
     m.global.addFields({
         datadogVerbosity: 0
@@ -50,14 +66,8 @@ sub initialize(configuration as object)
         m.global.datadogRumAgent.site = configuration.site
         m.global.datadogRumAgent.clientToken = configuration.clientToken
         m.global.datadogRumAgent.applicationId = configuration.applicationId
-        m.global.datadogRumAgent.service = (function(configuration)
-                __bsConsequent = configuration.service
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return "roku"
-                end if
-            end function)(configuration)
+        m.global.datadogRumAgent.service = service
+        m.global.datadogRumAgent.version = version
         m.global.datadogRumAgent.uploader = m.global.datadogUploader
         m.global.datadogRumAgent.sessionSampleRate = (function(configuration)
                 __bsConsequent = configuration.sessionSampleRate
@@ -104,6 +114,41 @@ end function
 ' ----------------------------------------------------------------
 function sdkVersion() as string
     return "1.0.0-dev"
+end function
+
+' ----------------------------------------------------------------
+' @return (string) the service name of the host channel
+' (read from the manifest)
+' ----------------------------------------------------------------
+function channelServiceName() as string
+    title = LCase(CreateObject("roAppInfo").GetTitle()) ' use lowercase version of title
+    titleLen = title.Len()
+    serviceName = ""
+    for i = 1 to (titleLen)
+        c = Asc(Mid(title, i, 1))
+        ' allowed characters :
+        '   - 45
+        '   "." 46
+        '   / 47
+        '   "0-9" 48 to 57
+        '   ":" 58
+        '   "_" 95
+        '   "a-z" 97 to 122
+        if (c < 45 or (c > 58 and c < 95) or c = 96 or c > 122)
+            serviceName = serviceName + "_"
+        else
+            serviceName = serviceName + chr(c)
+        end if
+    end for
+    return serviceName
+end function
+
+' ----------------------------------------------------------------
+' @return (string) the version of the host channel
+' (read from the manifest)
+' ----------------------------------------------------------------
+function channelVersion() as string
+    return CreateObject("roAppInfo").GetVersion()
 end function
 
 ' ----------------------------------------------------------------

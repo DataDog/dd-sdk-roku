@@ -2,10 +2,10 @@
 # manifest is a key=value properties file
 
 # Required Identity
-title=Datadog_sample
+title=Datadog Sample
 major_version=1
-minor_version=0
-build_version=0
+minor_version=2
+build_version=3
 
 # Required images (need to be bundled in the images folder)
 mm_icon_focus_sd=pkg:/images/mm_icon_focus_sd.jpg

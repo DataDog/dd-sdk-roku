@@ -10,6 +10,9 @@ function TestSuite__Datadog() as object
     this = BaseTestSuite()
     this.Name = "Datadog"
 
+    this.addTest("WhenGetChannelServiceName_ThenReturnServiceName", DatadogTest__WhenGetChannelServiceName_ThenReturnServiceName)
+    this.addTest("WhenGetChannelVersion_ThenReturnVersion", DatadogTest__WhenGetChannelVersion_ThenReturnVersion)
+
     this.addTest("WhenGetEndpointUS1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUS1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointUS3_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUS3_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointUS5_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUS5_ThenCreateEndpoint)
@@ -21,6 +24,35 @@ function TestSuite__Datadog() as object
     this.addTest("WhenGetEndpointRumUnknown_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint)
 
     return this
+end function
+
+'----------------------------------------------------------------
+' Given: a channel
+'  When: asking for the channel service name
+'  Then: the sanitized service from the manifest
+'----------------------------------------------------------------
+function DatadogTest__WhenGetChannelServiceName_ThenReturnServiceName() as string
+    ' When
+    serviceName = datadogRoku_channelServiceName()
+
+    ' Then
+    Assert.that(serviceName).isEqualTo("datadog__test-channel__42.1/k_")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a channel
+'  When: asking for the channel version
+'  Then: the correct version from the manifest
+'----------------------------------------------------------------
+function DatadogTest__WhenGetChannelVersion_ThenReturnVersion() as string
+
+    ' When
+    version = datadogRoku_channelVersion()
+
+    ' Then
+    Assert.that(version).isEqualTo("4.8.15")
+    return ""
 end function
 
 '----------------------------------------------------------------
