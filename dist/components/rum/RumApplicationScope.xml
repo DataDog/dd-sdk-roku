@@ -6,6 +6,8 @@
         <field id="version" type="string" />
         <field id="deviceName" type="string" />
         <field id="deviceModel" type="string" />
+        <field id="osVersion" type="string" />
+        <field id="osVersionMajor" type="string" />
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="sessionScope" type="node" />
     </interface>

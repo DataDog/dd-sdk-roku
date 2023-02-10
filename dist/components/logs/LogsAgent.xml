@@ -8,6 +8,8 @@
         <field id="env" type="string" />
         <field id="deviceName" type="string" />
         <field id="deviceModel" type="string" />
+        <field id="osVersion" type="string" />
+        <field id="osVersionMajor" type="string" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <function name="logOk" />

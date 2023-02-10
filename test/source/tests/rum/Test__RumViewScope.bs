@@ -70,6 +70,8 @@ sub RumViewScopeTest__SetUp()
     ' Fake data
     m.testSuite.fakeDeviceModel = IG_GetString(16)
     m.testSuite.fakeDeviceName = IG_GetString(16)
+    m.testSuite.fakeOsVersion = IG_GetString(16)
+    m.testSuite.fakeOsVersionMajor = IG_GetString(16)
     m.testSuite.fakeInstanceId = IG_GetString(32)
     m.testSuite.fakeViewName = IG_GetString(16)
     m.testSuite.fakeViewUrl = "https://" + IG_GetString(32)
@@ -135,7 +137,9 @@ function RumViewScopeTest__WhenGetContext_ThenReturnsContext() as string
         applicationVersion: fakeVersion,
         sessionId: fakeSessionId,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
 
@@ -204,7 +208,9 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate() as stri
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
@@ -224,6 +230,9 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate() as stri
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -258,7 +267,9 @@ function RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["custom", "click", "tap", "scroll", "swipe", "application_start", "back"]) }
@@ -282,6 +293,9 @@ function RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -316,7 +330,9 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeException = { number: IG_GetInteger(255), message: IG_GetString(32), backtrace: IG_GetBacktrace() }
@@ -340,6 +356,9 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -374,7 +393,9 @@ function RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpda
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResource = { url: IG_GetString(32), method: IG_GetString(4), status: "ok", httpCode: IG_GetInteger(600), transferTime: IG_GetDouble() }
@@ -398,6 +419,9 @@ function RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpda
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -432,7 +456,9 @@ function RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent() as 
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
@@ -453,6 +479,9 @@ function RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent() as 
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -507,7 +536,9 @@ function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as 
         applicationVersion: fakeApplicationVersion,
         sessionState: "tracked",
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
@@ -528,6 +559,9 @@ function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as 
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -564,7 +598,9 @@ function RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownVi
         applicationVersion: fakeApplicationVersion,
         sessionState: "not_tracked",
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
@@ -595,7 +631,9 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent() as stri
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "startView", viewName: IG_GetString(32), viewUrl: IG_GetString(32) }
@@ -615,6 +653,9 @@ function RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent() as stri
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -649,7 +690,9 @@ function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as strin
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeMessage = IG_GetString(128)
@@ -674,6 +717,9 @@ function RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent() as strin
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -711,7 +757,9 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeMessage = IG_GetString(128)
@@ -737,6 +785,9 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -775,7 +826,9 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithUserInfo_ThenWriteViewEven
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeMessage = IG_GetString(128)
@@ -801,6 +854,9 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithUserInfo_ThenWriteViewEven
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -840,7 +896,9 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithAction_ThenWriteViewEvent(
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeMessage = IG_GetString(128)
@@ -865,6 +923,9 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithAction_ThenWriteViewEvent(
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -902,7 +963,9 @@ function RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent() as 
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "addError", exception: {} }
@@ -923,6 +986,9 @@ function RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent() as 
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -960,7 +1026,9 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -989,6 +1057,9 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
     Assert.that(resourceEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(resourceEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(resourceEvent.device.brand).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.name).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(resourceEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(resourceEvent.service).isEqualTo(fakeService)
     Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
     Assert.that(resourceEvent.session.id).isNotEmpty()
@@ -1028,7 +1099,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEv
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1058,6 +1131,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEv
     Assert.that(resourceEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(resourceEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(resourceEvent.device.brand).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.name).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(resourceEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(resourceEvent.service).isEqualTo(fakeService)
     Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
     Assert.that(resourceEvent.session.id).isNotEmpty()
@@ -1098,7 +1174,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithUserInfo_ThenWriteViewE
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1128,6 +1206,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithUserInfo_ThenWriteViewE
     Assert.that(resourceEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(resourceEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(resourceEvent.device.brand).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.name).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(resourceEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(resourceEvent.service).isEqualTo(fakeService)
     Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
     Assert.that(resourceEvent.session.id).isNotEmpty()
@@ -1169,7 +1250,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEve
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1198,6 +1281,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEve
     Assert.that(resourceEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(resourceEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(resourceEvent.device.brand).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.name).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(resourceEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(resourceEvent.service).isEqualTo(fakeService)
     Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
     Assert.that(resourceEvent.session.id).isNotEmpty()
@@ -1237,7 +1323,9 @@ function RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent(
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
 
@@ -1264,6 +1352,9 @@ function RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent(
     Assert.that(resourceEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(resourceEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(resourceEvent.device.brand).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.name).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(resourceEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(resourceEvent.service).isEqualTo(fakeService)
     Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
     Assert.that(resourceEvent.session.id).isNotEmpty()
@@ -1303,7 +1394,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1341,6 +1434,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent()
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -1381,7 +1477,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWrite
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1420,6 +1518,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWrite
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -1461,7 +1562,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithUserInfo_ThenWrit
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1500,6 +1603,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithUserInfo_ThenWrit
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -1542,7 +1648,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteV
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceUrl = IG_GetString(128)
@@ -1580,6 +1688,9 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteV
     Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(errorEvent.service).isEqualTo(fakeService)
     Assert.that(errorEvent.session.has_replay).isEqualTo(false)
     Assert.that(errorEvent.session.id).isNotEmpty()
@@ -1694,7 +1805,9 @@ function RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent() a
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeAction = { target: IG_GetString(16), type: "custom" }
@@ -1715,6 +1828,9 @@ function RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent() a
     Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(actionEvent.device.brand).isEqualTo("Roku")
+    Assert.that(actionEvent.os.name).isEqualTo("Roku")
+    Assert.that(actionEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(actionEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -1751,7 +1867,9 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteVi
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeAction = { target: IG_GetString(16), type: "custom" }
@@ -1773,6 +1891,9 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteVi
     Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(actionEvent.device.brand).isEqualTo("Roku")
+    Assert.that(actionEvent.os.name).isEqualTo("Roku")
+    Assert.that(actionEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(actionEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -1810,7 +1931,9 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithUserInfo_ThenWriteV
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeAction = { target: IG_GetString(16), type: "custom" }
@@ -1835,6 +1958,9 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithUserInfo_ThenWriteV
     Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(actionEvent.device.brand).isEqualTo("Roku")
+    Assert.that(actionEvent.os.name).isEqualTo("Roku")
+    Assert.that(actionEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(actionEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -1916,7 +2042,9 @@ function RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate() as str
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "keepAlive" }
@@ -1936,6 +2064,9 @@ function RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate() as str
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -1970,7 +2101,9 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpda
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "keepAlive" }
@@ -1991,6 +2124,9 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpda
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()
@@ -2026,7 +2162,9 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithUserInfo_ThenWriteViewUpd
         sessionId: fakeSessionId,
         applicationVersion: fakeApplicationVersion,
         deviceName: m.fakeDeviceName,
-        deviceModel: m.fakeDeviceModel
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: "keepAlive" }
@@ -2047,6 +2185,9 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithUserInfo_ThenWriteViewUpd
     Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
     Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
     Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(viewEvent.service).isEqualTo(fakeService)
     Assert.that(viewEvent.session.has_replay).isEqualTo(false)
     Assert.that(viewEvent.session.id).isNotEmpty()

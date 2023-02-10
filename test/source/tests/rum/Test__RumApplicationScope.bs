@@ -24,6 +24,8 @@ sub RumApplicationScopeTest__SetUp()
     ' Fake data
     m.testSuite.fakeDeviceModel = IG_GetString(16)
     m.testSuite.fakeDeviceName = IG_GetString(16)
+    m.testSuite.fakeOsVersion = IG_GetString(16)
+    m.testSuite.fakeOsVersionMajor = IG_GetString(16)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeVersion = IG_GetString(32)
@@ -35,6 +37,8 @@ sub RumApplicationScopeTest__SetUp()
     m.testSuite.testedScope.version = m.testSuite.fakeVersion
     m.testSuite.testedScope.deviceName = m.testSuite.fakeDeviceName
     m.testSuite.testedScope.deviceModel = m.testSuite.fakeDeviceModel
+    m.testSuite.testedScope.osVersion = m.testSuite.fakeOsVersion
+    m.testSuite.testedScope.osVersionMajor = m.testSuite.fakeOsVersionMajor
 end sub
 
 sub RumApplicationScopeTest__TearDown()
@@ -78,6 +82,8 @@ function RumApplicationScopeTest__WhenGetContext_ThenReturnsContext() as string
     Assert.that(context.applicationVersion).isEqualTo(m.fakeVersion)
     Assert.that(context.deviceName).isEqualTo(m.fakeDeviceName)
     Assert.that(context.deviceModel).isEqualTo(m.fakeDeviceModel)
+    Assert.that(context.osVersion).isEqualTo(m.fakeOsVersion)
+    Assert.that(context.osVersionMajor).isEqualTo(m.fakeOsVersionMajor)
     return ""
 end function
 

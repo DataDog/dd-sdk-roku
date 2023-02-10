@@ -138,6 +138,11 @@ sub sendLog(status as object, message as string, attributes as object)
             model: m.top.deviceModel
             brand: "Roku"
         }
+        os: {
+            name: "Roku"
+            version: m.top.osVersion
+            version_major: m.top.osVersionMajor
+        }
     }
     for each key in attributes
         logEvent[key] = attributes[key]

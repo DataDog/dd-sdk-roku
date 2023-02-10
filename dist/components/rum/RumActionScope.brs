@@ -129,6 +129,11 @@ sub sendAction(writer as object)
             model: context.deviceModel
             brand: "Roku"
         }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         service: context.service
         session: {
             has_replay: false

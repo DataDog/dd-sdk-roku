@@ -177,6 +177,11 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
             stack: backtraceToString(backtrace)
             type: errorType
         }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         service: context.service
         session: {
             has_replay: false
@@ -269,6 +274,11 @@ sub sendCustomAction(target as string, writer as object)
             model: context.deviceModel
             brand: "Roku"
         }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         service: context.service
         session: {
             has_replay: false
@@ -339,6 +349,11 @@ sub sendResource(resource as object, writer as object)
             name: context.deviceName
             model: context.deviceModel
             brand: "Roku"
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
         }
         resource: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
@@ -419,6 +434,11 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
             stack: invalid
             type: status
         }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         service: context.service
         session: {
             has_replay: false
@@ -466,6 +486,11 @@ sub sendViewUpdate(writer as object)
             name: context.deviceName
             model: context.deviceModel
             brand: "Roku"
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
         }
         service: context.service
         session: {

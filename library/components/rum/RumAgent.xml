@@ -19,6 +19,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="version" type="string" />
         <field id="deviceName" type="string" />
         <field id="deviceModel" type="string" />
+        <field id="osVersion" type="string" />
+        <field id="osVersionMajor" type="string" />
         <field id="keepAliveDelayMs" type="integer" value="15000" />
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value=""/>
