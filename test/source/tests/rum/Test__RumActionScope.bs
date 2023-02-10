@@ -43,6 +43,8 @@ sub RumActionScopeTest__SetUp()
     m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
+    m.testSuite.fakeDeviceModel = IG_GetString(16)
+    m.testSuite.fakeDeviceName = IG_GetString(16)
     m.testSuite.fakeTarget = IG_GetString(16)
     m.testSuite.fakeType = IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"])
     m.testSuite.fakeGlobalUserInfo = {
@@ -101,7 +103,9 @@ function RumActionScopeTest__WhenGetContext_ThenReturnsContext() as string
         service: fakeService,
         applicationVersion: fakeVersion,
         sessionId: fakeSessionId,
-        viewId: fakeViewId
+        viewId: fakeViewId,
+        deviceName : m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", { _ph: invalid }, fakeParentContext)
 
@@ -174,7 +178,9 @@ function RumActionScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: IG_GetString(16) }
@@ -190,6 +196,10 @@ function RumActionScopeTest__WhenHandleAnyEventAfterTimeout_ThenWriteActionEvent
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -230,7 +240,9 @@ function RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWrite
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: IG_GetString(16) }
@@ -247,6 +259,10 @@ function RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithContext_ThenWrite
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -288,7 +304,9 @@ function RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWrit
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: IG_GetString(16) }
@@ -305,6 +323,10 @@ function RumActionScopeTest__WhenHandleAnyEventAfterTimeoutWithUserInfo_ThenWrit
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -346,7 +368,9 @@ function RumActionScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent() as stri
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeErrorEvent = { mock: "event", eventType: "addError" }
@@ -365,6 +389,10 @@ function RumActionScopeTest__WhenHandleErrorEvent_ThenWriteActionEvent() as stri
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -405,7 +433,9 @@ function RumActionScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEve
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeErrorEvent = { mock: "event", eventType: "addError" }
@@ -421,6 +451,10 @@ function RumActionScopeTest__WhenHandleErrorEventAfterTimeout_ThenWriteActionEve
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -461,7 +495,9 @@ function RumActionScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent() as s
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "ok", url: IG_GetString(32), transferTime: 0.001 } }
@@ -480,6 +516,10 @@ function RumActionScopeTest__WhenHandleResourceEvent_ThenWriteActionEvent() as s
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -520,7 +560,9 @@ function RumActionScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteAction
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "ok", url: IG_GetString(32), transferTime: 0.001 } }
@@ -536,6 +578,10 @@ function RumActionScopeTest__WhenHandleResourceEventAfterTimeout_ThenWriteAction
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -576,7 +622,9 @@ function RumActionScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent() 
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "ok", url: IG_GetString(32), transferTime: 0.3 } }
@@ -595,6 +643,10 @@ function RumActionScopeTest__WhenHandleLongResourceEvent_ThenWriteActionEvent() 
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -635,7 +687,9 @@ function RumActionScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent(
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "nok" } }
@@ -654,6 +708,10 @@ function RumActionScopeTest__WhenHandleFailedResourceEvent_ThenWriteActionEvent(
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -694,7 +752,9 @@ function RumActionScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWrite
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeResourceEvent = { mock: "event", eventType: "addResource", resource: { status: "nok" } }
@@ -710,6 +770,10 @@ function RumActionScopeTest__WhenHandleFailedResourceEventAfterTimeout_ThenWrite
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -750,7 +814,9 @@ function RumActionScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmedi
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeStopViewEvent = { mock: "event", eventType: "startView" }
@@ -765,6 +831,10 @@ function RumActionScopeTest__WhenHandleStartViewEvent_ThenWriteActionEventImmedi
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -805,7 +875,9 @@ function RumActionScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmedia
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeStopViewEvent = { mock: "event", eventType: "stopView" }
@@ -820,6 +892,10 @@ function RumActionScopeTest__WhenHandleStopViewEvent_ThenWriteActionEventImmedia
     Assert.that(actionEvent).isNotInvalid()
     Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
     Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
     Assert.that(actionEvent.service).isEqualTo(fakeService)
     Assert.that(actionEvent.session.has_replay).isEqualTo(false)
     Assert.that(actionEvent.session.id).isNotEmpty()
@@ -860,7 +936,9 @@ function RumActionScopeTest__WhenWritingAction_ThenUpdateGlobalRumContext() as s
         applicationVersion: fakeApplicationVersion,
         viewId: fakeViewId,
         viewName: fakeViewName,
-        viewUrl: fakeViewUrl
+        viewUrl: fakeViewUrl,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel
     }
     m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
     fakeEvent = { mock: "event", eventType: IG_GetString(16) }

@@ -123,6 +123,12 @@ sub sendAction(writer as object)
         }
         context: m.global.datadogContext
         date: m.startTimestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         service: context.service
         session: {
             has_replay: false

@@ -132,6 +132,12 @@ sub sendLog(status as object, message as string, attributes as object)
         status: status
         service: m.top.service
         usr: m.global.datadogUserInfo
+        device: {
+            type: "tv"
+            name: m.top.deviceName
+            model: m.top.deviceModel
+            brand: "Roku"
+        }
     }
     for each key in attributes
         logEvent[key] = attributes[key]

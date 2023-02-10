@@ -6,6 +6,8 @@
         <field id="service" type="string" />
         <field id="version" type="string" />
         <field id="env" type="string" />
+        <field id="deviceName" type="string" />
+        <field id="deviceModel" type="string" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <function name="logOk" />

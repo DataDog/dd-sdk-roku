@@ -74,6 +74,8 @@ sub LogsAgentTest__SetUp()
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
 
     ' Fake data
+    m.testSuite.fakeDeviceModel = IG_GetString(16) 
+    m.testSuite.fakeDeviceName = IG_GetString(16) 
     m.testSuite.fakeSite = IG_GetString(3) 
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
@@ -102,6 +104,8 @@ sub LogsAgentTest__SetUp()
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_LogsAgent")
+    m.testSuite.testedNode.deviceName = m.testSuite.fakeDeviceName
+    m.testSuite.testedNode.deviceModel = m.testSuite.fakeDeviceModel
     m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.service = m.testSuite.fakeService
@@ -182,6 +186,10 @@ function LogsAgentTest__WhenLogOk_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -212,6 +220,10 @@ function LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -246,6 +258,10 @@ function LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -280,6 +296,10 @@ function LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -312,6 +332,10 @@ function LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("ok")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -343,6 +367,10 @@ function LogsAgentTest__WhenLogDebug_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -373,6 +401,10 @@ function LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog() as strin
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -407,6 +439,10 @@ function LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog() as strin
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -441,6 +477,10 @@ function LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -474,6 +514,10 @@ function LogsAgentTest__WhenLogDebugWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("debug")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -505,6 +549,10 @@ function LogsAgentTest__WhenLogInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -535,6 +583,10 @@ function LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -570,6 +622,10 @@ function LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -604,6 +660,10 @@ function LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -636,6 +696,10 @@ function LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("info")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -667,6 +731,10 @@ function LogsAgentTest__WhenLogNotice_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -697,6 +765,10 @@ function LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog() as stri
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -731,6 +803,10 @@ function LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog() as stri
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -765,6 +841,10 @@ function LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -797,6 +877,10 @@ function LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("notice")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -828,6 +912,10 @@ function LogsAgentTest__WhenLogWarn_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -858,6 +946,10 @@ function LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -892,6 +984,10 @@ function LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -926,6 +1022,10 @@ function LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -958,6 +1058,10 @@ function LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("warn")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -989,6 +1093,10 @@ function LogsAgentTest__WhenLogError_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -1019,6 +1127,10 @@ function LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog() as strin
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -1053,6 +1165,10 @@ function LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog() as strin
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -1087,6 +1203,10 @@ function LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -1119,6 +1239,10 @@ function LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("error")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -1150,6 +1274,10 @@ function LogsAgentTest__WhenLogCritical_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -1180,6 +1308,10 @@ function LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog() as st
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -1214,6 +1346,10 @@ function LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog() as st
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -1248,6 +1384,10 @@ function LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -1280,6 +1420,10 @@ function LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("critical")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -1311,6 +1455,10 @@ function LogsAgentTest__WhenLogAlert_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -1341,6 +1489,10 @@ function LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog() as strin
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -1375,6 +1527,10 @@ function LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog() as strin
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -1409,6 +1565,10 @@ function LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -1441,6 +1601,10 @@ function LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("alert")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
@@ -1472,6 +1636,10 @@ function LogsAgentTest__WhenLogEmergency_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     return ""
 end function
 
@@ -1503,6 +1671,10 @@ function LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog() as s
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in fakeAttributes
         Assert.that(logEvent[key]).isEqualTo(fakeAttributes[key])
     end for
@@ -1537,6 +1709,10 @@ function LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog() as s
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     for each key in m.fakeGlobalContext
         Assert.that(logEvent[key]).isEqualTo(m.fakeGlobalContext[key])
     end for
@@ -1571,6 +1747,10 @@ function LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
     return ""
 end function
@@ -1603,6 +1783,10 @@ function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.message).isEqualTo(fakeMessage)
     Assert.that(logEvent.service).isEqualTo(m.fakeService)
     Assert.that(logEvent.status).isEqualTo("emergency")
+    Assert.that(logEvent.device.type).isEqualTo("tv")
+    Assert.that(logEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(logEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(logEvent.device.brand).isEqualTo("Roku")
     Assert.that(logEvent.application_id).isEqualTo(m.fakeRumContext.applicationId)
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)

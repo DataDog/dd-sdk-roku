@@ -162,6 +162,12 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         }
         context: m.global.datadogContext
         date: timestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             is_crash: false
@@ -257,6 +263,12 @@ sub sendCustomAction(target as string, writer as object)
         }
         context: m.global.datadogContext
         date: timestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         service: context.service
         session: {
             has_replay: false
@@ -322,6 +334,12 @@ sub sendResource(resource as object, writer as object)
         }
         context: m.global.datadogContext
         date: startTimestampMs&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         resource: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             type: "native"
@@ -381,6 +399,12 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
         }
         context: m.global.datadogContext
         date: timestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             is_crash: false
@@ -437,6 +461,12 @@ sub sendViewUpdate(writer as object)
         }
         context: m.global.datadogContext
         date: m.startTimestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         service: context.service
         session: {
             has_replay: false

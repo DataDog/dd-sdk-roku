@@ -14,6 +14,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="service" type="string" />
         <field id="version" type="string" />
         <field id="env" type="string" />
+        <field id="deviceName" type="string" />
+        <field id="deviceModel" type="string" />
 
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />

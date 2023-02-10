@@ -16,6 +16,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="version" type="string" />
+        <field id="deviceName" type="string" />
+        <field id="deviceModel" type="string" />
         <field id="sessionSampleRate" type="integer" value="100" />
 
         <field id="sessionScope" type="node" />
