@@ -165,6 +165,10 @@ sub ensureRumScope()
         m.top.rumScope.applicationId = m.top.applicationId
         m.top.rumScope.service = m.top.service
         m.top.rumScope.version = m.top.version
+        m.top.rumScope.deviceName = m.top.deviceName
+        m.top.rumScope.deviceModel = m.top.deviceModel
+        m.top.rumScope.osVersion = m.top.osVersion
+        m.top.rumScope.osVersionMajor = m.top.osVersionMajor
         m.top.rumScope.sessionSampleRate = m.top.sessionSampleRate
     end if
 end sub

@@ -38,6 +38,11 @@ sub initialize(configuration as object)
                 return channelVersion()
             end if
         end function)(channelVersion, configuration)
+    deviceInfo = CreateObject("roDeviceInfo")
+    deviceName = deviceInfo.GetModelDisplayName()
+    deviceModel = deviceInfo.GetModel()
+    deviceOsVersion = deviceInfo.GetOSVersion()
+    deviceOsVersionFull = deviceOsVersion.major + "." + deviceOsVersion.minor + "." + deviceOsVersion.revision
     ' Standard global fields
     m.global.addFields({
         datadogVerbosity: 0
@@ -79,6 +84,10 @@ sub initialize(configuration as object)
             end function)(configuration)
         m.global.datadogRumAgent.lastExitOrTerminationReason = launchArgs.lastExitOrTerminationReason
         m.global.datadogRumAgent.configuration = configuration
+        m.global.datadogRumAgent.deviceName = deviceName
+        m.global.datadogRumAgent.deviceModel = deviceModel
+        m.global.datadogRumAgent.osVersion = deviceOsVersionFull
+        m.global.datadogRumAgent.osVersionMajor = deviceOsVersion.major
     end if
     if (m.global.datadogLogsAgent = invalid)
         ddLogInfo("No Logs agent, creating one")
@@ -90,6 +99,10 @@ sub initialize(configuration as object)
         m.global.datadogLogsAgent.service = configuration.service
         m.global.datadogLogsAgent.env = configuration.env
         m.global.datadogLogsAgent.uploader = m.global.datadogUploader
+        m.global.datadogLogsAgent.deviceName = deviceName
+        m.global.datadogLogsAgent.deviceModel = deviceModel
+        m.global.datadogLogsAgent.osVersion = deviceOsVersionFull
+        m.global.datadogLogsAgent.osVersionMajor = deviceOsVersion.major
     end if
 end sub
 ' ----------------------------------------------------------------

@@ -35,6 +35,10 @@ sub RumAgentTest__SetUp()
     m.testSuite.mockTelemetryScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
+    m.testSuite.fakeDeviceModel = IG_GetString(16)
+    m.testSuite.fakeDeviceName = IG_GetString(16)
+    m.testSuite.fakeOsVersion = IG_GetString(16)
+    m.testSuite.fakeOsVersionMajor = IG_GetString(16)
     m.testSuite.fakeSite = IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
@@ -54,11 +58,19 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.version = m.testSuite.fakeVersion
+    m.testSuite.testedNode.deviceName = m.testSuite.fakeDeviceName
+    m.testSuite.testedNode.deviceModel = m.testSuite.fakeDeviceModel
+    m.testSuite.testedNode.osVersion = m.testSuite.fakeOsVersion
+    m.testSuite.testedNode.osVersionMajor = m.testSuite.fakeOsVersionMajor
 end sub
 
 sub RumAgentTest__SetUpNoMock()
 
     ' Fake data
+    m.testSuite.fakeDeviceModel = IG_GetString(16)
+    m.testSuite.fakeDeviceName = IG_GetString(16)
+    m.testSuite.fakeOsVersion = IG_GetString(16)
+    m.testSuite.fakeOsVersionMajor = IG_GetString(16)
     m.testSuite.fakeSite = IG_GetString(10) + "." + IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
@@ -73,6 +85,10 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.version = m.testSuite.fakeVersion
+    m.testSuite.testedNode.deviceName = m.testSuite.fakeDeviceName
+    m.testSuite.testedNode.deviceModel = m.testSuite.fakeDeviceModel
+    m.testSuite.testedNode.osVersion = m.testSuite.fakeOsVersion
+    m.testSuite.testedNode.osVersionMajor = m.testSuite.fakeOsVersionMajor
 end sub
 
 sub RumAgentTest__TearDown()
@@ -276,6 +292,10 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     Assert.that(rumScope.applicationId).isEqualTo(m.fakeApplicationId)
     Assert.that(rumScope.service).isEqualTo(m.fakeService)
     Assert.that(rumScope.version).isEqualTo(m.fakeVersion)
+    Assert.that(rumScope.deviceName).isEqualTo(m.fakeDeviceName)
+    Assert.that(rumScope.deviceModel).isEqualTo(m.fakeDeviceModel)
+    Assert.that(rumScope.osVersion).isEqualTo(m.fakeOsVersion)
+    Assert.that(rumScope.osVersionMajor).isEqualTo(m.fakeOsVersionMajor)
     Assert.that(rumScope).isNotInvalid().hasSubtype("datadogroku_RumApplicationScope")
     Assert.that(writer).isNotInvalid().hasSubtype("datadogroku_WriterTask")
     Assert.that(writer.trackType).isEqualTo("rum")

@@ -162,6 +162,12 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         }
         context: m.global.datadogContext
         date: timestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             is_crash: false
@@ -170,6 +176,11 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
             source_type: agentSource()
             stack: backtraceToString(backtrace)
             type: errorType
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
         }
         service: context.service
         session: {
@@ -257,6 +268,17 @@ sub sendCustomAction(target as string, writer as object)
         }
         context: m.global.datadogContext
         date: timestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         service: context.service
         session: {
             has_replay: false
@@ -322,6 +344,17 @@ sub sendResource(resource as object, writer as object)
         }
         context: m.global.datadogContext
         date: startTimestampMs&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         resource: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             type: "native"
@@ -381,6 +414,12 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
         }
         context: m.global.datadogContext
         date: timestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             is_crash: false
@@ -394,6 +433,11 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
             source_type: agentSource()
             stack: invalid
             type: status
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
         }
         service: context.service
         session: {
@@ -437,6 +481,17 @@ sub sendViewUpdate(writer as object)
         }
         context: m.global.datadogContext
         date: m.startTimestamp&
+        device: {
+            type: "tv"
+            name: context.deviceName
+            model: context.deviceModel
+            brand: "Roku"
+        }
+        os: {
+            name: "Roku"
+            version: context.osVersion
+            version_major: context.osVersionMajor
+        }
         service: context.service
         session: {
             has_replay: false

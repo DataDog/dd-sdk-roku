@@ -22,6 +22,10 @@ function getRumContext(_ph as dynamic) as object
         applicationId: m.top.applicationId
         service: m.top.service
         applicationVersion: m.top.version
+        deviceName: m.top.deviceName
+        deviceModel: m.top.deviceModel
+        osVersion: m.top.osVersion
+        osVersionMajor: m.top.osVersionMajor
     }
 end function
 
