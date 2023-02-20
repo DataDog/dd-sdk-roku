@@ -80,6 +80,13 @@ function getWriteableFile(eventSize as integer) as string
     filenames.Sort("r")
     if (filenames.count() > 0)
         lastFilename = filenames[0]
+        for each filename in filenames
+            ' ignore last known view file
+            if (filename.Left(1) <> "_")
+                lastFilename = filename
+                exit for
+            end if
+        end for
         fileTimestamp& = strToLong(lastFilename)
         uploadTimestamp& = fileTimestamp& + 25000
         if ((uploadTimestamp& > currentTimestamp&))
