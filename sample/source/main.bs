@@ -34,7 +34,6 @@ sub RunUserInterface(args as dynamic)
     screen.show()
 
     ' Setup Datadog
-
     datadogroku_initialize({
         clientToken: credentials.datadogClientToken,
         applicationId: credentials.datadogApplicationId,

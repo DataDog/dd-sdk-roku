@@ -23,21 +23,26 @@ Make sure you have a `roku_modules/datadogroku` subfolder in both the `component
 
 ### Configure Datadog
 
-To configure the Datadog SDK, copy the following code snippet into the `init()` method of the `Scene`: 
+To configure the Datadog SDK, copy the following code snippet into the `RunUserInterface()` method of your `main.brs` file. Make sure that you call `datadogroku_initialize` after the `show` method of your screen.
 
 ```brightscript
-sub init()
+sub RunUserInterface(args as dynamic)
+
+    screen = CreateObject("roSGScreen")
+    scene = screen.CreateScene("MyScene")
+    screen.show()
+
+    ' Setup Datadog
     datadogroku_initialize({
         clientToken: "pub00000000000000000000000000000000, ' replace with your client token
         applicationId: ""00000000-0000-0000-0000-000000000000", ' replace with your RUM application Id
         site: "us1", ' replace with the site you're targeting: "us1", "us3", "us5", or "eu1" 
-        service: "roku-sample", ' replace with the service name you want to associate with the data collected
         env: "prod" ' replace with the environment you're targeting, e.g.: prod, staging, …
         sessionSampleRate: 100, ' the percentage (integer) of sessions to track
-        launchArgs: launchArgs ' the launch arguments passed into the RunUserInterface method, required for crash reporting
-    })
+        launchArgs: args
+    }, globalNode)
 
-    ' … your scene initialization here
+    ' complete your channel setup here
 end sub
 ```
 
