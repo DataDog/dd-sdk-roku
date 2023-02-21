@@ -5,23 +5,28 @@
   "keywords": [
     "ropm",
     "roku",
-    "datadog",
     "brightscript",
-    "scenegraph"
+    "scenegraph",
+    "datadog",
+    "real user monitoring",
+    "rum",
+    "logs"
   ],
   "author": "Datadog (https://github.com/DataDog)",
   "contributors": [
     "Xavier F. Gouchet <xavier.gouchet@datadoghq.com>"
   ],
   "homepage": "https://github.com/DataDog/dd-sdk-roku#readme",
-  "repository": "https://github.com/DataDog/dd-sdk-roku",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DataDog/dd-sdk-roku"
+  },
   "bugs": {
     "url": "https://github.com/DataDog/dd-sdk-roku/issues"
   },
   "license": "Apache-2.0",
   "files": [
-    "dist/source/**/*",
-    "dist/components/**/*"
+    "dist/**/*"
   ],
   "scripts": {
     "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip -listen",
