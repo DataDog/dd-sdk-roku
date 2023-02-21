@@ -69,7 +69,7 @@ sub uploadAvailableFilesForTrack(trackInfo as object)
                 requestId = m.deviceInfo.GetRandomUUID()
                 responseCode = uploadFile(filePath, trackInfo, requestId)
                 handleResponse(requestId, responseCode, filePath, trackInfo)
-            else 
+            else
                 ddLogVerbose("Ignoring file " + filename)
             end if
         end for
@@ -84,13 +84,20 @@ end sub
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
     if (filename.Left(1) = "_")
+        ddLogVerbose("File " + filename + " is not uploadable")
         return false
     end if
 
     fileTimestamp& = strToLong(filename)
     uploadTimestamp& = fileTimestamp& + 30000
     currentTimestamp& = getTimestamp()
-    return (uploadTimestamp& < currentTimestamp&)
+    if (uploadTimestamp& > currentTimestamp&)
+        remaining = millisToSec(uploadTimestamp& - currentTimestamp&)
+        ddLogVerbose("File " + filename + " is not uploadable yet, will be in " + remaining.toStr() + "s")
+        return false
+    end if
+
+    return true
 end function
 
 ' ----------------------------------------------------------------

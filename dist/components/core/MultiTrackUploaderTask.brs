@@ -79,12 +79,18 @@ end sub
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
     if (filename.Left(1) = "_")
+        ddLogVerbose("File " + filename + " is not uploadable")
         return false
     end if
     fileTimestamp& = strToLong(filename)
     uploadTimestamp& = fileTimestamp& + 30000
     currentTimestamp& = getTimestamp()
-    return (uploadTimestamp& < currentTimestamp&)
+    if (uploadTimestamp& > currentTimestamp&)
+        remaining = millisToSec(uploadTimestamp& - currentTimestamp&)
+        ddLogVerbose("File " + filename + " is not uploadable yet, will be in " + remaining.toStr() + "s")
+        return false
+    end if
+    return true
 end function
 
 ' ----------------------------------------------------------------
