@@ -11,17 +11,38 @@ sub RunUserInterface(args as dynamic)
         print "Sample app launched with deeplink: " + args.contentId + "/" + args.mediaType
     end if
 
-    screen = CreateObject("roSGScreen")
-
-    m.global = screen.getGlobalNode()
-    m.global.addFields({ launchArgs: args })
-
+    ' Create Port
     m.port = CreateObject("roMessagePort")
 
+    ' Create Screen
+    screen = CreateObject("roSGScreen")
     screen.setMessagePort(m.port)
+    globalNode = screen.getGlobalNode()
+    credentials = parseJson(readAsciiFile("pkg:/credentials.json"))
+    globalNode.addFields({
+        datadogVerbosity: 5,
+        datadogOrgName: credentials.orgName,
+        datadogOrgId: credentials.orgId,
+        datadogSite: credentials.site,
+        mirrorUrl: credentials.mirrorUrl
+    })
+
+    ' Create Scene
     scene = screen.CreateScene("MainScene")
+
+    ' Show the screen
     screen.show()
-    scene.signalBeacon("AppLaunchComplete")
+
+    ' Setup Datadog
+    datadogroku_initialize({
+        clientToken: credentials.datadogClientToken,
+        applicationId: credentials.datadogApplicationId,
+        site: credentials.site,
+        env: "prod",
+        launchArgs: args
+    }, globalNode)
+    globalNode.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com" })
+    globalNode.setField("datadogContext", { channel: "roku sample channel" })
 
     ' Handle roInput (deeplink changes at runtime)
     input = CreateObject("roInput")
@@ -33,6 +54,10 @@ sub RunUserInterface(args as dynamic)
     sysLog.enableType("http.error")
     sysLog.enableType("http.complete")
 
+    ' Signal app launch complete
+    scene.signalBeacon("AppLaunchComplete")
+
+    ' main loop
     while(true)
         msg = wait(0, m.port)
         msgType = type(msg)

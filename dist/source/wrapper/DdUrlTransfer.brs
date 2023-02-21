@@ -593,9 +593,7 @@ function generateUniqueId() as string
     low& = Rnd(maxInt) - 1
     high& = Rnd(maxInt) - 1
     id = ""
-    ddLogInfo("generateUniqueId(): " + high&.toStr() + " / " + low&.toStr())
     while (high& > 0 or low& > 0)
-        ddLogInfo(" - " + high&.toStr() + " / " + low&.toStr() + " > " + id)
         ' Create an intermediate value with the same modulo as the combined high and low value
         ' but requiring 36 bits max (32 for the low value + 4 for the high part)
         modH = high& mod radix
@@ -608,6 +606,5 @@ function generateUniqueId() as string
         ' update the string from right to left
         id = digit.toStr() + id
     end while
-    ddLogInfo("generateUniqueId(): " + id)
     return id
 end function
