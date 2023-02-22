@@ -81,13 +81,13 @@ sub sendCrashReportFromViewEventFile(filepath as string)
 
     ddLogVerbose("Parsing event from " + filepath)
     lastViewEvent = ParseJson(lastViewEventJson)
-    if (lastViewEvent = invalid)
+    if (lastViewEvent = invalid or lastViewEvent._dd = invalid or lastViewEvent.view = invalid or lastViewEvent.date = invalid)
         ddLogError("A crash was detected but the last view event is invalid")
         ddLogError(lastViewEventJson)
         return
     end if
 
-    timeSpentNs& = lastViewEvent.view.time_spent + millisToNanos(100) ' 100 ms after last known timestamp
+    timeSpentNs& = (lastViewEvent.view.time_spent ?? 0) + millisToNanos(100) ' 100 ms after last known timestamp
     timeSpentMs& = nanosToMillis(timeSpentNs&)
     timestamp& = timeSpentMs& + lastViewEvent.date
     crashEvent = {
@@ -130,8 +130,8 @@ sub sendCrashReportFromViewEventFile(filepath as string)
     m.top.writer.writeEvent = FormatJson(crashEvent)
 
     sleep(50)
-    lastViewEvent._dd.document_version = lastViewEvent._dd.document_version + 1
-    lastViewEvent.view.error = { count: lastViewEvent.view.error.count + 1 }
+    lastViewEvent._dd.document_version = (lastViewEvent._dd.document_version ?? 0) + 1
+    lastViewEvent.view.error = { count: (lastViewEvent.view.error.count ?? 0)+ 1 }
     lastViewEvent.view.crash = { count: 1 }
     lastViewEvent.view.time_spent = timeSpentNs&
     ddLogInfo("RumCrashReporterTask, writing view update")

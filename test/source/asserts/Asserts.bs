@@ -516,6 +516,52 @@ class BaseAssert
     end function
 
     ' ----------------------------------------------------------------
+    ' Checks whether the actual value, as a file path, exists
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function exists(msg = "" as string) as BaseAssert
+        if (not TF_Utils__IsString(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string but was " + type(m.actual)
+            }
+        end if
+
+        if (not CreateObject("roFileSystem").Exists(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a file on disk, but was not"
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
+    ' Checks whether the actual value, as a file path, does not exist
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function doesNotExist(msg = "" as string) as BaseAssert
+        if (not TF_Utils__IsString(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string but was " + type(m.actual)
+            }
+        end if
+
+        if (CreateObject("roFileSystem").Exists(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to not be a file on disk, but was"
+            }
+        end if
+
+        return m
+    end function
+
+    ' ----------------------------------------------------------------
     ' Checks whether two values are equal
     ' @param value1 (dynamic) the first value
     ' @param value2 (dynamic) the second value
