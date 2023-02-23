@@ -548,7 +548,7 @@ function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as 
 
     ' Then
     lastKnownFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
-    Assert_that(CreateObject("roFileSystem").Exists(lastKnownFilePath)).isTrue("Expected file " + lastKnownFilePath + " to still be present")
+    Assert.that(lastKnownFilePath).exists()
 
     viewEvent = ParseJson(ReadAsciiFile(lastKnownFilePath))
     Assert.that(viewEvent).isNotInvalid()
@@ -610,7 +610,7 @@ function RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownVi
 
     ' Then
     lastKnownFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
-    Assert_that(CreateObject("roFileSystem").Exists(lastKnownFilePath)).isFalse("Expected file " + lastKnownFilePath + " to be deleted")
+    Assert.that(lastKnownFilePath).doesNotExist()
     return ""
 end function
 

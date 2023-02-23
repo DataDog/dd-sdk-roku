@@ -201,7 +201,7 @@ function MultiTrackUploaderTaskTest__WhenInit_IgnoreRecentFile() as string
     sleep(100)
 
     ' Then
-    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    Assert.that(filePath).exists()
     return m.mockNetworkClient@.assertNoInteractions()
 end function
 
@@ -223,7 +223,7 @@ function MultiTrackUploaderTaskTest__WhenInit_IgnoreLastEventFile() as string
     sleep(100)
 
     ' Then
-    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isTrue("Expected file " + filePath + " to still be present")
+    Assert.that(filePath).exists()
     return m.mockNetworkClient@.assertNoInteractions()
 end function
 
@@ -267,8 +267,8 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as
     sleep(100)
 
     ' Then
-    Assert.that(CreateObject("roFileSystem").Exists(filePath1)).isFalse("Expected file " + filePath1 + " to be deleted")
-    Assert.that(CreateObject("roFileSystem").Exists(filePath2)).isFalse("Expected file " + filePath2 + " to be deleted")
+    Assert.that(filePath1).doesNotExist()
+    Assert.that(filePath2).doesNotExist()
     return m.multipleAssertions([
         m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs1),
         m.mockNetworkClient@.assertFunctionCalled("postFromFile", expectedCallArgs2),
@@ -301,12 +301,13 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
     calls = m.mockNetworkClient@.captureFunctionCalls("postFromFile", expectedCallArgs)
     firstCall = calls[0]
     Assert.that(calls).isNotInvalid()
-    Assert.that(CreateObject("roFileSystem").Exists(filePath)).isEqualTo(keepFile)
     Assert.that(firstCall.url).hasSubstring(expectedBaseUrl)
-
+    
     if (keepFile)
+        Assert.that(filePath).exists()
         Assert.that(calls.count()).isGreaterThan(1)
     else
+        Assert.that(filePath).doesNotExist()
         Assert.that(calls).hasSize(1)
     end if
 

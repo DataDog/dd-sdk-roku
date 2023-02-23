@@ -17,6 +17,9 @@ function TestSuite__RumCrashReporterTask() as object
     this.addTest("WhenLastViewIsCurrentSession_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenExitreasonInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
 
+    this.addTest("WhenLastViewIsMissing_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsMissing_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenLastViewIsInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+
     return this
 end function
 
@@ -153,7 +156,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
     Assert.that(viewEvent.view.crash.count).isEqualTo(1)
     Assert.that(viewEvent.view.resource.count).isEqualTo(fakePreviousViewEvent.view.resource.count)
 
-    Assert_that(CreateObject("roFileSystem").Exists(lastViewFilePath)).isFalse("Expected file " + lastViewFilePath + " to be deleted")
+    Assert.that(lastViewFilePath).doesNotExist()
     return ""
 end function
 
@@ -214,7 +217,7 @@ function RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing() 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     Assert.that(updates).hasSize(0)
-    Assert_that(CreateObject("roFileSystem").Exists(lastViewFilePath)).isTrue("Expected file " + lastViewFilePath + " to be kept")
+    Assert.that(lastViewFilePath).exists()
     return ""
 end function
 
@@ -267,6 +270,77 @@ function RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing() as stri
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
     Assert.that(updates).hasSize(0)
-    Assert_that(CreateObject("roFileSystem").Exists(lastViewFilePath)).isFalse("Expected file " + lastViewFilePath + " to be deleted")
+    Assert.that(lastViewFilePath).doesNotExist()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: last view is missing, and exit reason is relevant
+'  Then: writes an error and view events
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenLastViewIsMissing_ThenDoNothing() as string
+    ' Given
+    fakeExitStatus = IG_GetOneOf([
+        "EXIT_BRIGHTSCRIPT_CRASH",
+        "EXIT_BRIGHTSCRIPT_TIMEOUT",
+        "EXIT_GRAPHICS_NOT_RELEASED",
+        "EXIT_SIGNAL_TIMEOUT",
+        "EXIT_OUT_OF_MEMORY",
+        "EXIT_MEM_LIMIT_EXCEEDED_FG",
+        "EXIT_MEM_LIMIT_EXCEEDED_BG"
+    ])
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    Assume.that(lastViewFilePath).doesNotExist()
+    ' DeleteFile(lastViewFilePath)
+    m.testedTask.lastExitOrTerminationReason = fakeExitStatus
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    Assert.that(lastViewFilePath).doesNotExist()
+    return ""
+end function
+
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: last view exists but is invalid, and exit reason is relevant
+'  Then: writes an error and view events
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenLastViewIsInvalid_ThenDoNothing() as string
+    ' Given
+    fakeExitStatus = IG_GetOneOf([
+        "EXIT_BRIGHTSCRIPT_CRASH",
+        "EXIT_BRIGHTSCRIPT_TIMEOUT",
+        "EXIT_GRAPHICS_NOT_RELEASED",
+        "EXIT_SIGNAL_TIMEOUT",
+        "EXIT_OUT_OF_MEMORY",
+        "EXIT_MEM_LIMIT_EXCEEDED_FG",
+        "EXIT_MEM_LIMIT_EXCEEDED_BG"
+    ])
+    fakePreviousViewEvent = {
+        invalid_attribute: IG_GetString(16)
+    }
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeExitStatus
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    Assert.that(lastViewFilePath).doesNotExist()
     return ""
 end function

@@ -38,16 +38,14 @@ function FileUtilsTest__WhenMkDirs_ThenCreateDir() as string
     ' Given
     fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkDirs(path)
 
     ' Then
     Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
+    Assert.that(path).exists()
     return ""
 end function
 
@@ -58,9 +56,7 @@ function FileUtilsTest__WhenMkDirsExisting_ThenDoNothing() as string
     ' Given
     fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkDirs(path)
@@ -69,7 +65,7 @@ function FileUtilsTest__WhenMkDirsExisting_ThenDoNothing() as string
     ' Then
     Assert.that(result).isTrue("Expected result to be true")
     Assert.that(result2).isTrue("Expected result2 to be true")
-    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
+    Assert.that(path).exists()
     return ""
 end function
 
@@ -84,16 +80,14 @@ function FileUtilsTest__WhenMkDirs_ThenCreateParentDirs() as string
     for each folderName in folderNames
         path = path + "/" + folderName
     end for
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkDirs(path)
 
     ' Then
     Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
+    Assert.that(path).exists()
     return ""
 end function
 
@@ -106,16 +100,14 @@ function FileUtilsTest__WhenMkDirsInvalidPath_ThenDoNothing() as string
     fileSystem = CreateObject("roFileSystem")
     invalidChar = IG_GetOneOf(["<", ">", """", ":", "|", "?", "*"])
     path = IG_GetOneOf(["foo", "bar"]) + ":/" + IG_GetString(8) + invalidChar + IG_GetString(8)
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkDirs(path)
 
     ' Then
     Assert.that(result).isFalse("Expected result to be false")
-    Assert.that(fileSystem.Exists(path)).isFalse("Random folder at " + path + " shouldn't exist")
+    Assert.that(path).doesNotExist()
     return ""
 end function
 
@@ -127,17 +119,15 @@ function FileUtilsTest__WhenMkParentDirs_ThenCreateDir() as string
     fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
     filePath = path + "/" + IG_GetString(16)
-    if (fileSystem.Exists(filePath))
-        return "Random folder at " + filePath + " shouldn't exist"
-    end if
+    Assume.that(filePath).doesNotExist()
 
     ' When
     result = datadogroku_mkParentDirs(filePath)
 
     ' Then
     Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
-    Assert.that(fileSystem.Exists(filePath)).isFalse("Random folder/file at " + filePath + " shouldn't exist")
+    Assert.that(path).exists()
+    Assert.that(filePath).doesNotExist()
     return ""
 end function
 
@@ -149,9 +139,7 @@ function FileUtilsTest__WhenMkParentDirsExisting_ThenDoNothing() as string
     fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
     filePath = path + "/" + IG_GetString(16)
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkParentDirs(filePath)
@@ -160,8 +148,8 @@ function FileUtilsTest__WhenMkParentDirsExisting_ThenDoNothing() as string
     ' Then
     Assert.that(result).isTrue("Expected result to be true")
     Assert.that(result2).isTrue("Expected result2 to be true")
-    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
-    Assert.that(fileSystem.Exists(filePath)).isFalse("Random folder/file at " + filePath + " shouldn't exist")
+    Assert.that(path).exists()
+    Assert.that(filePath).doesNotExist()
     return ""
 end function
 
@@ -177,17 +165,15 @@ function FileUtilsTest__WhenMkParentDirs_ThenCreateParentDirs() as string
         path = path + "/" + folderName
     end for
     filePath = path + "/" + IG_GetString(16)
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkParentDirs(filePath)
 
     ' Then
     Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(fileSystem.Exists(path)).isTrue("Random folder at " + path + " should exist")
-    Assert.that(fileSystem.Exists(filePath)).isFalse("Random folder/file at " + filePath + " shouldn't exist")
+    Assert.that(path).exists()
+    Assert.that(filePath).doesNotExist()
     return ""
 end function
 
@@ -201,17 +187,15 @@ function FileUtilsTest__WhenMkParentDirsInvalidPath_ThenDoNothing() as string
     invalidChar = IG_GetOneOf(["<", ">", """", ":", "|", "?", "*"])
     path = IG_GetOneOf(["foo", "bar"]) + ":/" + IG_GetString(8) + invalidChar + IG_GetString(8)
     filePath = path + "/" + IG_GetString(16)
-    if (fileSystem.Exists(path))
-        return "Random folder at " + path + " shouldn't exist"
-    end if
+    Assume.that(path).doesNotExist()
 
     ' When
     result = datadogroku_mkParentDirs(filePath)
 
     ' Then
     Assert.that(result).isFalse("Expected result to be false")
-    Assert.that(fileSystem.Exists(path)).isFalse("Random folder at " + path + " shouldn't exist")
-    Assert.that(fileSystem.Exists(filePath)).isFalse("Random folder/file at " + filePath + " shouldn't exist")
+    Assert.that(path).doesNotExist()
+    Assert.that(filePath).doesNotExist()
     return ""
 end function
 

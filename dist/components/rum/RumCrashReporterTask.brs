@@ -73,12 +73,19 @@ sub sendCrashReportFromViewEventFile(filepath as string)
     end if
     ddLogVerbose("Parsing event from " + filepath)
     lastViewEvent = ParseJson(lastViewEventJson)
-    if (lastViewEvent = invalid)
+    if (lastViewEvent = invalid or lastViewEvent._dd = invalid or lastViewEvent.view = invalid or lastViewEvent.date = invalid)
         ddLogError("A crash was detected but the last view event is invalid")
         ddLogError(lastViewEventJson)
         return
     end if
-    timeSpentNs& = lastViewEvent.view.time_spent + millisToNanos(100) ' 100 ms after last known timestamp
+    timeSpentNs& = ((function(lastViewEvent)
+            __bsConsequent = lastViewEvent.view.time_spent
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return 0
+            end if
+        end function)(lastViewEvent)) + millisToNanos(100) ' 100 ms after last known timestamp
     timeSpentMs& = nanosToMillis(timeSpentNs&)
     timestamp& = timeSpentMs& + lastViewEvent.date
     crashEvent = {
@@ -121,9 +128,23 @@ sub sendCrashReportFromViewEventFile(filepath as string)
     ddLogInfo("RumCrashReporterTask, writing crash")
     m.top.writer.writeEvent = FormatJson(crashEvent)
     sleep(50)
-    lastViewEvent._dd.document_version = lastViewEvent._dd.document_version + 1
+    lastViewEvent._dd.document_version = ((function(lastViewEvent)
+            __bsConsequent = lastViewEvent._dd.document_version
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return 0
+            end if
+        end function)(lastViewEvent)) + 1
     lastViewEvent.view.error = {
-        count: lastViewEvent.view.error.count + 1
+        count: ((function(lastViewEvent)
+                __bsConsequent = lastViewEvent.view.error.count
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return 0
+                end if
+            end function)(lastViewEvent)) + 1
     }
     lastViewEvent.view.crash = {
         count: 1
