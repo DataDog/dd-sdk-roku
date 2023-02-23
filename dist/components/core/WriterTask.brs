@@ -79,7 +79,7 @@ function getWriteableFile(eventSize as integer) as string
     filenames = ListDir(folderPath).ToArray()
     filenames.Sort("r")
     if (filenames.count() > 0)
-        lastFilename = filenames[0]
+        lastFilename = ""
         for each filename in filenames
             ' ignore last known view file
             if (filename.Left(1) <> "_")

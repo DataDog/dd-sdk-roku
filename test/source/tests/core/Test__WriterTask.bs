@@ -18,6 +18,7 @@ function TestSuite__WriterTask() as object
     this.addTest("WhenFileTooLarge_ThenWriteInNewFile", WriterTaskTest__WhenFileTooLarge_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
     this.addTest("WhenFileTooOld_ThenWriteInNewFile", WriterTaskTest__WhenFileTooOld_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
     this.addTest("WhenFolderExists_ThenWriteInNewFile", WriterTaskTest__WhenFolderExists_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+    this.addTest("WhenIgnoredFileExists_ThenWriteInNewFile", WriterTaskTest__WhenIgnoredFileExists_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
 
     this.addTest("WhenEmptyEvent_ThenDoNothing", WriterTaskTest__WhenEmptyEvent_ThenDoNothing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
     this.addTest("WhenEmptyEventWithPreviousFile_ThenDoNothing", WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
@@ -235,7 +236,6 @@ function WriterTaskTest__WhenFolderExists_ThenWriteInNewFile() as string
     ' Given
     filenames = ListDir(m.folderPath)
     Assume.that(filenames).isEmpty()
-    previousData = IG_GetString(128)
     fakeEvent = IG_GetString(128)
     timestamp& = datadogroku_getTimestamp() - 1000
     filePath = m.folderPath + "/" + timestamp&.toStr()
@@ -250,6 +250,40 @@ function WriterTaskTest__WhenFolderExists_ThenWriteInNewFile() as string
     Assert.that(filenames).hasSize(2)
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
     Assert.that(filenames).contains(timestamp&.toStr())
+    Assert.that(content).isEqualTo(fakeEvent)
+    return ""
+end function
+'----------------------------------------------------------------
+' Given: a writer node, an existing file that should be ignored
+'  When: sending an event (as string)
+'  Then: the file is appended in a new file
+'----------------------------------------------------------------
+function WriterTaskTest__WhenIgnoredFileExists_ThenWriteInNewFile() as string
+    ' Given
+    filenames = ListDir(m.folderPath)
+    Assume.that(filenames).isEmpty()
+    previousData = IG_GetString(128)
+    fakeEvent = IG_GetString(128)
+    timestamp& = datadogroku_getTimestamp() - 1000
+    ignoredFileName = "_" + timestamp&.toStr()
+    ignoredFilePath = m.folderPath + "/" + ignoredFileName
+    WriteAsciiFile(ignoredFilePath, previousData)
+    
+    ' When
+    m.testedTask.writeEvent = fakeEvent
+    sleep(15)
+
+    ' Then
+    filenames = ListDir(m.folderPath)
+    writtenFileName = ""
+    Assert.that(filenames).hasSize(2)
+    for each fileName in filenames
+        if (fileName <> ignoredFileName)
+            writtenFileName = fileName
+            exit for
+        end if
+    end for
+    content = ReadAsciiFile(m.folderPath + "/" + writtenFileName)
     Assert.that(content).isEqualTo(fakeEvent)
     return ""
 end function

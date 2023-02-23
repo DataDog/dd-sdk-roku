@@ -49,11 +49,13 @@ sub runTests()
     Runner = TestRunner()
 
     Runner.SetFunctions([
+        ' Core
         TestSuite__Datadog,
         TestSuite__FileUtils,
         TestSuite__TimeUtils,
-        TestSuite__MultiTrackUploaderTask
+        TestSuite__MultiTrackUploaderTask,
         TestSuite__WriterTask,
+        ' RUM
         TestSuite__RumAgent,
         TestSuite__RumApplicationScope,
         TestSuite__RumSessionScope,
@@ -61,6 +63,7 @@ sub runTests()
         TestSuite__RumViewScope,
         TestSuite__RumTelemetryScope,
         TestSuite__RumCrashReporterTask,
+        ' Logs
         TestSuite__LogsAgent
     ])
 
