@@ -23,17 +23,18 @@ do
     cd $rootdir
     cd "$subdir"
 
-    npm config set git-tag-version false
-    npm config set allow-same-version true
-    npm version $1
+    npm --no-git-tag-version version $1
 done
 
 echo "---- Bump version in root dir"
 cd $rootdir
-npm config set git-tag-version true
-npm config set sign-git-tag true
-npm version $1 -m "Bump to version $1"
+npm --no-git-tag-version version $1
 
+echo "---- Creating a commit for version $1"
+git add **/*.brs **/*.bs **/package.json package.json
+git add "datadogroku-$1.zip"
+git commit -s -m "Bump version to $1"
+# git tag -s -a "$1" -m "Bump version to $1"
 
 echo "---- Bumped all versions to $1"
 cd $cwd
