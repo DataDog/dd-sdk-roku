@@ -44,6 +44,9 @@ sub RunUserInterface(args as dynamic)
     globalNode.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com" })
     globalNode.setField("datadogContext", { channel: "roku sample channel" })
 
+    ' initialize a first view
+    globalNode.datadogRumAgent@.startView("MainView", "main")
+
     ' Handle roInput (deeplink changes at runtime)
     input = CreateObject("roInput")
     input.setMessagePort(m.port)

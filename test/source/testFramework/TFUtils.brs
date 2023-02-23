@@ -188,6 +188,8 @@ function TF_Utils__AsString(input as dynamic) as string
         return Str(input).Trim()
     else if TF_Utils__IsSGNode(input)
         return "roSGNode/" + input.subtype()
+    else if Type(input) = "roList"
+        return "roList/" + FormatJson(input.ToArray())
     else if TF_Utils__IsArray(input)
         return FormatJson(input)
     else if TF_Utils__IsAssociativeArray(input)
