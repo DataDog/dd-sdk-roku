@@ -528,7 +528,6 @@ function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as 
     fakeApplicationVersion = IG_GetString(32)
     fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
-    fakeInstanceId = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
         service: fakeService,
@@ -590,7 +589,6 @@ function RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownVi
     fakeApplicationVersion = IG_GetString(32)
     fakeService = IG_GetString(32)
     fakeSessionId = IG_GetString(32)
-    fakeInstanceId = IG_GetString(32)
     fakeParentContext = {
         applicationId: fakeApplicationId,
         service: fakeService,

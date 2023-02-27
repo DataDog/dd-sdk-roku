@@ -507,7 +507,7 @@ function __DdUrlTransfer_builder()
     ' the Roku client certificate was successfully initialized.
     ' ----------------------------------------------------------------
     instance.InitClientCertificates = function() as boolean
-        return m.roUrlTransfer.SetHeadInitClientCertificatesers()
+        return m.roUrlTransfer.InitClientCertificates()
     end function
     ' ----------------------------------------------------------------
     ' Set the certificates file used for SSL to the specified .pem file.
