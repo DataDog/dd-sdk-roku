@@ -211,7 +211,7 @@ sub ensureUploader()
         contentType: "text/plain;charset=UTF-8"
         queryParams: {
             ddsource: agentSource()
-            ddtags: "sdk_version:" + sdkVersion()
+            ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.top.env
         }
     }
     uploader.tracks = tracks

@@ -72,6 +72,7 @@ sub initialize(configuration as object, global as object)
             datadogRumAgent: CreateObject("roSGNode", "RumAgent")
         })
         global.datadogRumAgent.site = configuration.site
+        global.datadogRumAgent.env = configuration.env
         global.datadogRumAgent.clientToken = configuration.clientToken
         global.datadogRumAgent.applicationId = configuration.applicationId
         global.datadogRumAgent.service = service
