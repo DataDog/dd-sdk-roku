@@ -39,6 +39,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.fakeDeviceName = IG_GetString(16)
     m.testSuite.fakeOsVersion = IG_GetString(16)
     m.testSuite.fakeOsVersionMajor = IG_GetString(16)
+    m.testSuite.fakeEnv = IG_GetString(10)
     m.testSuite.fakeSite = IG_GetString(3)
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
@@ -54,6 +55,7 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.telemetryScope = m.testSuite.mockTelemetryScope
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
     m.testSuite.testedNode.site = m.testSuite.fakeSite
+    m.testSuite.testedNode.env = m.testSuite.fakeEnv
     m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
@@ -278,6 +280,7 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     m.testedNode.rumScope = invalid
     site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
     m.testedNode.site = site
+    m.testedNode.env = m.fakeEnv
     expectedUrl = datadogroku_getIntakeUrl(site, "rum")
     expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
 
@@ -311,7 +314,7 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
         payloadPrefix: "",
         payloadPostfix: "",
         contentType: "text/plain;charset=UTF-8",
-        queryParams: { ddsource: "roku", ddtags: "sdk_version:1.0.0-dev" }
+        queryParams: { ddsource: "roku", ddtags: "sdk_version:" + datadogroku_sdkVersion() + ",env:" + m.fakeEnv }
     })
     return ""
 end function
