@@ -36,7 +36,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkDirs_ThenCreateDir() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
     Assume.that(path).doesNotExist()
 
@@ -54,7 +53,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkDirsExisting_ThenDoNothing() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
     Assume.that(path).doesNotExist()
 
@@ -74,7 +72,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkDirs_ThenCreateParentDirs() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     folderNames = IG_GetArray(["string", "string", "string", "string"])
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":"
     for each folderName in folderNames
@@ -97,7 +94,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkDirsInvalidPath_ThenDoNothing() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     invalidChar = IG_GetOneOf(["<", ">", """", ":", "|", "?", "*"])
     path = IG_GetOneOf(["foo", "bar"]) + ":/" + IG_GetString(8) + invalidChar + IG_GetString(8)
     Assume.that(path).doesNotExist()
@@ -116,7 +112,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkParentDirs_ThenCreateDir() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
     filePath = path + "/" + IG_GetString(16)
     Assume.that(filePath).doesNotExist()
@@ -136,7 +131,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkParentDirsExisting_ThenDoNothing() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
     filePath = path + "/" + IG_GetString(16)
     Assume.that(path).doesNotExist()
@@ -158,7 +152,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkParentDirs_ThenCreateParentDirs() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     folderNames = IG_GetArray(["string", "string", "string", "string"])
     path = IG_GetOneOf(["cachefs", "tmp"]) + ":"
     for each folderName in folderNames
@@ -183,7 +176,6 @@ end function
 '----------------------------------------------------------------
 function FileUtilsTest__WhenMkParentDirsInvalidPath_ThenDoNothing() as string
     ' Given
-    fileSystem = CreateObject("roFileSystem")
     invalidChar = IG_GetOneOf(["<", ">", """", ":", "|", "?", "*"])
     path = IG_GetOneOf(["foo", "bar"]) + ":/" + IG_GetString(8) + invalidChar + IG_GetString(8)
     filePath = path + "/" + IG_GetString(16)
