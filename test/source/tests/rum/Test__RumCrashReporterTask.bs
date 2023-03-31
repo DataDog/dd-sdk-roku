@@ -106,7 +106,6 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
     m.testedTask.lastExitOrTerminationReason = fakeExitStatus
 
     ' When
-    errorTimestamp& = datadogroku_getTimestamp()
     m.testedTask.control = "RUN"
     sleep(100)
 
@@ -210,7 +209,6 @@ function RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing() 
     m.testedTask.lastExitOrTerminationReason = fakeExitStatus
 
     ' When
-    errorTimestamp& = datadogroku_getTimestamp()
     m.testedTask.control = "RUN"
     sleep(100)
 
@@ -263,7 +261,6 @@ function RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing() as stri
     m.testedTask.lastExitOrTerminationReason = IG_GetString(16)
 
     ' When
-    errorTimestamp& = datadogroku_getTimestamp()
     m.testedTask.control = "RUN"
     sleep(100)
 
@@ -297,7 +294,6 @@ function RumCrashReporterTaskTest__WhenLastViewIsMissing_ThenDoNothing() as stri
     m.testedTask.lastExitOrTerminationReason = fakeExitStatus
 
     ' When
-    errorTimestamp& = datadogroku_getTimestamp()
     m.testedTask.control = "RUN"
     sleep(100)
 
@@ -334,7 +330,6 @@ function RumCrashReporterTaskTest__WhenLastViewIsInvalid_ThenDoNothing() as stri
     m.testedTask.lastExitOrTerminationReason = fakeExitStatus
 
     ' When
-    errorTimestamp& = datadogroku_getTimestamp()
     m.testedTask.control = "RUN"
     sleep(100)
 

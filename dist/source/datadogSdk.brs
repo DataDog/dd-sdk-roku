@@ -72,6 +72,14 @@ sub initialize(configuration as object, global as object)
             datadogRumAgent: CreateObject("roSGNode", "RumAgent")
         })
         global.datadogRumAgent.site = configuration.site
+        global.datadogRumAgent.env = (function(configuration)
+                __bsConsequent = configuration.env
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return ""
+                end if
+            end function)(configuration)
         global.datadogRumAgent.clientToken = configuration.clientToken
         global.datadogRumAgent.applicationId = configuration.applicationId
         global.datadogRumAgent.service = service
@@ -129,7 +137,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.0.0-alpha1"
+    return "1.0.0-alpha2"
 end function
 
 ' ----------------------------------------------------------------

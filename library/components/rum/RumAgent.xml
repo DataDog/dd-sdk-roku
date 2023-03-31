@@ -13,6 +13,7 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="site" type="string" value="us1" />
+        <field id="env" type="string" value="" />
         <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />

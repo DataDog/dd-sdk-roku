@@ -546,7 +546,7 @@ class DdUrlTransfer
     ' the Roku client certificate was successfully initialized.
     ' ----------------------------------------------------------------
     function InitClientCertificates() as boolean
-        return m.roUrlTransfer.SetHeadInitClientCertificatesers()
+        return m.roUrlTransfer.InitClientCertificates()
     end function
 
     ' ----------------------------------------------------------------
