@@ -11,7 +11,7 @@
 `ROPM` is a package manager for the Roku platform (based on NPM). If you're not already using `ROPM` in your Roku project, read their [Getting started guide][1]. Once your project is set up to use `ROPM`, you can use the following command to install the Datadog dependency:
 
 ```shell
-ropm install datadogroku
+ropm install datadog-roku
 ```
 
 ### Setup manually
@@ -63,9 +63,9 @@ To split [user sessions][4] into logical steps, manually start a View using the 
 RUM Actions represent the interactions your users have with your channel. You can forward actions to Datadog as follows:
 
 ```brightscript
-    target = "playButton" ' the name of the SG Node the user interacted with
-    type = "click" ' the type of interaction, should be one of "click", "back", or "custom" 
-    m.global.datadogRumAgent.callfunc("addAction", { target: targetName, type: type})
+    targetName = "playButton" ' the name of the SG Node the user interacted with
+    actionType = "click" ' the type of interaction, should be one of "click", "back", or "custom" 
+    m.global.datadogRumAgent.callfunc("addAction", { target: targetName, type: actionType})
 ```
 
 #### Track RUM Errors
