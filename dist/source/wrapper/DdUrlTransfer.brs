@@ -16,11 +16,22 @@ function __DdUrlTransfer_builder()
     ' @param datadogRumAgent (object) the Datadog RumAgent node to report
     ' requests to
     ' ----------------------------------------------------------------
-    instance.new = sub(datadogRumAgent as object)
+    instance.new = sub(datadogRumAgent as object, tracingSamplingRate = 100.0 as double)
         m.roUrlTransfer = CreateObject("roUrlTransfer")
         m.datadogRumAgent = datadogRumAgent
+        m.tracingSamplingRate = tracingSamplingRate
+        ddLogWarning("tracingSamplingRate:" + tracingSamplingRate.toStr())
+        ddLogWarning("m.tracingSamplingRate:" + m.tracingSamplingRate.toStr())
         ' TODO define trace sampling rate
         ' TODO define first party hosts
+    end sub
+    ' ----------------------------------------------------------------
+    ' Sets the URL to use for the transfer request.
+    '
+    ' @param url (string) The URL to be used for the transfer request
+    ' ----------------------------------------------------------------
+    instance.SetTracingSamplingRate = sub(tracingSamplingRate as double)
+        m.tracingSamplingRate = tracingSamplingRate
     end sub
     ' *****************************************************************
     ' * ifUrlTransfer: interface that transfers data to or from remote
@@ -81,12 +92,7 @@ function __DdUrlTransfer_builder()
         port = CreateObject("roMessagePort")
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
-        traceId = generateUniqueId()
-        spanId = generateUniqueId()
-        m.roUrlTransfer.AddHeader("x-datadog-trace-id", traceId)
-        m.roUrlTransfer.AddHeader("x-datadog-parent-id", spanId)
-        m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
-        m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
+        m._traceRequest()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToString()
         if (not result)
@@ -114,8 +120,8 @@ function __DdUrlTransfer_builder()
                             httpCode: httpCode
                             status: status
                             bytesDownloaded: bytesDownloaded
-                            traceId: traceId
-                            spanId: spanId
+                            traceId: m.traceId
+                            spanId: m.spanId
                         }
                         m.datadogRumAgent.callfunc("addResource", resource)
                         return response
@@ -147,12 +153,7 @@ function __DdUrlTransfer_builder()
         port = CreateObject("roMessagePort")
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
-        traceId = generateUniqueId()
-        spanId = generateUniqueId()
-        m.roUrlTransfer.AddHeader("x-datadog-trace-id", traceId)
-        m.roUrlTransfer.AddHeader("x-datadog-parent-id", spanId)
-        m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
-        m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
+        m._traceRequest()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToFile(filename)
         if (not result)
@@ -180,8 +181,8 @@ function __DdUrlTransfer_builder()
                             httpCode: httpCode
                             status: status
                             bytesDownloaded: bytesDownloaded
-                            traceId: traceId
-                            spanId: spanId
+                            traceId: m.traceId
+                            spanId: m.spanId
                         }
                         m.datadogRumAgent.callfunc("addResource", resource)
                         return httpCode
@@ -208,12 +209,7 @@ function __DdUrlTransfer_builder()
         port = CreateObject("roMessagePort")
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
-        traceId = generateUniqueId()
-        spanId = generateUniqueId()
-        m.roUrlTransfer.AddHeader("x-datadog-trace-id", traceId)
-        m.roUrlTransfer.AddHeader("x-datadog-parent-id", spanId)
-        m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
-        m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
+        m._traceRequest()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromString(request)
         if (not result)
@@ -238,8 +234,8 @@ function __DdUrlTransfer_builder()
                             transferTime: transferTime#
                             httpCode: httpCode
                             status: status
-                            traceId: traceId
-                            spanId: spanId
+                            traceId: m.traceId
+                            spanId: m.spanId
                         }
                         m.datadogRumAgent.callfunc("addResource", resource)
                         return httpCode
@@ -267,12 +263,7 @@ function __DdUrlTransfer_builder()
         port = CreateObject("roMessagePort")
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
-        traceId = generateUniqueId()
-        spanId = generateUniqueId()
-        m.roUrlTransfer.AddHeader("x-datadog-trace-id", traceId)
-        m.roUrlTransfer.AddHeader("x-datadog-parent-id", spanId)
-        m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
-        m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
+        m._traceRequest()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromFile(filename)
         if (not result)
@@ -297,8 +288,8 @@ function __DdUrlTransfer_builder()
                             transferTime: transferTime#
                             httpCode: httpCode
                             status: status
-                            traceId: traceId
-                            spanId: spanId
+                            traceId: m.traceId
+                            spanId: m.spanId
                         }
                         m.datadogRumAgent.callfunc("addResource", resource)
                         return httpCode
@@ -579,11 +570,31 @@ function __DdUrlTransfer_builder()
     instance.ClearCookies = sub()
         m.roUrlTransfer.ClearCookies()
     end sub
+    instance._traceRequest = sub()
+        m.traceId = generateUniqueId()
+        m.spanId = generateUniqueId()
+        rndTrace = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
+        ddLogWarning("rndTrace:" + rndTrace.toStr())
+        ddLogWarning("m.tracingSamplingRate:" + m.tracingSamplingRate.toStr())
+        if (rndTrace < m.tracingSamplingRate)
+            ddLogWarning("Network request trace for " + m.GetUrl() + " is KEPT ")
+            m.roUrlTransfer.AddHeader("x-datadog-trace-id", m.traceId)
+            m.roUrlTransfer.AddHeader("x-datadog-parent-id", m.spanId)
+            m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
+            m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
+        else
+            ddLogWarning("Network request trace for " + m.GetUrl() + " is DISCARDED  ")
+            m.traceId = invalid
+            m.spanId = invalid
+            m.spanId = generateUniqueId()
+            m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "0")
+        end if
+    end sub
     return instance
 end function
-function DdUrlTransfer(datadogRumAgent as object)
+function DdUrlTransfer(datadogRumAgent as object, tracingSamplingRate = 100.0 as double)
     instance = __DdUrlTransfer_builder()
-    instance.new(datadogRumAgent)
+    instance.new(datadogRumAgent, tracingSamplingRate)
     return instance
 end function
 
