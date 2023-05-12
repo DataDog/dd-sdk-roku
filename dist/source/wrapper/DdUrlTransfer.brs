@@ -15,20 +15,20 @@ function __DdUrlTransfer_builder()
     ' Constructor
     ' @param datadogRumAgent (object) the Datadog RumAgent node to report
     ' requests to
+    ' @param tracingSamplingRate (double) The sampling rate to add
+    ' trace headers to the request, between 0 and 100
     ' ----------------------------------------------------------------
     instance.new = sub(datadogRumAgent as object, tracingSamplingRate = 100.0 as double)
         m.roUrlTransfer = CreateObject("roUrlTransfer")
         m.datadogRumAgent = datadogRumAgent
         m.tracingSamplingRate = tracingSamplingRate
-        ddLogWarning("tracingSamplingRate:" + tracingSamplingRate.toStr())
-        ddLogWarning("m.tracingSamplingRate:" + m.tracingSamplingRate.toStr())
-        ' TODO define trace sampling rate
-        ' TODO define first party hosts
+        ' TODO RUMM-2809 define first party hosts
     end sub
     ' ----------------------------------------------------------------
-    ' Sets the URL to use for the transfer request.
+    ' Sets the tracing sample rate.
     '
-    ' @param url (string) The URL to be used for the transfer request
+    ' @param tracingSamplingRate (double) The sampling rate to add
+    ' trace headers to the request, between 0 and 100
     ' ----------------------------------------------------------------
     instance.SetTracingSamplingRate = sub(tracingSamplingRate as double)
         m.tracingSamplingRate = tracingSamplingRate
@@ -570,23 +570,22 @@ function __DdUrlTransfer_builder()
     instance.ClearCookies = sub()
         m.roUrlTransfer.ClearCookies()
     end sub
+    ' ----------------------------------------------------------------
+    ' (Internal) generates a trace and span id and update the request
+    ' headers
+    ' ----------------------------------------------------------------
     instance._traceRequest = sub()
         m.traceId = generateUniqueId()
         m.spanId = generateUniqueId()
         rndTrace = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
-        ddLogWarning("rndTrace:" + rndTrace.toStr())
-        ddLogWarning("m.tracingSamplingRate:" + m.tracingSamplingRate.toStr())
         if (rndTrace < m.tracingSamplingRate)
-            ddLogWarning("Network request trace for " + m.GetUrl() + " is KEPT ")
             m.roUrlTransfer.AddHeader("x-datadog-trace-id", m.traceId)
             m.roUrlTransfer.AddHeader("x-datadog-parent-id", m.spanId)
             m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
             m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
         else
-            ddLogWarning("Network request trace for " + m.GetUrl() + " is DISCARDED  ")
             m.traceId = invalid
             m.spanId = invalid
-            m.spanId = generateUniqueId()
             m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "0")
         end if
     end sub
