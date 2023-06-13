@@ -19,16 +19,26 @@ class DdUrlTransfer
     ' requests to
     ' @param tracingSamplingRate (double) The sampling rate to add
     ' trace headers to the request, between 0 and 100
+    ' @param tracedHosts (array) the hosts for which requests will have a trace generated
     ' ----------------------------------------------------------------
-    sub new(datadogRumAgent as object, tracingSamplingRate = 100.0 as double)
+    sub new(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = [] as object)
         m.roUrlTransfer = CreateObject("roUrlTransfer")
         m.datadogRumAgent = datadogRumAgent
         m.tracingSamplingRate = tracingSamplingRate
-        ' TODO RUMM-2809 define first party hosts
+        m.tracedHosts = tracedHosts
     end sub
 
     ' ----------------------------------------------------------------
     ' Sets the tracing sample rate.
+    '
+    ' @param tracedHosts (array) the hosts for which requests will have a trace generated
+    ' ----------------------------------------------------------------
+    sub SetTracedHosts(tracedHosts = [] as object)
+        m.tracedHosts = tracedHosts
+    end sub
+
+    ' ----------------------------------------------------------------
+    ' Sets the traced hosts.
     '
     ' @param tracingSamplingRate (double) The sampling rate to add
     ' trace headers to the request, between 0 and 100
@@ -624,10 +634,12 @@ class DdUrlTransfer
     ' headers
     ' ----------------------------------------------------------------
     sub _traceRequest()
-        m.traceId = generateUniqueId()
-        m.spanId = generateUniqueId()
         rndTrace = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
-        if (rndTrace < m.tracingSamplingRate)
+        isSampledIn = rndTrace < m.tracingSamplingRate
+        isTracedHost = isValidHost(m.roUrlTransfer.GetUrl(), m.tracedHosts)
+        if (isTracedHost and isSampledIn)
+            m.traceId = generateUniqueId()
+            m.spanId = generateUniqueId()
             m.roUrlTransfer.AddHeader("x-datadog-trace-id", m.traceId)
             m.roUrlTransfer.AddHeader("x-datadog-parent-id", m.spanId)
             m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
@@ -640,6 +652,36 @@ class DdUrlTransfer
     end sub
 end class
 
+
+'*****************************************************************
+'* Utility functions to manipulate requests
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Verifies whether the given url uses one of the provided hosts
+' @param url (string) a url
+' @param validHosts (array) an array of hosts (without scheme or path)
+' @return (boolean) whether the given url uses one of the provided hosts
+' ----------------------------------------------------------------
+function isValidHost(url as string, validHosts as object) as boolean
+    tokens = url.split("/")
+    ' assuming we have "scheme://host[/…]",
+    ' tokens[0] = 'scheme:'
+    ' tokens[1] = '' (empty string between the two //)
+    ' tokens[2] = 'host'
+    host = tokens[2]
+    for each validHost in validHosts
+        if (host = validHost)
+            return true
+        end if
+    end for
+    return false
+end function
+
+' ----------------------------------------------------------------
+' Generates a unique identifier compatible with Datadog's APM trace and span IDs
+' @return (string) the generated Unique id
+' ----------------------------------------------------------------
 function generateUniqueId() as string
     radix = 10
     maxInt = 4294967295
