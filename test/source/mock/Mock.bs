@@ -241,7 +241,7 @@ function checkParamMatch(expected as dynamic, actual as dynamic) as boolean
 
     expectedType = type(expected)
     actualType = type(actual)
-    print "comparing type " + expectedType + " with type " + actualType
+    datadogroku_ddLogVerbose("comparing type " + expectedType + " with type " + actualType)
     return false
 end function
 
@@ -256,7 +256,7 @@ function checkAssocArrayMatch(expected as object, actual as object) as boolean
         expectedValue = expected[key]
         actualValue = actual[key]
         if (not checkParamMatch(expectedValue, actualValue))
-            print "-->> assoc array mismatch for key " + key + " <" + TF_Utils__AsString(expectedValue) + "> != <" + TF_Utils__AsString(actualValue) + "> "
+            datadogroku_ddLogVerbose("-->> assoc array mismatch for key " + key + " <" + TF_Utils__AsString(expectedValue) + "> != <" + TF_Utils__AsString(actualValue) + "> ")
             return false
         end if
     end for
@@ -280,7 +280,7 @@ function checkArrayMatch(expected as object, actual as object) as boolean
         expectedValue = expected[i]
         actualValue = actual[i]
         if (not checkParamMatch(expectedValue, actualValue))
-            print "-->> array mismatch at index " + i + " <" + TF_Utils__AsString(expectedValue) + "> != <" + TF_Utils__AsString(actualValue) + "> "
+            datadogroku_ddLogVerbose("-->> array mismatch at index " + i + " <" + TF_Utils__AsString(expectedValue) + "> != <" + TF_Utils__AsString(actualValue) + "> ")
             return false
         end if
     end for
