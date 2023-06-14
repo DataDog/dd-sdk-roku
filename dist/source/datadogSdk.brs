@@ -137,7 +137,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.0.0-alpha2"
+    return "1.0.0-beta1"
 end function
 
 ' ----------------------------------------------------------------
