@@ -1,0 +1,122 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return A configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__DdUrlTransfer() as object
+    this = BaseTestSuite()
+    this.Name = "DdUrlTransfer"
+
+    this.addTest("WhenIsValidHost_ThenReturnsTrue", DdUrlTransferTest__WhenIsValidHost_ThenReturnsTrue)
+    this.addTest("WhenIsValidHostWithSingleHost_ThenReturnsTrue", DdUrlTransferTest__WhenIsValidHostWithSingleHost_ThenReturnsTrue)
+    this.addTest("WhenIsValidHostWithUnknownHost_ThenReturnsFalse", DdUrlTransferTest__WhenIsValidHostWithUnknownHost_ThenReturnsFalse)
+    this.addTest("WhenIsValidHostWithNoHost_ThenReturnsFalse", DdUrlTransferTest__WhenIsValidHostWithNoHost_ThenReturnsFalse)
+    this.addTest("WhenIsValidHostWithNonUrl_ThenReturnsFalse", DdUrlTransferTest__WhenIsValidHostWithNonUrl_ThenReturnsFalse)
+
+    return this
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call isValidHost with a url with host in the validhost list
+'  Then: returns true
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsValidHost_ThenReturnsTrue() as string
+    ' Given
+    validHosts = []
+    for i = 0 to 10
+        validHosts.Push(IG_GetString(12) + "." + IG_GetString(3))
+    end for
+    validHost = validHosts[IG_GetIntegerInRange(0, 10)]
+    url = "https://" + validHost + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_isValidHost(url, validHosts)
+
+    ' Then
+    Assert.that(result).isTrue()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call isValidHost with a url with host in the validhost list
+'  Then: returns true
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsValidHostWithSingleHost_ThenReturnsTrue() as string
+    ' Given
+    validHost = IG_GetString(12) + "." + IG_GetString(3)
+    validHosts = []
+    validHosts.Push(validHost)
+    url = "https://" + validHost + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_isValidHost(url, validHosts)
+
+    ' Then
+    Assert.that(result).isTrue()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call isValidHost with a url with host not in the validhost list
+'  Then: returns false
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsValidHostWithUnknownHost_ThenReturnsFalse() as string
+    ' Given
+    validHosts = []
+    for i = 0 to 10
+        validHosts.Push(IG_GetString(12) + "." + IG_GetString(3))
+    end for
+    url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_isValidHost(url, validHosts)
+
+    ' Then
+    Assert.that(result).isFalse()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call isValidHost with a url with host not in the validhost list (empty)
+'  Then: returns false
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsValidHostWithNoHost_ThenReturnsFalse() as string
+    ' Given
+    validHosts = []
+    url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_isValidHost(url, validHosts)
+
+    ' Then
+    Assert.that(result).isFalse()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call isValidHost with a string not a url
+'  Then: returns false
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsValidHostWithNonUrl_ThenReturnsFalse() as string
+    ' Given
+    validHosts = []
+    for i = 0 to 10
+        validHosts.Push(IG_GetString(12) + "." + IG_GetString(3))
+    end for
+    url = IG_GetString(64)
+
+    ' When
+    result = datadogroku_isValidHost(url, validHosts)
+
+    ' Then
+    Assert.that(result).isFalse()
+    return ""
+end function

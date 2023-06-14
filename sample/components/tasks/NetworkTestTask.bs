@@ -40,7 +40,7 @@ sub performTest()
 end sub
 
 function GetToString() as object
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, 50.0, m.global.mirrorHosts)
     sleep(100)
     url = m.global.mirrorUrl + "?via=GetToString"
     ddUrlTransfer.SetUrl(url)
@@ -53,11 +53,11 @@ function GetToString() as object
 end function
 
 function GetToFile() as object
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, 50.0, m.global.mirrorHosts)
     url = m.global.mirrorUrl + "?via=GetToFile"
     filename = "tmp:/localfile"
     ddUrlTransfer.SetUrl(url)
-    ddUrlTransfer.setRequest("POST")
+    ddUrlTransfer.SetRequest("POST")
     ddUrlTransfer.EnablePeerVerification(false)
     ddUrlTransfer.EnableHostVerification(false)
     result = ddUrlTransfer.GetToFile(filename)
@@ -68,7 +68,7 @@ function GetToFile() as object
 end function
 
 function PostFromString() as object
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, 50.0, m.global.mirrorHosts)
     url = m.global.mirrorUrl + "?via=PostFromString"
     postBody = "Lorem ipsum dolor sit amet"
     ddUrlTransfer.SetUrl(url)
@@ -81,7 +81,7 @@ function PostFromString() as object
 end function
 
 function PostFromFile() as object
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, 50.0, m.global.mirrorHosts)
     url = m.global.mirrorUrl + "?via=PostFromFile"
     filename = "tmp:/localfile"
     postBody = "Lorem ipsum dolor sit amet"

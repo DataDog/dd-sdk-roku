@@ -65,7 +65,6 @@ end sub
 
 sub onOperationResult()
     result = m.task.result
-    print result
 
     if (result.error <> invalid)
         m.msgLabel.text = result.error

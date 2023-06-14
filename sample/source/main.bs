@@ -7,10 +7,6 @@
 ' @param args (dynamic) arguments passed by the OS when starting the channel
 ' ----------------------------------------------------------------
 sub RunUserInterface(args as dynamic)
-    if ((args.mediaType <> invalid) and (args.contentId <> invalid))
-        print "Sample app launched with deeplink: " + args.contentId + "/" + args.mediaType
-    end if
-
     ' Create Port
     m.port = CreateObject("roMessagePort")
 
@@ -24,7 +20,10 @@ sub RunUserInterface(args as dynamic)
         datadogOrgName: credentials.orgName,
         datadogOrgId: credentials.orgId,
         datadogSite: credentials.site,
-        mirrorUrl: credentials.mirrorUrl
+        mirrorUrl: credentials.mirrorUrl,
+        mirrorHosts: credentials.mirrorHosts,
+        launchContentId: args.contentId,
+        launchMediaType: args.mediaType
     })
 
     ' Create Scene
@@ -72,7 +71,7 @@ sub RunUserInterface(args as dynamic)
         else if (msgType = "roSystemLogEvent")
             sysLogEvent = msg.getInfo()
             datadogroku_ddLogInfo("Received system event: " + sysLogEvent.LogType)
-            m.global.datadogRumAgent@.addResource(sysLogEvent)
+            globalNode.datadogRumAgent@.addResource(sysLogEvent)
         else if (msgType = "roInputEvent")
             datadogroku_ddLogInfo("Received input event" + msg.getInfo())
         end if

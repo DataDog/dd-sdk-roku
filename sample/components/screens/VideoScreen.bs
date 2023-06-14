@@ -23,7 +23,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if(key = "play" and press)
         datadogroku_ddLogInfo("Video State: " + m.devTube.state)
         m.global.datadogRumAgent@.addAction({ target: "play", type: "click" })
-        ' m.devTube.control = "play"
+        m.devTube.control = "play"
     end if
     return false
 end function
