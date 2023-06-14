@@ -34,7 +34,6 @@ echo "---- Creating a commit for version $1"
 git add **/*.brs **/*.bs **/package.json package.json
 git add "datadogroku-$1.zip"
 git commit -s -m "Bump version to $1"
-# git tag -s -a "$1" -m "Bump version to $1"
 
 echo "---- Bumped all versions to $1"
 cd $cwd

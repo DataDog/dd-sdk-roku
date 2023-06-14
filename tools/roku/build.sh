@@ -6,6 +6,7 @@
 # usage: build.sh folder...
 
 cwd=`pwd` 
+set -e
 
 for var in "$@"
 do
