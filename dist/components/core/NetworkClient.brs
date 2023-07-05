@@ -29,9 +29,11 @@ function postFromFile(url as string, filePath as string, headers as object, payl
     payload = payloadPrefix + ReadAsciiFile(filePath) + payloadPostfix
     m.urlTransfer.SetUrl(url)
     m.urlTransfer.SetRequest("POST")
-    m.urlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt") ' required for SSL
-    for each header in headers
-        m.urlTransfer.AddHeader(header, headers[header])
-    end for
+    if (not m.urlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt")) ' required for SSL
+        ddLogWarning("Error setting the common certificates file to the intake request; if the issue persists, please contact the support.")
+    endif
+    if (not m.urlTransfer.SetHeaders(headers))
+        ddLogWarning("Error setting headers to the intake request; if the issue persists, please contact the support.")
+    endif
     return m.urlTransfer.PostFromString(payload)
 end function

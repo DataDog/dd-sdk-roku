@@ -150,6 +150,7 @@ sub sendAction(writer as object)
             name: context.viewName
         }
     }
+    ddLogInfo("Tracking " + m.top.actionType + " action '" + m.top.target + "' in view " + context.viewName + " (" + context.viewId + ")")
     writer.writeEvent = FormatJson(actionEvent)
 end sub
 ' ****************************************************************
