@@ -30,8 +30,6 @@ function postFromFile(url as string, filePath as string, headers as object, payl
     m.urlTransfer.SetUrl(url)
     m.urlTransfer.SetRequest("POST")
     m.urlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt") ' required for SSL
-    for each header in headers
-        m.urlTransfer.AddHeader(header, headers[header])
-    end for
+    m.urlTransfer.SetHeaders(headers)
     return m.urlTransfer.PostFromString(payload)
 end function

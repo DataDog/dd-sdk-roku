@@ -198,6 +198,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
             name: m.top.viewName
         }
     }
+    ddLogInfo("Tracking error '" + message + "' in view " + m.top.viewName + " (" + m.viewId + ")")
     m.errorCount++
     writer.writeEvent = FormatJson(errorEvent)
 end sub
@@ -295,6 +296,7 @@ sub sendCustomAction(target as string, writer as object)
             name: m.top.viewName
         }
     }
+    ddLogInfo("Tracking custom action '" + target + "' in view " + m.top.viewName + " (" + m.viewId + ")")
     writer.writeEvent = FormatJson(actionEvent)
 end sub
 
@@ -380,6 +382,23 @@ sub sendResource(resource as object, writer as object)
             name: m.top.viewName
         }
     }
+    method = (function(resource)
+            __bsConsequent = resource.method
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return "?"
+            end if
+        end function)(resource)
+    statusCode = (function(resource)
+            __bsConsequent = resource.httpCode
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return 0
+            end if
+        end function)(resource)
+    ddLogInfo("Tracking resource " + method + ":" + resource.url + " -> " + statusCode.toStr() + " in view " + m.top.viewName + " (" + m.viewId + ")")
     m.resourceCount++
     writer.writeEvent = FormatJson(resourceEvent)
 end sub
@@ -455,6 +474,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
             name: m.top.viewName
         }
     }
+    ddLogInfo("Tracking resource error " + method + ":" + url + "' in view " + m.top.viewName + " (" + m.viewId + ")")
     writer.writeEvent = FormatJson(errorEvent)
 end sub
 
@@ -518,6 +538,7 @@ sub sendViewUpdate(writer as object)
             }
         }
     }
+    ddLogInfo("Tracking view update for view " + m.top.viewName + " (" + m.viewId + ")")
     jsonEvent = FormatJson(viewEvent)
     writer.writeEvent = jsonEvent
     if (m.instanceId <> invalid and m.instanceId <> "")
