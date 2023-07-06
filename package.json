@@ -1,6 +1,6 @@
 {
   "name": "datadog-roku",
-  "version": "1.0.0-beta1",
+  "version": "1.0.0-beta2",
   "description": "Datadog SDK for Roku",
   "keywords": [
     "ropm",

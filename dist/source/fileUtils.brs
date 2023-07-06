@@ -94,7 +94,7 @@ end function
 ' @return (string) whether the file was successfully appended
 ' ----------------------------------------------------------------
 function AppendAsciiFile(filepath as string, text as string) as boolean
-    ddLogInfo("Appending bytes to " + filepath)
+    ddLogVerbose("Appending bytes to " + filepath)
     byteArray = CreateObject("roByteArray")
     byteArray.FromAsciiString(text)
     return byteArray.AppendFile(filepath)

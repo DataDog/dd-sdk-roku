@@ -54,6 +54,12 @@ sub RumActionScopeTest__SetUp()
         name: IG_GetString(16),
         email: IG_GetString(16) + "@" + IG_GetString(16) + ".com"
     }
+    m.testSuite.fakeParentContext = {
+        applicationId: IG_GetString(32),
+        sessionId: IG_GetString(32),
+        viewId: IG_GetString(32),
+        viewName: IG_GetString(32)
+    }
     m.testSuite.fakeGlobalContext = {}
     for i = 1 to 5
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
@@ -148,6 +154,7 @@ end function
 function RumActionScopeTest__WhenStoppedIsActive_ThenReturnsFalse() as string
     ' Given
     fakeEvent = { mock: "event", eventType: "any" }
+    m.mockParentScope@.stubCall("getRumContext", { _ph: invalid }, m.fakeParentContext)
 
     ' When
     sleep(150)

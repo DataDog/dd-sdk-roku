@@ -199,6 +199,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         }
     }
 
+    ddLogInfo("Tracking error '" + message + "' in view " + m.top.viewName + " (" + m.viewId + ")")
     m.errorCount++
     writer.writeEvent = FormatJson(errorEvent)
 end sub
@@ -296,6 +297,7 @@ sub sendCustomAction(target as string, writer as object)
         }
     }
 
+    ddLogInfo("Tracking custom action '" + target + "' in view " + m.top.viewName + " (" + m.viewId + ")")
     writer.writeEvent = FormatJson(actionEvent)
 end sub
 
@@ -375,6 +377,9 @@ sub sendResource(resource as object, writer as object)
         }
     }
 
+    method = resource.method ?? "?"
+    statusCode = resource.httpCode ?? 0
+    ddLogInfo("Tracking resource " + method + ":" + resource.url + " -> " + statusCode.toStr() + " in view " + m.top.viewName + " (" + m.viewId + ")")
     m.resourceCount++
     writer.writeEvent = FormatJson(resourceEvent)
 end sub
@@ -451,6 +456,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
         }
     }
 
+    ddLogInfo("Tracking resource error " + method + ":" + url + "' in view " + m.top.viewName + " (" + m.viewId + ")")
     writer.writeEvent = FormatJson(errorEvent)
 end sub
 
@@ -510,6 +516,7 @@ sub sendViewUpdate(writer as object)
         }
     }
 
+    ddLogInfo("Tracking view update for view " + m.top.viewName + " (" + m.viewId + ")")
     jsonEvent = FormatJson(viewEvent)
     writer.writeEvent = jsonEvent
 
