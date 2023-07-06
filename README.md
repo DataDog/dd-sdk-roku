@@ -213,7 +213,9 @@ The following code snippet illustrates the `logInfo` function, but all functions
 To see internal messages and warnings about how the SDK is behaving,  enable the SDK verbosity to see debug information when you connect to your device with telnet on port `8085`.
 
 ```brightscript
-    m.global.setField("datadogVerbosity", 3) ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose;
+        m.global.addFields({
+        datadogVerbosity: 3 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose; 5 = log threads
+    })
 ```
 
 ## Looking up your RUM events
