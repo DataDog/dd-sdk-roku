@@ -143,6 +143,10 @@ sub sendLog(status as object, message as string, attributes as object)
             version: m.top.osVersion
             version_major: m.top.osVersionMajor
         }
+        logger: {
+            thread_name: m.top.threadInfo().currentThread.name
+            version: sdkVersion()
+        }
     }
     for each key in attributes
         logEvent[key] = attributes[key]
