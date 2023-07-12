@@ -107,7 +107,7 @@ sub initialize(configuration as object, global as object)
         })
         global.datadogLogsAgent.site = configuration.site
         global.datadogLogsAgent.clientToken = configuration.clientToken
-        global.datadogLogsAgent.service = configuration.service
+        global.datadogLogsAgent.service = service
         global.datadogLogsAgent.env = configuration.env
         global.datadogLogsAgent.uploader = global.datadogUploader
         global.datadogLogsAgent.deviceName = deviceName
