@@ -40,7 +40,7 @@ sub performTest()
 end sub
 
 function GetToString() as object
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, 50.0, m.global.mirrorHosts)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, 100.0, m.global.mirrorHosts)
     sleep(100)
     url = m.global.mirrorUrl + "?via=GetToString"
     ddUrlTransfer.SetUrl(url)

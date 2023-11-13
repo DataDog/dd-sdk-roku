@@ -1,8 +1,9 @@
 ' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
-'import "pkg:/source/timeUtils.bs"
+'import "pkg:/source/datadogSdk.bs"
 'import "pkg:/source/internalLogger.bs"
+'import "pkg:/source/timeUtils.bs"
 ' *****************************************************************
 ' * DdUrlTransfer: a class wrapping a roUrlTransfer component.
 ' *
@@ -17,24 +18,29 @@ function __DdUrlTransfer_builder()
     ' requests to
     ' @param tracingSamplingRate (double) The sampling rate to add
     ' trace headers to the request, between 0 and 100
-    ' @param tracedHosts (array) the hosts for which requests will have a trace generated
+    ' @param tracedHosts (associative array) a map the hosts for which requests will have
+    ' a trace generated. The key is the host name (e.g.: example.com) and the value ust be
+    ' one of the supported  tracing header types : "datadog", "b3", "b3multi", or "tracecontext"
     ' ----------------------------------------------------------------
-    instance.new = sub(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = [] as object)
+    instance.new = sub(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = {} as object)
         m.roUrlTransfer = CreateObject("roUrlTransfer")
         m.datadogRumAgent = datadogRumAgent
         m.tracingSamplingRate = tracingSamplingRate
         m.tracedHosts = tracedHosts
+        m.headers = {}
     end sub
     ' ----------------------------------------------------------------
-    ' Sets the tracing sample rate.
+    ' Sets the traced hosts.
     '
-    ' @param tracedHosts (array) the hosts for which requests will have a trace generated
+    ' @param tracedHosts (associative array) a map the hosts for which requests will have
+    ' a trace generated. The key is the host name (e.g.: example.com) and the value ust be
+    ' one of the supported  tracing header types : "datadog", "b3", "b3multi", or "tracecontext"
     ' ----------------------------------------------------------------
     instance.SetTracedHosts = sub(tracedHosts = [] as object)
         m.tracedHosts = tracedHosts
     end sub
     ' ----------------------------------------------------------------
-    ' Sets the traced hosts.
+    ' Sets the tracing sample rate.
     '
     ' @param tracingSamplingRate (double) The sampling rate to add
     ' trace headers to the request, between 0 and 100
@@ -166,7 +172,7 @@ function __DdUrlTransfer_builder()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToFile(filename)
         if (not result)
-            return - 1
+            return -1
         end if
         while (true)
             msg = wait(5000, port)
@@ -203,7 +209,7 @@ function __DdUrlTransfer_builder()
                 end if
             end if
         end while
-        return - 1
+        return -1
     end function
     ' ----------------------------------------------------------------
     ' Uses the HTTP POST method to send the supplied string to the current
@@ -222,7 +228,7 @@ function __DdUrlTransfer_builder()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromString(request)
         if (not result)
-            return - 1
+            return -1
         end if
         while (true)
             msg = wait(5000, port)
@@ -256,7 +262,7 @@ function __DdUrlTransfer_builder()
                 end if
             end if
         end while
-        return - 1
+        return -1
     end function
     ' ----------------------------------------------------------------
     ' Uses the HTTP POST method to send the contents of the specified
@@ -276,7 +282,7 @@ function __DdUrlTransfer_builder()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromFile(filename)
         if (not result)
-            return - 1
+            return -1
         end if
         while (true)
             msg = wait(5000, port)
@@ -310,7 +316,7 @@ function __DdUrlTransfer_builder()
                 end if
             end if
         end while
-        return - 1
+        return -1
     end function
     ' ----------------------------------------------------------------
     ' Returns the body of the response even if the HTTP status code indicates
@@ -475,6 +481,16 @@ function __DdUrlTransfer_builder()
     ' successfully added.
     ' ----------------------------------------------------------------
     instance.AddHeader = function(name as string, value as string) as boolean
+        headerValues = (function(m, name)
+                __bsConsequent = m.headers[name]
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return []
+                end if
+            end function)(m, name)
+        headerValues.Push(value)
+        m.headers[name] = headerValues
         return m.roUrlTransfer.AddHeader(name, value)
     end function
     ' ----------------------------------------------------------------
@@ -494,6 +510,10 @@ function __DdUrlTransfer_builder()
     ' successfully set.
     ' ----------------------------------------------------------------
     instance.SetHeaders = function(nameValueMap as object) as boolean
+        m.headers = {}
+        for each key in nameValueMap
+            m.headers[key] = nameValueMap[key]
+        end for
         return m.roUrlTransfer.SetHeaders(nameValueMap)
     end function
     ' ----------------------------------------------------------------
@@ -586,23 +606,104 @@ function __DdUrlTransfer_builder()
     instance._traceRequest = sub()
         rndTrace = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
         isSampledIn = rndTrace < m.tracingSamplingRate
-        isTracedHost = isValidHost(m.roUrlTransfer.GetUrl(), m.tracedHosts)
-        if (isTracedHost and isSampledIn)
-            m.traceId = generateUniqueId()
-            m.spanId = generateUniqueId()
-            m.roUrlTransfer.AddHeader("x-datadog-trace-id", m.traceId)
-            m.roUrlTransfer.AddHeader("x-datadog-parent-id", m.spanId)
-            m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "1")
-            m.roUrlTransfer.AddHeader("x-datadog-origin", "rum")
+        headerType = getTracedHeaderType(m.roUrlTransfer.GetUrl(), m.tracedHosts)
+        if (headerType <> invalid)
+            if (isSampledIn)
+                m._addSampledInHeaders(headerType)
+            else
+                m._addSampledOutHeaders(headerType)
+            end if
         else
             m.traceId = invalid
             m.spanId = invalid
-            m.roUrlTransfer.AddHeader("x-datadog-sampling-priority", "0")
+            m._deleteTracingHeaders()
         end if
+        m._applyHeaders()
+    end sub
+    ' ----------------------------------------------------------------
+    ' (Internal) adds the relevant headers for distributed tracing,
+    ' matching the given type
+    ' @param cookies (TracingHeaderType) the header type to use
+    ' ----------------------------------------------------------------
+    instance._addSampledInHeaders = sub(headerType as object)
+        m._deleteTracingHeaders()
+        if (headerType = "datadog")
+            ' Datadog uses traces in base 10 and not hex
+            m.traceId = generateUniqueId(10)
+            m.spanId = generateUniqueId(10)
+            m.AddHeader("x-datadog-trace-id", m.traceId)
+            m.AddHeader("x-datadog-parent-id", m.spanId)
+            m.AddHeader("x-datadog-sampling-priority", "1")
+            m.AddHeader("x-datadog-origin", "rum")
+        else if (headerType = "b3")
+            m.traceId = generateUniqueId(16)
+            m.spanId = generateUniqueId(16)
+            value = padLeft(m.traceId, 32, "0") + "-" + padLeft(m.spanId, 16, "0") + "-1"
+            m.AddHeader("b3", value)
+        else if (headerType = "b3multi")
+            m.traceId = generateUniqueId(16)
+            m.spanId = generateUniqueId(16)
+            m.AddHeader("X-B3-TraceId", m.traceId)
+            m.AddHeader("X-B3-SpanId", m.spanId)
+            m.AddHeader("X-B3-Sampled", "1")
+        else if (headerType = "tracecontext")
+            m.traceId = generateUniqueId(16)
+            m.spanId = generateUniqueId(16)
+            value = "00-" + padLeft(m.traceId, 32, "0") + "-" + padLeft(m.spanId, 16, "0") + "-01"
+            m.AddHeader("traceparent", value)
+        else
+            m.traceId = invalid
+            m.spanId = invalid
+            ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
+        end if
+    end sub
+    ' ----------------------------------------------------------------
+    ' (Internal) adds the relevant headers for distributed tracing,
+    ' matching the given type, to sample this request out
+    ' @param cookies (TracingHeaderType) the header type to use
+    ' ----------------------------------------------------------------
+    instance._addSampledOutHeaders = sub(headerType as object)
+        m._deleteTracingHeaders()
+        m.traceId = invalid
+        m.spanId = invalid
+        if (headerType = "datadog")
+            m.AddHeader("x-datadog-sampling-priority", "0")
+        else if (headerType = "b3")
+            m.AddHeader("b3", "0")
+        else
+            ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
+        end if
+    end sub
+    instance._deleteTracingHeaders = sub()
+        m.headers.Delete("x-datadog-trace-id")
+        m.headers.Delete("x-datadog-parent-id")
+        m.headers.Delete("x-datadog-sampling-priority")
+        m.headers.Delete("x-datadog-origin")
+        m.headers.Delete("b3")
+        m.headers.Delete("X-B3-TraceId")
+        m.headers.Delete("X-B3-SpanId")
+        m.headers.Delete("X-B3-Sampled")
+        m.headers.Delete("traceparent")
+    end sub
+    instance._applyHeaders = sub()
+        currentHeaders = m.headers
+        headerMap = {}
+        for each key in currentHeaders
+            value = ""
+            for each headerValue in currentHeaders[key]
+                if (value.Len() > 0)
+                    value = value + "," + headerValue
+                else
+                    value = headerValue
+                end if
+            end for
+            headerMap[key] = value
+        end for
+        m.roUrlTransfer.SetHeaders(headerMap)
     end sub
     return instance
 end function
-function DdUrlTransfer(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = [] as object)
+function DdUrlTransfer(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = {} as object)
     instance = __DdUrlTransfer_builder()
     instance.new(datadogRumAgent, tracingSamplingRate, tracedHosts)
     return instance
@@ -614,30 +715,30 @@ end function
 ' ----------------------------------------------------------------
 ' Verifies whether the given url uses one of the provided hosts
 ' @param url (string) a url
-' @param validHosts (array) an array of hosts (without scheme or path)
-' @return (boolean) whether the given url uses one of the provided hosts
+' @param validHosts (associative array) an array of hosts (without scheme or path)
+' @return (string) the tracing header to use or invalid
 ' ----------------------------------------------------------------
-function isValidHost(url as string, validHosts as object) as boolean
+function getTracedHeaderType(url as string, validHosts as object) as string
     tokens = url.split("/")
     ' assuming we have "scheme://host[/…]",
     ' tokens[0] = 'scheme:'
     ' tokens[1] = '' (empty string between the two //)
     ' tokens[2] = 'host'
+    ' tokens[3+] = params
     host = tokens[2]
     for each validHost in validHosts
         if (host = validHost)
-            return true
+            return validHosts[validHost]
         end if
     end for
-    return false
+    return invalid
 end function
 
 ' ----------------------------------------------------------------
 ' Generates a unique identifier compatible with Datadog's APM trace and span IDs
 ' @return (string) the generated Unique id
 ' ----------------------------------------------------------------
-function generateUniqueId() as string
-    radix = 10
+function generateUniqueId(radix = 10 as integer) as string
     maxInt = 4294967295
     low& = Rnd(maxInt) - 1
     high& = Rnd(maxInt) - 1
@@ -653,7 +754,35 @@ function generateUniqueId() as string
         ' the low value reuses the previous temp value to account for the "missing mod" in the high update
         low& = (temp& - digit) / radix ' we reuse the digit to avoid the need of a floor op
         ' update the string from right to left
-        id = digit.toStr() + id
+        if (digit < 10)
+            id = digit.toStr() + id
+        else
+            id = chr(digit + 87) + id ' char 'a' is 97 = 10 + 87
+        end if
     end while
     return id
+end function
+
+' ----------------------------------------------------------------
+' Pads a string if it is shorter than the expected size
+' @param input (string) the string to pad
+' @param length (integer) the expected string length
+' @param pad (string) the string to use to pad (whitespace by default)
+' ----------------------------------------------------------------
+function padLeft(input as string, length as integer, pad = " " as string) as string
+    inputLength = input.Len()
+    if (inputLength >= length)
+        return input
+    end if
+    if (pad.Len() = 0)
+        ddLogWarning("Unable to pad string <" + input + "> because padding is empty")
+        return input
+    end if
+    paddingLength = length - inputLength
+    output = ""
+    while (output.Len() < paddingLength)
+        output = output + pad
+    end while
+    output = output + input
+    return output
 end function

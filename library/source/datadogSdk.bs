@@ -82,6 +82,16 @@ sub initialize(configuration as object, global as object)
 end sub
 
 ' ----------------------------------------------------------------
+' The available tracing header types that can be injected into http requests.
+' ----------------------------------------------------------------
+enum TracingHeaderType
+    datadog = "datadog"
+    b3 = "b3"
+    b3multi = "b3multi"
+    tracecontext = "tracecontext"
+end enum
+
+' ----------------------------------------------------------------
 ' The available track types for the uploader/writer
 ' ----------------------------------------------------------------
 enum TrackType

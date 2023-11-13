@@ -117,6 +117,10 @@ sub initialize(configuration as object, global as object)
     end if
 end sub
 ' ----------------------------------------------------------------
+' The available tracing header types that can be injected into http requests.
+' ----------------------------------------------------------------
+
+' ----------------------------------------------------------------
 ' The available track types for the uploader/writer
 ' ----------------------------------------------------------------
 
