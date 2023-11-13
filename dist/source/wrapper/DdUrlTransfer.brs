@@ -14,39 +14,38 @@ function __DdUrlTransfer_builder()
     instance = {}
     ' ----------------------------------------------------------------
     ' Constructor
-    ' @param datadogRumAgent (object) the Datadog RumAgent node to report
-    ' requests to
-    ' @param tracingSamplingRate (double) The sampling rate to add
-    ' trace headers to the request, between 0 and 100
-    ' @param tracedHosts (associative array) a map the hosts for which requests will have
-    ' a trace generated. The key is the host name (e.g.: example.com) and the value ust be
-    ' one of the supported  tracing header types : "datadog", "b3", "b3multi", or "tracecontext"
+    ' @param global (object) the global node available from any node in the scenegraph
     ' ----------------------------------------------------------------
-    instance.new = sub(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = {} as object)
+    instance.new = sub(global as object)
         m.roUrlTransfer = CreateObject("roUrlTransfer")
-        m.datadogRumAgent = datadogRumAgent
-        m.tracingSamplingRate = tracingSamplingRate
-        m.tracedHosts = tracedHosts
+        m.global = global
+        m.datadogRumAgent = global.datadogRumAgent
+        m.traceSampleRate = global.datadogTraceAgent.traceSampleRate
+        m.tracingHeaderTypes = global.datadogTraceAgent.tracingHeaderTypes
         m.headers = {}
     end sub
     ' ----------------------------------------------------------------
     ' Sets the traced hosts.
     '
-    ' @param tracedHosts (associative array) a map the hosts for which requests will have
-    ' a trace generated. The key is the host name (e.g.: example.com) and the value ust be
-    ' one of the supported  tracing header types : "datadog", "b3", "b3multi", or "tracecontext"
+    ' @param tracingHeaderTypes (array) a array of associative arrays. Each array item must have a the following entries:
+    '   - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
+    '   - 'header': one of the supported tracing header types :
+    '       - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
+    '       - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
+    '       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/#tracestate-header)
+    '       - "datadog": Datadog's `x-datadog-*` header (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
     ' ----------------------------------------------------------------
-    instance.SetTracedHosts = sub(tracedHosts = [] as object)
-        m.tracedHosts = tracedHosts
+    instance.SetTracingHeaderTypes = sub(tracingHeaderTypes = [] as object)
+        m.tracingHeaderTypes = tracingHeaderTypes
     end sub
     ' ----------------------------------------------------------------
     ' Sets the tracing sample rate.
     '
-    ' @param tracingSamplingRate (double) The sampling rate to add
+    ' @param traceSampleRate (double) The sampling rate to add
     ' trace headers to the request, between 0 and 100
     ' ----------------------------------------------------------------
-    instance.SetTracingSamplingRate = sub(tracingSamplingRate as double)
-        m.tracingSamplingRate = tracingSamplingRate
+    instance.SettraceSampleRate = sub(traceSampleRate as double)
+        m.traceSampleRate = traceSampleRate
     end sub
     ' *****************************************************************
     ' * ifUrlTransfer: interface that transfers data to or from remote
@@ -605,15 +604,19 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     instance._traceRequest = sub()
         rndTrace = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
-        isSampledIn = rndTrace < m.tracingSamplingRate
-        headerType = getTracedHeaderType(m.roUrlTransfer.GetUrl(), m.tracedHosts)
+        isSampledIn = rndTrace < m.traceSampleRate
+        headerType = getTracedHeaderType(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
         if (headerType <> invalid)
+            ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + headerType)
             if (isSampledIn)
+                ddLogInfo("Request trace is sampled in")
                 m._addSampledInHeaders(headerType)
             else
+                ddLogInfo("Request trace is sampled out")
                 m._addSampledOutHeaders(headerType)
             end if
         else
+            ddLogInfo("Not tracing request to " + m.roUrlTransfer.GetUrl() + ", no tracing header for that host")
             m.traceId = invalid
             m.spanId = invalid
             m._deleteTracingHeaders()
@@ -638,8 +641,8 @@ function __DdUrlTransfer_builder()
         else if (headerType = "b3")
             m.traceId = generateUniqueId(16)
             m.spanId = generateUniqueId(16)
-            value = padLeft(m.traceId, 32, "0") + "-" + padLeft(m.spanId, 16, "0") + "-1"
-            m.AddHeader("b3", value)
+            b3 = padLeft(m.traceId, 32, "0") + "-" + padLeft(m.spanId, 16, "0") + "-1"
+            m.AddHeader("b3", b3)
         else if (headerType = "b3multi")
             m.traceId = generateUniqueId(16)
             m.spanId = generateUniqueId(16)
@@ -649,8 +652,19 @@ function __DdUrlTransfer_builder()
         else if (headerType = "tracecontext")
             m.traceId = generateUniqueId(16)
             m.spanId = generateUniqueId(16)
-            value = "00-" + padLeft(m.traceId, 32, "0") + "-" + padLeft(m.spanId, 16, "0") + "-01"
-            m.AddHeader("traceparent", value)
+            hexSpanId = padLeft(m.spanId, 16, "0")
+            traceparent = "00-" + padLeft(m.traceId, 32, "0") + "-" + hexSpanId + "-01"
+            m.AddHeader("traceparent", traceparent)
+            usrId = m.global.datadogUserInfo.id
+            if (usrId <> invalid)
+                usrIdByteArray = CreateObject("roByteArray")
+                usrIdByteArray.FromAsciiString(usrId)
+                usrIdBase64 = usrIdByteArray.ToBase64String().Replace("=", "~")
+                tracestate = "dd=s:1;o:rum;p:" + hexSpanId + ";t.usr.id:" + usrIdBase64
+            else
+                tracestate = "dd=s:1;o:rum;p:" + hexSpanId
+            end if
+            m.AddHeader("tracestate", tracestate)
         else
             m.traceId = invalid
             m.spanId = invalid
@@ -684,6 +698,7 @@ function __DdUrlTransfer_builder()
         m.headers.Delete("X-B3-SpanId")
         m.headers.Delete("X-B3-Sampled")
         m.headers.Delete("traceparent")
+        m.headers.Delete("tracestate")
     end sub
     instance._applyHeaders = sub()
         currentHeaders = m.headers
@@ -703,9 +718,9 @@ function __DdUrlTransfer_builder()
     end sub
     return instance
 end function
-function DdUrlTransfer(datadogRumAgent as object, tracingSamplingRate = 100.0 as double, tracedHosts = {} as object)
+function DdUrlTransfer(global as object)
     instance = __DdUrlTransfer_builder()
-    instance.new(datadogRumAgent, tracingSamplingRate, tracedHosts)
+    instance.new(global)
     return instance
 end function
 '*****************************************************************
@@ -715,20 +730,26 @@ end function
 ' ----------------------------------------------------------------
 ' Verifies whether the given url uses one of the provided hosts
 ' @param url (string) a url
-' @param validHosts (associative array) an array of hosts (without scheme or path)
-' @return (string) the tracing header to use or invalid
+' @param tracingHeaderTypes (array) a array of associative arrays. Each array item must have a the following entries:
+'   - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
+'   - 'header': one of the supported tracing header types :
+'       - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
+'       - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
+'       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/#tracestate-header)
+'       - "datadog": Datadog's `x-datadog-*` header (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
+' @return (dynamic) the tracing header to use or invalid
 ' ----------------------------------------------------------------
-function getTracedHeaderType(url as string, validHosts as object) as string
+function getTracedHeaderType(url as string, tracingHeaderTypes as object) as dynamic
     tokens = url.split("/")
     ' assuming we have "scheme://host[/…]",
     ' tokens[0] = 'scheme:'
     ' tokens[1] = '' (empty string between the two //)
     ' tokens[2] = 'host'
     ' tokens[3+] = params
-    host = tokens[2]
-    for each validHost in validHosts
-        if (host = validHost)
-            return validHosts[validHost]
+    urlHost = tokens[2]
+    for each item in tracingHeaderTypes
+        if (item.host = urlHost)
+            return item.header
         end if
     end for
     return invalid
@@ -770,6 +791,7 @@ end function
 ' @param pad (string) the string to use to pad (whitespace by default)
 ' ----------------------------------------------------------------
 function padLeft(input as string, length as integer, pad = " " as string) as string
+    ddLogVerbose("Padding string '" + input + "' to length " + length.toStr() + " with pad:'" + pad + "'")
     inputLength = input.Len()
     if (inputLength >= length)
         return input

@@ -21,7 +21,6 @@ sub RunUserInterface(args as dynamic)
         datadogOrgId: credentials.orgId,
         datadogSite: credentials.site,
         mirrorUrl: credentials.mirrorUrl,
-        mirrorHosts: credentials.mirrorHosts,
         launchContentId: args.contentId,
         launchMediaType: args.mediaType
     })
@@ -38,9 +37,11 @@ sub RunUserInterface(args as dynamic)
         applicationId: credentials.datadogApplicationId,
         site: credentials.site,
         env: "prod",
-        launchArgs: args
+        launchArgs: args,
+        traceSampleRate: 100,
+        tracingHeaderTypes: credentials.mirrorHostsTracingHeaderTypes
     }, globalNode)
-    globalNode.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com" })
+    globalNode.setField("datadogUserInfo", { id: "42", name: "Abcd Efg", email: "abcd.efg@example.com" })
     globalNode.setField("datadogContext", { channel: "roku sample channel" })
 
     ' initialize a first view
