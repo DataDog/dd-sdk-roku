@@ -95,7 +95,7 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
 ####################################################################################################
 
 ENV ROKU_SCA_URL "http://devtools.web.roku.com/static-channel-analysis/sca-cmd.zip"
-ENV ROKU_SCA_SHA256 "7a0c06fe8c74a856c3ee29505820c49f5b36878cac7c1439fecbd3f0860b2ade"
+ENV ROKU_SCA_SHA256 "41a033f9cbe81507cb0a8d67181dfa57331718b65a800c8a14736c6e6f9ab2d5"
 RUN curl -L $ROKU_SCA_URL -o sca-cmd.zip \
    && echo "${ROKU_SCA_SHA256} sca-cmd.zip" | sha256sum -c  \
    && unzip sca-cmd.zip \
