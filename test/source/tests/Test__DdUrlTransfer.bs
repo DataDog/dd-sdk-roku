@@ -10,113 +10,196 @@ function TestSuite__DdUrlTransfer() as object
     this = BaseTestSuite()
     this.Name = "DdUrlTransfer"
 
-    this.addTest("WhenIsValidHost_ThenReturnsTrue", DdUrlTransferTest__WhenIsValidHost_ThenReturnsTrue)
-    this.addTest("WhenIsValidHostWithSingleHost_ThenReturnsTrue", DdUrlTransferTest__WhenIsValidHostWithSingleHost_ThenReturnsTrue)
-    this.addTest("WhenIsValidHostWithUnknownHost_ThenReturnsFalse", DdUrlTransferTest__WhenIsValidHostWithUnknownHost_ThenReturnsFalse)
-    this.addTest("WhenIsValidHostWithNoHost_ThenReturnsFalse", DdUrlTransferTest__WhenIsValidHostWithNoHost_ThenReturnsFalse)
-    this.addTest("WhenIsValidHostWithNonUrl_ThenReturnsFalse", DdUrlTransferTest__WhenIsValidHostWithNonUrl_ThenReturnsFalse)
+    this.addTest("WhenGetTracedHeaderType_ThenReturnsHeaderType", DdUrlTransferTest__WhenGetTracedHeaderType_ThenReturnsHeaderType)
+    this.addTest("WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHeaderType", DdUrlTransferTest__WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHeaderType)
+    this.addTest("WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid)
+    this.addTest("WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid)
+    this.addTest("WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid)
+
+    this.addTest("WhenPadLeftWithEmptyString_ThenReturnPaddedString", DdUrlTransferTest__WhenPadLeftWithEmptyString_ThenReturnPaddedString)
+    this.addTest("WhenPadLeftWithExactSizeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithExactSizeString_ThenReturnOriginalString)
+    this.addTest("WhenPadLeftWithLargeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithLargeString_ThenReturnOriginalString)
+    this.addTest("WhenPadLeftWithSmallString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString)
 
     return this
 end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call isValidHost with a url with host in the validhost list
-'  Then: returns true
+'  When: call getTracedHeaderType with a url with host in the validhost list
+'  Then: returns the header type
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenIsValidHost_ThenReturnsTrue() as string
+function DdUrlTransferTest__WhenGetTracedHeaderType_ThenReturnsHeaderType() as string
     ' Given
     validHosts = []
     for i = 0 to 10
-        validHosts.Push(IG_GetString(12) + "." + IG_GetString(3))
+        host = IG_GetString(12) + "." + IG_GetString(3)
+        validHosts.Push({ host: host, header: IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"]) })
     end for
     validHost = validHosts[IG_GetIntegerInRange(0, 10)]
-    url = "https://" + validHost + "/" + IG_GetString(16)
+    url = "https://" + validHost.host + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_isValidHost(url, validHosts)
+    result = datadogroku_getTracedHeaderType(url, validHosts)
 
     ' Then
-    Assert.that(result).isTrue()
+    Assert.that(result).isEqualTo(validHost.header)
     return ""
 end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call isValidHost with a url with host in the validhost list
-'  Then: returns true
+'  When: call getTracedHeaderType with a url with host in the validhost list
+'  Then: returns the header type
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenIsValidHostWithSingleHost_ThenReturnsTrue() as string
+function DdUrlTransferTest__WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHeaderType() as string
     ' Given
     validHost = IG_GetString(12) + "." + IG_GetString(3)
+    headerType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
     validHosts = []
-    validHosts.Push(validHost)
+    validHosts.Push({ host: validHost, header: headerType })
     url = "https://" + validHost + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_isValidHost(url, validHosts)
+    result = datadogroku_getTracedHeaderType(url, validHosts)
 
     ' Then
-    Assert.that(result).isTrue()
+    Assert.that(result).isEqualTo(headerType)
     return ""
 end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call isValidHost with a url with host not in the validhost list
-'  Then: returns false
+'  When: call getTracedHeaderType with a url with host not in the validhost list
+'  Then: returns invalid
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenIsValidHostWithUnknownHost_ThenReturnsFalse() as string
+function DdUrlTransferTest__WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid() as string
     ' Given
     validHosts = []
     for i = 0 to 10
-        validHosts.Push(IG_GetString(12) + "." + IG_GetString(3))
+        validHosts.Push({ host: IG_GetString(12) + "." + IG_GetString(3), header: IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"]) })
     end for
     url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_isValidHost(url, validHosts)
+    result = datadogroku_getTracedHeaderType(url, validHosts)
 
     ' Then
-    Assert.that(result).isFalse()
+    Assert.that(result).isInvalid()
     return ""
 end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call isValidHost with a url with host not in the validhost list (empty)
-'  Then: returns false
+'  When: call getTracedHeaderType with a url with host not in the validhost list (empty)
+'  Then: returns invalid
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenIsValidHostWithNoHost_ThenReturnsFalse() as string
+function DdUrlTransferTest__WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid() as string
     ' Given
     validHosts = []
     url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_isValidHost(url, validHosts)
+    result = datadogroku_getTracedHeaderType(url, validHosts)
 
     ' Then
-    Assert.that(result).isFalse()
+    Assert.that(result).isInvalid()
     return ""
 end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call isValidHost with a string not a url
-'  Then: returns false
+'  When: call getTracedHeaderType with a string not a url
+'  Then: returns invalid
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenIsValidHostWithNonUrl_ThenReturnsFalse() as string
+function DdUrlTransferTest__WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid() as string
     ' Given
     validHosts = []
     for i = 0 to 10
-        validHosts.Push(IG_GetString(12) + "." + IG_GetString(3))
+        validHosts.Push({ host: IG_GetString(12) + "." + IG_GetString(3), header: IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"]) })
     end for
     url = IG_GetString(64)
 
     ' When
-    result = datadogroku_isValidHost(url, validHosts)
+    result = datadogroku_getTracedHeaderType(url, validHosts)
 
     ' Then
-    Assert.that(result).isFalse()
+    Assert.that(result).isInvalid()
+    return ""
+end function
+
+
+'----------------------------------------------------------------
+' Given: an empty string and a padding string
+'  When: call padLeft
+'  Then: returns padded string
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenPadLeftWithEmptyString_ThenReturnPaddedString() as string
+    ' Given
+    length = IG_GetIntegerInRange(10, 20)
+    pad = IG_GetString(1)
+
+    ' When
+    result = datadogroku_padLeft("", length, pad)
+
+    ' Then
+    Assert.that(result).hasSize(length).hasSubstring(pad + pad + pad + pad + pad + pad + pad + pad + pad)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a size N, and a string of size N
+'  When: call padLeft
+'  Then: returns the original string string
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenPadLeftWithExactSizeString_ThenReturnOriginalString() as string
+    ' Given
+    input = IG_GetString(20)
+    length = input.Len()
+    pad = IG_GetString(1)
+
+    ' When
+    result = datadogroku_padLeft(input, length, pad)
+
+    ' Then
+    Assert.that(result).isEqualTo(input)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a size N, and a string of size > N
+'  When: call padLeft
+'  Then: returns the original string string
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenPadLeftWithLargeString_ThenReturnOriginalString() as string
+    ' Given
+    input = IG_GetString(10) + IG_GetString(10) + IG_GetString(10) + IG_GetString(10)
+    length = input.Len() / 2
+    pad = IG_GetString(1)
+
+    ' When
+    result = datadogroku_padLeft(input, length, pad)
+
+    ' Then
+    Assert.that(result).isEqualTo(input)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a size N, and a string of size < N
+'  When: call padLeft
+'  Then: returns the original string string
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString() as string
+    ' Given
+    length = IG_GetIntegerInRange(10, 20)
+    pad = IG_GetString(1)
+    input = IG_GetString(IG_GetIntegerInRange(1, length - 1))
+
+    ' When
+    result = datadogroku_padLeft(input, length, pad)
+
+    ' Then
+    Assert.that(result).hasSize(length).hasSubstring(pad + input)
     return ""
 end function

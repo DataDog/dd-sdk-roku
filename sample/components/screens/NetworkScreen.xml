@@ -13,7 +13,7 @@ Copyright 2022-Today Datadog, Inc.
             <Font role="focusedFont" size="36" uri="pkg:/fonts/FiraCode-Regular.ttf" />
         </LabelList>
 
-        <Label id="messageLabel" text="Waiting for input…" translation="[768,192]" color="0xffffff80" wrap="true" numLines="16" maxLines="16" width="1024">
+        <Label id="messageLabel" text="Waiting for input…" translation="[768,192]" color="0xffffffC0" wrap="true" numLines="16" maxLines="16" width="1024">
             <Font role="font" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
         </Label>
     </children>

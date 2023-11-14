@@ -224,8 +224,7 @@ function IG_GetString(seed as integer) as string
     item = ""
     if seed > 0
         stringLength = Rnd(seed)
-
-        for i = 0 to stringLength
+        for i = 1 to stringLength ' final value is inclusive!
             chType = Rnd(3)
 
             if chType = 1 ' Chr(48-57) - numbers

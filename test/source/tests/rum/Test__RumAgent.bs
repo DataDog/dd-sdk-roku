@@ -258,7 +258,7 @@ end function
 '----------------------------------------------------------------
 function RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive() as string
     ' Given
-    wait3 = 5 * m.fakeKeepAliveDelayMs
+    wait3 = 3 * 2 * m.fakeKeepAliveDelayMs
 
     ' When
     sleep(wait3)
