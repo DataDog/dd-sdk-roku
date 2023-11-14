@@ -32,19 +32,20 @@ function __DdUrlTransfer_builder()
     '   - 'header': one of the supported tracing header types :
     '       - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
     '       - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
-    '       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/#tracestate-header)
-    '       - "datadog": Datadog's `x-datadog-*` header (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
+    '       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
+    '       - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
     ' ----------------------------------------------------------------
     instance.SetTracingHeaderTypes = sub(tracingHeaderTypes = [] as object)
         m.tracingHeaderTypes = tracingHeaderTypes
     end sub
     ' ----------------------------------------------------------------
-    ' Sets the tracing sample rate.
+    ' Sets the trace sample rate.
     '
-    ' @param traceSampleRate (double) The sampling rate to add
-    ' trace headers to the request, between 0 and 100
+    ' @param traceSampleRate (double) The sample rate to create a trace
+    ' for the requests (and add trace headers if the host is configured),
+    ' between 0 and 100
     ' ----------------------------------------------------------------
-    instance.SettraceSampleRate = sub(traceSampleRate as double)
+    instance.SetTraceSampleRate = sub(traceSampleRate as double)
         m.traceSampleRate = traceSampleRate
     end sub
     ' *****************************************************************
@@ -626,7 +627,7 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
     ' matching the given type
-    ' @param cookies (TracingHeaderType) the header type to use
+    ' @param headerType (string) the header type to use
     ' ----------------------------------------------------------------
     instance._addSampledInHeaders = sub(headerType as object)
         m._deleteTracingHeaders()
@@ -674,7 +675,7 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
     ' matching the given type, to sample this request out
-    ' @param cookies (TracingHeaderType) the header type to use
+    ' @param headerType (TracingHeaderType) the header type to use
     ' ----------------------------------------------------------------
     instance._addSampledOutHeaders = sub(headerType as object)
         m._deleteTracingHeaders()
@@ -684,10 +685,18 @@ function __DdUrlTransfer_builder()
             m.AddHeader("x-datadog-sampling-priority", "0")
         else if (headerType = "b3")
             m.AddHeader("b3", "0")
+        else if (headerType = "b3multi")
+            m.AddHeader("X-B3-Sampled", "0")
+        else if (headerType = "tracecontext")
+            m.AddHeader("traceparent", "00-" + padLeft("", 32, "0") + "-" + padLeft("", 16, "0") + "-00")
         else
             ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
         end if
     end sub
+    ' ----------------------------------------------------------------
+    ' (Internal) delete the tracing headers to avoid duplicated value
+    ' when the ddUrlTransfer is used for more than one request.
+    ' ----------------------------------------------------------------
     instance._deleteTracingHeaders = sub()
         m.headers.Delete("x-datadog-trace-id")
         m.headers.Delete("x-datadog-parent-id")
@@ -700,6 +709,10 @@ function __DdUrlTransfer_builder()
         m.headers.Delete("traceparent")
         m.headers.Delete("tracestate")
     end sub
+    ' ----------------------------------------------------------------
+    ' (Internal) applies the headers recorded in the ddUrlTransfer
+    ' to the underlying roUrlTransfer component.
+    ' ----------------------------------------------------------------
     instance._applyHeaders = sub()
         currentHeaders = m.headers
         headerMap = {}
@@ -735,8 +748,8 @@ end function
 '   - 'header': one of the supported tracing header types :
 '       - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
 '       - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
-'       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/#tracestate-header)
-'       - "datadog": Datadog's `x-datadog-*` header (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
+'       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
+'       - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
 ' @return (dynamic) the tracing header to use or invalid
 ' ----------------------------------------------------------------
 function getTracedHeaderType(url as string, tracingHeaderTypes as object) as dynamic

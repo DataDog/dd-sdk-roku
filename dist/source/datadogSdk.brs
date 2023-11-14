@@ -20,8 +20,8 @@
 '       - 'header': one of the supported tracing header types :
 '           - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
 '           - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
-'           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/#tracestate-header)
-'           - "datadog": Datadog's `x-datadog-*` header (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
+'           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
+'           - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
 ' @param global (object) the global node available from any node in the scenegraph
 ' ----------------------------------------------------------------
 sub initialize(configuration as object, global as object)

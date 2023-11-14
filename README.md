@@ -93,7 +93,7 @@ For example, here's how to do a `GetToString` call:
 
 ```brightscript
     validHosts = {}
-    validHosts["example.com"] = "tracecontext" ' add tracing to requests to "example.com" urls using W3C's traceparentd header
+    validHosts["example.com"] = "tracecontext" ' add tracing for requests to "example.com" URLs using W3C's tracecontext headers
     sampleRate = 50.0 ' only trace 50% of requests
     ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, sampleRate, validHosts)
     ddUrlTransfer.SetUrl(url)
