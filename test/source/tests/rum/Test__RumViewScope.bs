@@ -974,7 +974,6 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithLocalContext_ThenWriteView
     fakeBacktrace = IG_GetBacktrace()
     fakeException = { number: fakeErrorNumber, message: fakeMessage, backtrace: fakeBacktrace }
     fakeEvent = { mock: "event", eventType: "addError", exception: fakeException, context: m.fakeLocalContext }
-    m.global.setField("datadogContext", m.fakeGlobalContext)
 
     ' When
     errorTimestamp& = datadogroku_getTimestamp()

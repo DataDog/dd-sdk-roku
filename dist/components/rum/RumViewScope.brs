@@ -80,7 +80,7 @@ sub handleEvent(event as object, writer as object)
     if (event.eventType = "stopView")
         stopView(event.viewName, event.viewUrl, context, writer)
     else if (event.eventType = "startView")
-        stopView(m.top.viewName, m.top.viewUrl, {}, writer)
+        stopView(m.top.viewName, m.top.viewUrl, context, writer)
     else if (event.eventType = "addError")
         addError(event.exception, context, writer)
     else if (event.eventType = "addResource")
@@ -105,6 +105,7 @@ end function
 ' Handles a stopView event
 ' @param name (string) the name of the stopped view
 ' @param url (string) the url of the stopped view
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string, context as object, writer as object)
@@ -125,6 +126,7 @@ end sub
 ' Handles an error event
 ' @param exception (object) the exception
 ' @param context (object) the local context
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addError(exception as object, context as object, writer as object)
@@ -146,7 +148,7 @@ end sub
 ' @param message (string) the error message
 ' @param errorType (string) the error type
 ' @param backtrace (dynamic) the error backtrace array, or invalid
-' @param context (object) the local context
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendError(message as string, errorType as string, backtrace as dynamic, context as object, writer as object)
@@ -216,6 +218,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Handles a resource event
 ' @param resource (object) resource object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addResource(resource as object, context as object, writer as object)
@@ -229,6 +232,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Handles an action event
 ' @param action (object) action object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, context as object, writer as object)
@@ -247,6 +251,7 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Sends a custom action event
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendCustomAction(target as string, context as object, writer as object)
@@ -321,6 +326,7 @@ end sub
 '  - bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
 '  - traceId (dynamic) the id of the trace forwarded in the request header (as string), or invalid
 '  - spanId (dynamic) the id of the span forwarded in the request header (as string), or invalid
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendResource(resource as object, context as object, writer as object)
@@ -419,6 +425,7 @@ end sub
 ' @param status (string) the error message
 ' @param url (string) the resource url
 ' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendResourceError(status as string, url as dynamic, method as dynamic, context as object, writer as object)

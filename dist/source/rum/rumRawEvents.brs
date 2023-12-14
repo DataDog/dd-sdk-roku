@@ -8,6 +8,7 @@
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @return (object) an event describing a startView action
 ' ----------------------------------------------------------------
 function startViewEvent(viewName as string, viewUrl as string, context as object) as object
@@ -22,6 +23,7 @@ end function
 ' ----------------------------------------------------------------
 ' @param viewName (string) the view name (human-readable)
 ' @param viewUrl (string) the view url (developer identifier)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @return (object) an event describing a stopView action
 ' ----------------------------------------------------------------
 function stopViewEvent(viewName as string, viewUrl as string, context as object) as object
@@ -35,6 +37,7 @@ end function
 
 ' ----------------------------------------------------------------
 ' @param action (object) the action to track
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @return (object) an event describing an addAction action
 ' ----------------------------------------------------------------
 function addActionEvent(action as object, context as object) as object
@@ -47,6 +50,7 @@ end function
 
 ' ----------------------------------------------------------------
 ' @param exception (object) the caught exception
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @return (object) an event describing an addError action
 ' ----------------------------------------------------------------
 function addErrorEvent(exception as object, context as object) as object
@@ -59,6 +63,7 @@ end function
 
 ' ----------------------------------------------------------------
 ' @param resource (object) the resource object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @return (object) an event describing an addResource action
 ' ----------------------------------------------------------------
 function addResourceEvent(resource as object, context as object) as object

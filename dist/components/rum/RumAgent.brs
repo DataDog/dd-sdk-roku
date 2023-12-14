@@ -42,6 +42,7 @@ end sub
 ' Starts a view
 ' @param name (string) the view name (human-readable)
 ' @param url (string) the view url (developer identifier)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string, context = {} as object)
     ddLogThread("RumAgent.startView()")
@@ -54,6 +55,7 @@ end sub
 ' Stops a view
 ' @param name (string) the view name (human-readable)
 ' @param url (string) the view url (developer identifier)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string, context = {} as object)
     ddLogThread("RumAgent.stopView()")
@@ -64,6 +66,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Adds an action
 ' @param action (object) the action to track
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addAction(action as object, context = {} as object)
     ddLogThread("RumAgent.addAction()")
@@ -74,6 +77,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Adds an error
 ' @param exception (object) the caught exception object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addError(exception as object, context = {} as object)
     ddLogThread("RumAgent.addError()")
@@ -84,6 +88,7 @@ end sub
 ' ----------------------------------------------------------------
 ' Adds a resource
 ' @param resource (object) the tracked resource object (as retrieved from the roSystemLog)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addResource(resource as object, context = {} as object)
     ddLogThread("RumAgent.addResource()")

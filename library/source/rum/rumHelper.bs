@@ -37,7 +37,7 @@ end function
 ' the second object's value will override the first's.
 ' @param globalContext (object) an associative array
 ' @param localContext (object) an associative array
-' @return (string) the file path where the event should be stored
+' @return (object) an associative array merging both inputs
 ' ----------------------------------------------------------------
 function mergeContext(globalContext as object, localContext as object) as object
     mergedContext = {}
