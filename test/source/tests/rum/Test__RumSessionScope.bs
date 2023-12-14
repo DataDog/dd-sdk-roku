@@ -13,6 +13,7 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleAnyEvent_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEvent_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope", RumSessionScopeTest__WhenHandleAnyEventInExpiredSession_ThenDelegateToViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenActiveViewNotActive_ThenDiscardIt", RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
@@ -136,6 +137,36 @@ function RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope() as 
     Assert.that(activeView.subtype()).isEqualTo("datadogroku_RumViewScope")
     Assert.that(activeView.viewName).isEqualTo(fakeViewName)
     Assert.that(activeView.viewUrl).isEqualTo(fakeViewUrl)
+    Assert.that(activeView.context).isEmpty()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=startView)
+'  Then: create a child View scope
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope() as string
+    ' Given
+    fakeLocalContext = {}
+    for i = 1 to 5
+        fakeLocalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+    fakeViewName = IG_GetString(16)
+    fakeViewUrl = "https://" + IG_GetString(16)
+    fakeEvent = { mock: "event", eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl, context: fakeLocalContext }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+
+    ' Then
+    activeView = m.testedScope.activeView
+    Assert.that(activeView).isNotInvalid()
+    Assert.that(activeView.subtype()).isEqualTo("datadogroku_RumViewScope")
+    Assert.that(activeView.viewName).isEqualTo(fakeViewName)
+    Assert.that(activeView.viewUrl).isEqualTo(fakeViewUrl)
+    Assert.that(activeView.context).contains(fakeLocalContext)
     return ""
 end function
 

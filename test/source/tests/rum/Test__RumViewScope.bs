@@ -18,6 +18,8 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumViewScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleStopViewEvent_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleStopViewEventWithGlobalContext_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithGlobalContext_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleStopViewEventWithLocalContext_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithLocalContext_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithAction_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithError_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithResource_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -28,19 +30,22 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent", RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
-    this.addTest("WhenHandleAddErrorEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddErrorEventWithGlobalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithGlobalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddErrorEventWithLocalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithLocalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddErrorEventWithUserInfo_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithUserInfo_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddErrorEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleEmptyAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAddResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
-    this.addTest("WhenHandleAddResourceEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddResourceEventWithGlobalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithGlobalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddResourceEventWithLocalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithLocalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddResourceEventWithUserInfo_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithUserInfo_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddResourceEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAddFailedResourceEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
-    this.addTest("WhenHandleAddFailedResourceEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddFailedResourceEventWithGlobalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithGlobalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddFailedResourceEventWithLocalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithLocalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddFailedResourceEventWithUserInfo_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithUserInfo_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddFailedResourceEventWithAction_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
@@ -48,7 +53,8 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleAddSecondActionEvent_ThenIgnore", RumViewScopeTest__WhenHandleAddSecondActionEvent_ThenIgnore, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddSecondActionEventAfterTimeout_ThenCreateChildScope", RumViewScopeTest__WhenHandleAddSecondActionEventAfterTimeout_ThenCreateChildScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddCustomActionEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
-    this.addTest("WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddCustomActionEventWithGlobalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithGlobalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleAddCustomActionEventWithLocalContext_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithLocalContext_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleAddCustomActionEventWithUserInfo_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddCustomActionEventWithUserInfo_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAnyEvent_ThenDelegateToActiveActionScope", RumViewScopeTest__WhenHandleAnyEvent_ThenDelegateToActiveActionScope, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -84,8 +90,12 @@ sub RumViewScopeTest__SetUp()
         email: IG_GetString(16) + "@" + IG_GetString(16) + ".com"
     }
     m.testSuite.fakeGlobalContext = {}
+    m.testSuite.fakeInitialContext = {}
+    m.testSuite.fakeLocalContext = {}
     for i = 1 to 5
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+        m.testSuite.fakeInitialContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+        m.testSuite.fakeLocalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
     m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
@@ -97,6 +107,7 @@ sub RumViewScopeTest__SetUp()
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
     m.testSuite.testedScope.viewName = m.testSuite.fakeViewName
     m.testSuite.testedScope.viewUrl = m.testSuite.fakeViewUrl
+    m.testSuite.testedScope.context = m.testSuite.fakeInitialContext
 end sub
 
 sub RumViewScopeTest__TearDown()
@@ -247,6 +258,130 @@ function RumViewScopeTest__WhenHandleStopViewEvent_ThenWriteViewUpdate() as stri
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (stopView)
+'  Then: writes a view event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleStopViewEventWithGlobalContext_ThenWriteViewUpdate() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    viewEvent = ParseJson(updates[0])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.device.type).isEqualTo("tv")
+    Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+    Assert.that(viewEvent.service).isEqualTo(fakeService)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
+    Assert.that(viewEvent.context).contains(m.fakeGlobalContext)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (stopView)
+'  Then: writes a view event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleStopViewEventWithLocalContext_ThenWriteViewUpdate() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl, context: m.fakeLocalContext }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    viewEvent = ParseJson(updates[0])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(viewEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 5)
+    Assert.that(viewEvent.device.type).isEqualTo("tv")
+    Assert.that(viewEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(viewEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(viewEvent.device.brand).isEqualTo("Roku")
+    Assert.that(viewEvent.os.name).isEqualTo("Roku")
+    Assert.that(viewEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(viewEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+    Assert.that(viewEvent.service).isEqualTo(fakeService)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isNotEmpty()
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo("roku")
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(viewEvent.view.id).isNotEmpty()
+    Assert.that(viewEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(viewEvent.view.time_spent).isInRange(1000000, 10000000)
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(viewEvent.view.action.count).isEqualTo(0)
+    Assert.that(viewEvent.view.error.count).isEqualTo(0)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
+    Assert.that(viewEvent.context).contains(m.fakeLocalContext)
     return ""
 end function
 
@@ -310,6 +445,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate
     Assert.that(viewEvent.view.action.count).isEqualTo(1)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
     return ""
 end function
 
@@ -373,6 +509,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate(
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(1)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
     return ""
 end function
 
@@ -436,6 +573,7 @@ function RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpda
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(1)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
     return ""
 end function
 
@@ -496,6 +634,7 @@ function RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent() as 
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
     return ""
 end function
 
@@ -575,6 +714,7 @@ function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as 
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
     return ""
 end function
 
@@ -743,7 +883,7 @@ end function
 '  When: handling an event (addError)
 '  Then: write an error event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent() as string
+function RumViewScopeTest__WhenHandleAddErrorEventWithGlobalContext_ThenWriteViewEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -803,7 +943,76 @@ function RumViewScopeTest__WhenHandleAddErrorEventWithContext_ThenWriteViewEvent
     Assert.that(errorEvent.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
     Assert.that(errorEvent.error.is_crash).isEqualTo(false)
     Assert.that(errorEvent.error.type).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
-    Assert.that(errorEvent.context).isEqualTo(m.fakeGlobalContext)
+    Assert.that(errorEvent.context).contains(m.fakeGlobalContext)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addError) with context
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddErrorEventWithLocalContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeMessage = IG_GetString(128)
+    fakeErrorNumber = IG_GetInteger(256)
+    fakeBacktrace = IG_GetBacktrace()
+    fakeException = { number: fakeErrorNumber, message: fakeMessage, backtrace: fakeBacktrace }
+    fakeEvent = { mock: "event", eventType: "addError", exception: fakeException, context: m.fakeLocalContext }
+    m.global.setField("datadogContext", m.fakeGlobalContext)
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    errorEvent = ParseJson(updates[0])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.device.type).isEqualTo("tv")
+    Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+    Assert.that(errorEvent.service).isEqualTo(fakeService)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo(fakeMessage)
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(datadogroku_backtraceToString(fakeBacktrace))
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo("&h" + datadogroku_decToHex(fakeErrorNumber))
+    Assert.that(errorEvent.context).contains(m.fakeLocalContext)
     return ""
 end function
 
@@ -1085,7 +1294,7 @@ end function
 '  When: handling an event (addResource) ok
 '  Then: write an error event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEvent() as string
+function RumViewScopeTest__WhenHandleAddResourceEventWithGlobalContext_ThenWriteViewEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -1149,7 +1358,81 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithContext_ThenWriteViewEv
     Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
-    Assert.that(resourceEvent.context).isEqualTo(m.fakeGlobalContext)
+    Assert.that(resourceEvent.context).contains(m.fakeGlobalContext)
+    ' TODO RUMM-2529 assert traceId and spanId
+    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addResource) with local context
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddResourceEventWithLocalContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeResourceUrl = IG_GetString(128)
+    fakeMethod = IG_GetOneOf(["GET", "POST", "HEAD", "PUT"])
+    fakeHttpCode = IG_GetInteger(600)
+    fakeDurationNs& = IG_GetInteger()
+    nsToSec# = 1000000000
+    fakeTransferTime# = fakeDurationNs& / nsToSec#
+    fakeSize = IG_GetInteger()
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource, context: m.fakeLocalContext }
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    resourceEvent = ParseJson(updates[0])
+    Assert.that(resourceEvent).isNotInvalid()
+    Assert.that(resourceEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(resourceEvent.action.id).isEqualTo(invalid)
+    Assert.that(resourceEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(resourceEvent.device.type).isEqualTo("tv")
+    Assert.that(resourceEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(resourceEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(resourceEvent.device.brand).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.name).isEqualTo("Roku")
+    Assert.that(resourceEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(resourceEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+    Assert.that(resourceEvent.service).isEqualTo(fakeService)
+    Assert.that(resourceEvent.session.has_replay).isEqualTo(false)
+    Assert.that(resourceEvent.session.id).isNotEmpty()
+    Assert.that(resourceEvent.session.type).isEqualTo("user")
+    Assert.that(resourceEvent.source).isEqualTo("roku")
+    Assert.that(resourceEvent.type).isEqualTo("resource")
+    Assert.that(resourceEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(resourceEvent.view.id).isNotEmpty()
+    Assert.that(resourceEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(resourceEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(resourceEvent.resource.id).isNotEmpty()
+    Assert.that(resourceEvent.resource.type).isEqualTo("native")
+    Assert.that(resourceEvent.resource.method).isEqualTo(fakeMethod)
+    Assert.that(resourceEvent.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
+    Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
+    Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
+    Assert.that(resourceEvent.context).contains(m.fakeLocalContext)
     ' TODO RUMM-2529 assert traceId and spanId
     ' TODO RUMM-2530 assert timings (dns, ssl, …)?
     return ""
@@ -1463,7 +1746,7 @@ end function
 '  When: handling an event (addResource) failed
 '  Then: write an error event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWriteViewEvent() as string
+function RumViewScopeTest__WhenHandleAddFailedResourceEventWithGlobalContext_ThenWriteViewEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -1539,7 +1822,91 @@ function RumViewScopeTest__WhenHandleAddFailedResourceEventWithContext_ThenWrite
     Assert.that(errorEvent.error.resource.type).isEqualTo("native")
     Assert.that(errorEvent.error.resource.method).isEqualTo(fakeMethod)
     Assert.that(errorEvent.error.resource.url).isEqualTo(fakeResourceUrl)
-    Assert.that(errorEvent.context).isEqualTo(m.fakeGlobalContext)
+    Assert.that(errorEvent.context).contains(m.fakeGlobalContext)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event(addResource) failed with local context
+'  Then: write an error event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddFailedResourceEventWithLocalContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeResourceUrl = IG_GetString(128)
+    fakeMethod = IG_GetOneOf(["GET", "POST", "HEAD", "PUT"])
+    fakeStatus = IG_GetOneOf([
+        "unknownerror",
+        "dnsfailure",
+        "dnstimeout",
+        "noroutetohost",
+        "connectiontimeout",
+        "connectionrefused",
+        "untrustedcert",
+        "expiredcert",
+        "nocipher",
+        "handshakefailed",
+        "generalsocketerror",
+        "httperror"
+    ])
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: fakeStatus }
+    fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource, context: m.fakeLocalContext }
+
+    ' When
+    errorTimestamp& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    errorEvent = ParseJson(updates[0])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(errorEvent.action.id).isEqualTo(invalid)
+    Assert.that(errorEvent.date).isInRange(errorTimestamp&, errorTimestamp& + 5)
+    Assert.that(errorEvent.device.type).isEqualTo("tv")
+    Assert.that(errorEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(errorEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(errorEvent.device.brand).isEqualTo("Roku")
+    Assert.that(errorEvent.os.name).isEqualTo("Roku")
+    Assert.that(errorEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(errorEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+    Assert.that(errorEvent.service).isEqualTo(fakeService)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isNotEmpty()
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(errorEvent.view.id).isNotEmpty()
+    Assert.that(errorEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(errorEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Failed to perform request")
+    Assert.that(errorEvent.error.source).isEqualTo("network")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(invalid)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(false)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeStatus)
+    Assert.that(errorEvent.error.resource.type).isEqualTo("native")
+    Assert.that(errorEvent.error.resource.method).isEqualTo(fakeMethod)
+    Assert.that(errorEvent.error.resource.url).isEqualTo(fakeResourceUrl)
+    Assert.that(errorEvent.context).contains(m.fakeLocalContext)
     return ""
 end function
 
@@ -1720,7 +2087,7 @@ end function
 function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as string
     ' Given
     fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
-    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction, context: m.fakeLocalContext }
 
     ' When
     m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
@@ -1731,6 +2098,7 @@ function RumViewScopeTest__WhenHandleAddActionEvent_ThenCreateChildScope() as st
     Assert.that(actionScope.subType()).isEqualTo("datadogroku_RumActionScope")
     Assert.that(actionScope.target).isEqualTo(fakeAction.target)
     Assert.that(actionScope.actionType).isEqualTo(fakeAction.type)
+    Assert.that(actionScope.context).contains(m.fakeLocalContext)
     return ""
 end function
 
@@ -1783,6 +2151,7 @@ function RumViewScopeTest__WhenHandleAddSecondActionEventAfterTimeout_ThenCreate
     Assert.that(actionScope.subType()).isEqualTo("datadogroku_RumActionScope")
     Assert.that(actionScope.target).isEqualTo(fakeAction2.target)
     Assert.that(actionScope.actionType).isEqualTo(fakeAction2.type)
+    Assert.that(actionScope.context).isEmpty()
     return ""
 end function
 
@@ -1853,7 +2222,7 @@ end function
 '  When: handling an event (addAction) type=custom
 '  Then: write a custom action event
 '----------------------------------------------------------------
-function RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteViewEvent() as string
+function RumViewScopeTest__WhenHandleAddCustomActionEventWithGlobalContext_ThenWriteViewEvent() as string
     ' Given
     fakeApplicationId = IG_GetString(32)
     fakeApplicationVersion = IG_GetString(32)
@@ -1908,7 +2277,70 @@ function RumViewScopeTest__WhenHandleAddCustomActionEventWithContext_ThenWriteVi
     Assert.that(actionEvent.action.target.name).isEqualTo(fakeAction.target)
     Assert.that(actionEvent.action.error.count).isEqualTo(0)
     Assert.that(actionEvent.action.resource.count).isEqualTo(0)
-    Assert.that(actionEvent.context).isEqualTo(m.fakeGlobalContext)
+    Assert.that(actionEvent.context).contains(m.fakeGlobalContext)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (addAction) type=custom with local context
+'  Then: write a custom action event
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleAddCustomActionEventWithLocalContext_ThenWriteViewEvent() as string
+    ' Given
+    fakeApplicationId = IG_GetString(32)
+    fakeApplicationVersion = IG_GetString(32)
+    fakeService = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: fakeApplicationId,
+        service: fakeService,
+        sessionId: fakeSessionId,
+        applicationVersion: fakeApplicationVersion,
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeAction = { target: IG_GetString(16), type: "custom" }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction, context: m.fakeLocalContext }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    sleep(50)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    actionEvent = ParseJson(updates[0])
+    Assert.that(actionEvent).isNotInvalid()
+    Assert.that(actionEvent.application.id).isEqualTo(fakeApplicationId)
+    Assert.that(actionEvent.date).isInRange(m.startTimestamp&, m.startTimestamp& + 50)
+    Assert.that(actionEvent.device.type).isEqualTo("tv")
+    Assert.that(actionEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(actionEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(actionEvent.device.brand).isEqualTo("Roku")
+    Assert.that(actionEvent.os.name).isEqualTo("Roku")
+    Assert.that(actionEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(actionEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+    Assert.that(actionEvent.service).isEqualTo(fakeService)
+    Assert.that(actionEvent.session.has_replay).isEqualTo(false)
+    Assert.that(actionEvent.session.id).isNotEmpty()
+    Assert.that(actionEvent.session.type).isEqualTo("user")
+    Assert.that(actionEvent.source).isEqualTo("roku")
+    Assert.that(actionEvent.type).isEqualTo("action")
+    Assert.that(actionEvent.version).isEqualTo(fakeApplicationVersion)
+    Assert.that(actionEvent.view.id).isNotEmpty()
+    Assert.that(actionEvent.view.name).isEqualTo(m.fakeViewName)
+    Assert.that(actionEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(actionEvent.action.id).isNotEmpty()
+    Assert.that(actionEvent.action.type).isEqualTo("custom")
+    Assert.that(actionEvent.action.loading_time).isEqualTo(0)
+    Assert.that(actionEvent.action.target.name).isEqualTo(fakeAction.target)
+    Assert.that(actionEvent.action.error.count).isEqualTo(0)
+    Assert.that(actionEvent.action.resource.count).isEqualTo(0)
+    Assert.that(actionEvent.context).contains(m.fakeLocalContext)
     return ""
 end function
 
@@ -2079,6 +2511,7 @@ function RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate() as str
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
+    Assert.that(viewEvent.context).contains(m.fakeInitialContext)
     return ""
 end function
 
@@ -2139,7 +2572,7 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpda
     Assert.that(viewEvent.view.action.count).isEqualTo(0)
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
-    Assert.that(viewEvent.context).isEqualTo(m.fakeGlobalContext)
+    Assert.that(viewEvent.context).contains(m.fakeGlobalContext)
     return ""
 end function
 
