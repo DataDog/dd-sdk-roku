@@ -92,7 +92,10 @@ which supports most features of the `roUrlTransfer` component (except anything r
 For example, here's how to do a `GetToString` call:
 
 ```brightscript
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent)
+    validHosts = {}
+    validHosts["example.com"] = "tracecontext" ' add tracing for requests to "example.com" URLs using W3C's tracecontext headers
+    sampleRate = 50.0 ' only trace 50% of requests
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, sampleRate, validHosts)
     ddUrlTransfer.SetUrl(url)
     ddUrlTransfer.EnablePeerVerification(false)
     ddUrlTransfer.EnableHostVerification(false)

@@ -102,7 +102,7 @@ function backtraceToString(backtrace as object) as dynamic
     frameCount = backtrace.count()
     msg = ""
     first = true
-    for i = (frameCount - 1) to 0 step - 1
+    for i = (frameCount - 1) to 0 step -1
         frame = backtrace[i]
         if (not first)
             msg = msg + chr(10)

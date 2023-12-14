@@ -343,7 +343,7 @@ function RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSess
     nbUnknown = 0
 
     ' When
-    for i = 1 to 100
+    for i = 1 to 256
         sleep(100)
         m.testedScope@.handleEvent(fakeEvent, fakeWriter)
         updatedContext = m.testedScope@.getRumContext()
@@ -358,8 +358,8 @@ function RumSessionScopeTest__WhenHandleActionEventAfterExpiration_ThenRenewSess
     end for
 
     ' Then
-    Assert.that(nbTracked).isInRange(37, 47) ' 42 ± 5
-    Assert.that(nbNottracked).isInRange(53, 63) ' 58 ± 5
+    Assert.that(nbTracked).isInRange(95, 120) ' 42% of 256 ± 5%
+    Assert.that(nbNottracked).isInRange(125, 161) ' 58% of 256 ± 5%
     Assert.that(nbUnknown).isEqualTo(0)
     return ""
 end function
