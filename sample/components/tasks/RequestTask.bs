@@ -48,7 +48,7 @@ sub performRequest()
                         httpCode: httpCode,
                         status: status
                     }
-                    m.global.datadogRumAgent@.addResource(resource)
+                    m.global.datadogRumAgent@.addResource(resource, { custom_add_resource: Rnd(100) })
                 end if
             end if
         end if
