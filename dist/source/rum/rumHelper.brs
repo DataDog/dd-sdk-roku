@@ -29,3 +29,21 @@ function lastViewEventFilePath(instanceId as string) as string
     folderPath = trackFolderPath("rum")
     return folderPath + "/_last_view_" + instanceId
 end function
+
+' ----------------------------------------------------------------
+' Merges two associative arrays into one. If a key is shared between them,
+' the second object's value will override the first's.
+' @param globalContext (object) an associative array
+' @param localContext (object) an associative array
+' @return (object) an associative array merging both inputs
+' ----------------------------------------------------------------
+function mergeContext(globalContext as object, localContext as object) as object
+    mergedContext = {}
+    for each key in globalContext
+        mergedContext[key] = globalContext[key]
+    end for
+    for each key in localContext
+        mergedContext[key] = localContext[key]
+    end for
+    return mergedContext
+end function

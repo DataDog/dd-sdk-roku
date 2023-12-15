@@ -121,7 +121,7 @@ sub sendAction(writer as object)
         application: {
             id: context.applicationId
         }
-        context: m.global.datadogContext
+        context: mergeContext(m.global.datadogContext, m.top.context)
         date: m.startTimestamp&
         device: {
             type: "tv"

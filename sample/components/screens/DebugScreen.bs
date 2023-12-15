@@ -14,9 +14,11 @@ sub init()
     m.items = [
         "Start View",
         "Stop View",
-        "Add error",
+        "Add Click Action",
+        "Add Custom Action",
+        "Add Error",
         "Add Resource",
-        "Send logs",
+        "Send Logs",
         "Send Config Telemetry",
         "Send Error Telemetry",
         "Send Debug Telemetry",
@@ -51,39 +53,46 @@ sub onItemSelected()
     dateTime.ToLocalTime()
 
     m.msgLabel.text = "Clicked on " + item + " at " + dateTime.ToISOString()
-    addAction("Debug::Button#" + itemSelected.toStr(), "click")
+    m.global.datadogRumAgent@.addAction({
+        target: "Debug::Button#" + itemSelected.toStr(),
+        type: "click"
+    })
 
     if (itemSelected = 0)
         startView()
     else if (itemSelected = 1)
         stopView()
     else if (itemSelected = 2)
-        sendError()
+        sendCustomAction()
     else if (itemSelected = 3)
-        sendResource()
+        sendClickAction()
     else if (itemSelected = 4)
-        sendLogs()
+        sendError()
     else if (itemSelected = 5)
-        sendErrorTelemetry()
+        sendResource()
     else if (itemSelected = 6)
-        sendErrorTelemetry()
+        sendLogs()
     else if (itemSelected = 7)
-        sendDebugTelemetry()
+        sendErrorTelemetry()
     else if (itemSelected = 8)
+        sendErrorTelemetry()
+    else if (itemSelected = 9)
+        sendDebugTelemetry()
+    else if (itemSelected = 10)
         sendCrash()
     end if
 end sub
 
 sub startView()
-    viewName = "MainScreen"
-    viewUrl = "http://example.com/components/MainScreen.brs"
-    m.global.datadogRumAgent@.startView(viewName, viewUrl)
+    viewName = "CustomScreen"
+    viewUrl = "http://example.com/components/CustomScreen.brs"
+    m.global.datadogRumAgent@.startView(viewName, viewUrl, { custom_view_start: Rnd(100) })
 end sub
 
 sub stopView()
-    viewName = "MainScreen"
-    viewUrl = "http://example.com/components/MainScreen.brs"
-    m.global.datadogRumAgent@.stopView(viewName, viewUrl)
+    viewName = "CustomScreen"
+    viewUrl = "http://example.com/components/CustomScreen.brs"
+    m.global.datadogRumAgent@.stopView(viewName, viewUrl, { custom_view_stop: Rnd(100) })
 end sub
 
 sub sendError()
@@ -93,8 +102,22 @@ sub sendError()
         explodingMethod(m.errorIdx)
     catch error
         datadogroku_ddLogError("Caught something", error)
-        m.global.datadogRumAgent@.addError(error)
+        m.global.datadogRumAgent@.addError(error, { custom_add_error: Rnd(100) })
     end try
+end sub
+
+sub sendClickAction()
+    m.global.datadogRumAgent@.addAction({
+        target: "Some target",
+        type: "click"
+    }, { custom_add_action: Rnd(100) })
+end sub
+
+sub sendCustomAction()
+    m.global.datadogRumAgent@.addAction({
+        target: "Some target",
+        type: "custom"
+    }, { custom_add_action: Rnd(100) })
 end sub
 
 sub sendCrash()
@@ -106,13 +129,6 @@ sub sendResource()
     task = createObject("roSGNode", "RequestTask")
     task.setField("query", "datadog")
     task.control = "RUN"
-end sub
-
-sub addAction(target as string, actionType as string)
-    m.global.datadogRumAgent@.addAction({
-        target: target,
-        type: actionType
-    })
 end sub
 
 sub sendLogs()

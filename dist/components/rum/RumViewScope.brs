@@ -69,18 +69,26 @@ sub handleEvent(event as object, writer as object)
             ddLogVerbose("Child still active")
         end if
     end if
+    context = (function(event)
+            __bsConsequent = event.context
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(event)
     if (event.eventType = "stopView")
-        stopView(event.viewName, event.viewUrl, writer)
+        stopView(event.viewName, event.viewUrl, context, writer)
     else if (event.eventType = "startView")
-        stopView(m.top.viewName, m.top.viewUrl, writer)
+        stopView(m.top.viewName, m.top.viewUrl, context, writer)
     else if (event.eventType = "addError")
-        addError(event.exception, writer)
+        addError(event.exception, context, writer)
     else if (event.eventType = "addResource")
-        addResource(event.resource, writer)
+        addResource(event.resource, context, writer)
     else if (event.eventType = "addAction")
-        addAction(event.action, writer)
+        addAction(event.action, context, writer)
     else if (event.eventType = "keepAlive")
-        sendViewUpdate(writer)
+        sendViewUpdate(context, writer)
     end if
 end sub
 
@@ -97,9 +105,10 @@ end function
 ' Handles a stopView event
 ' @param name (string) the name of the stopped view
 ' @param url (string) the url of the stopped view
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub stopView(name as string, url as string, writer as object)
+sub stopView(name as string, url as string, context as object, writer as object)
     ddLogVerbose("RUM stopping view " + name + " (" + url + ")")
     if (m.top.viewUrl <> url)
         ddLogWarning("Trying to stop unknown view '" + name + "' (" + url + "), ignoring.")
@@ -110,15 +119,17 @@ sub stopView(name as string, url as string, writer as object)
         return
     end if
     m.stopped = true
-    sendViewUpdate(writer)
+    sendViewUpdate(context, writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Handles an error event
 ' @param exception (object) the exception
+' @param context (object) the local context
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub addError(exception as object, writer as object)
+sub addError(exception as object, context as object, writer as object)
     if (exception.number = invalid)
         errorType = "unknown"
     else
@@ -129,7 +140,7 @@ sub addError(exception as object, writer as object)
     else
         errorMsg = "Unknown exception"
     end if
-    sendError(errorMsg, errorType, exception.backtrace, writer)
+    sendError(errorMsg, errorType, exception.backtrace, context, writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -137,12 +148,13 @@ end sub
 ' @param message (string) the error message
 ' @param errorType (string) the error type
 ' @param backtrace (dynamic) the error backtrace array, or invalid
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub sendError(message as string, errorType as string, backtrace as dynamic, writer as object)
+sub sendError(message as string, errorType as string, backtrace as dynamic, context as object, writer as object)
     timestamp& = getTimestamp()
     ddLogVerbose("Sending an error")
-    context = getRumContext(invalid)
+    rumContext = getRumContext(invalid)
     actionId = invalid
     if (m.top.activeAction <> invalid)
         actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
@@ -158,14 +170,14 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
             id: actionId
         }
         application: {
-            id: context.applicationId
+            id: rumContext.applicationId
         }
-        context: m.global.datadogContext
+        context: mergeContext(m.global.datadogContext, context)
         date: timestamp&
         device: {
             type: "tv"
-            name: context.deviceName
-            model: context.deviceModel
+            name: rumContext.deviceName
+            model: rumContext.deviceModel
             brand: "Roku"
         }
         error: {
@@ -179,19 +191,19 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, writ
         }
         os: {
             name: "Roku"
-            version: context.osVersion
-            version_major: context.osVersionMajor
+            version: rumContext.osVersion
+            version_major: rumContext.osVersionMajor
         }
-        service: context.service
+        service: rumContext.service
         session: {
             has_replay: false
-            id: context.sessionId
+            id: rumContext.sessionId
             type: "user"
         }
         source: agentSource()
         type: "error"
         usr: m.global.datadogUserInfo
-        version: context.applicationVersion
+        version: rumContext.applicationVersion
         view: {
             id: m.viewId
             url: m.top.viewUrl
@@ -206,43 +218,47 @@ end sub
 ' ----------------------------------------------------------------
 ' Handles a resource event
 ' @param resource (object) resource object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub addResource(resource as object, writer as object)
+sub addResource(resource as object, context as object, writer as object)
     if (isValidResource(resource))
-        sendResource(resource, writer)
+        sendResource(resource, context, writer)
     else
-        sendResourceError(resource.status, resource.url, resource.method, writer)
+        sendResourceError(resource.status, resource.url, resource.method, context, writer)
     end if
 end sub
 
 ' ----------------------------------------------------------------
 ' Handles an action event
 ' @param action (object) action object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub addAction(action as object, writer as object)
+sub addAction(action as object, context as object, writer as object)
     ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
-        sendCustomAction(action.target, writer)
+        sendCustomAction(action.target, context, writer)
     else if (m.top.activeAction = invalid)
         m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
         m.top.activeAction.target = action.target
         m.top.activeAction.actionType = action.type
         m.top.activeAction.parentScope = m.top
+        m.top.activeAction.context = context
     end if
     m.actionCount++
 end sub
 
 ' ----------------------------------------------------------------
 ' Sends a custom action event
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub sendCustomAction(target as string, writer as object)
+sub sendCustomAction(target as string, context as object, writer as object)
     timestamp& = getTimestamp()
     ddLogVerbose("Sending a custom action")
     actionId = CreateObject("roDeviceInfo").GetRandomUUID()
-    context = getRumContext(invalid)
+    rumContext = getRumContext(invalid)
     actionEvent = {
         _dd: {
             format_version: 2
@@ -265,31 +281,31 @@ sub sendCustomAction(target as string, writer as object)
             type: "custom"
         }
         application: {
-            id: context.applicationId
+            id: rumContext.applicationId
         }
-        context: m.global.datadogContext
+        context: mergeContext(m.global.datadogContext, context)
         date: timestamp&
         device: {
             type: "tv"
-            name: context.deviceName
-            model: context.deviceModel
+            name: rumContext.deviceName
+            model: rumContext.deviceModel
             brand: "Roku"
         }
         os: {
             name: "Roku"
-            version: context.osVersion
-            version_major: context.osVersionMajor
+            version: rumContext.osVersion
+            version_major: rumContext.osVersionMajor
         }
-        service: context.service
+        service: rumContext.service
         session: {
             has_replay: false
-            id: context.sessionId
+            id: rumContext.sessionId
             type: "user"
         }
         source: agentSource()
         type: "action"
         usr: m.global.datadogUserInfo
-        version: context.applicationVersion
+        version: rumContext.applicationVersion
         view: {
             id: m.viewId
             url: m.top.viewUrl
@@ -310,12 +326,13 @@ end sub
 '  - bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
 '  - traceId (dynamic) the id of the trace forwarded in the request header (as string), or invalid
 '  - spanId (dynamic) the id of the span forwarded in the request header (as string), or invalid
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub sendResource(resource as object, writer as object)
+sub sendResource(resource as object, context as object, writer as object)
     timestamp& = getTimestamp()
     ddLogVerbose("Sending a resource")
-    context = getRumContext(invalid)
+    rumContext = getRumContext(invalid)
     actionId = invalid
     if (m.top.activeAction <> invalid)
         actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
@@ -342,20 +359,20 @@ sub sendResource(resource as object, writer as object)
             id: actionId
         }
         application: {
-            id: context.applicationId
+            id: rumContext.applicationId
         }
-        context: m.global.datadogContext
+        context: mergeContext(m.global.datadogContext, context)
         date: startTimestampMs&
         device: {
             type: "tv"
-            name: context.deviceName
-            model: context.deviceModel
+            name: rumContext.deviceName
+            model: rumContext.deviceModel
             brand: "Roku"
         }
         os: {
             name: "Roku"
-            version: context.osVersion
-            version_major: context.osVersionMajor
+            version: rumContext.osVersion
+            version_major: rumContext.osVersionMajor
         }
         resource: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
@@ -366,16 +383,16 @@ sub sendResource(resource as object, writer as object)
             size: resource.bytesDownloaded
             duration: secToNanos(resource.transferTime)
         }
-        service: context.service
+        service: rumContext.service
         session: {
             has_replay: false
-            id: context.sessionId
+            id: rumContext.sessionId
             type: "user"
         }
         source: agentSource()
         type: "resource"
         usr: m.global.datadogUserInfo
-        version: context.applicationVersion
+        version: rumContext.applicationVersion
         view: {
             id: m.viewId
             url: m.top.viewUrl
@@ -408,12 +425,13 @@ end sub
 ' @param status (string) the error message
 ' @param url (string) the resource url
 ' @param method (dynamic) the method as string ("POST", "GET", …) or invalid
+' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub sendResourceError(status as string, url as dynamic, method as dynamic, writer as object)
+sub sendResourceError(status as string, url as dynamic, method as dynamic, context as object, writer as object)
     timestamp& = getTimestamp()
     ddLogVerbose("Sending a resource error")
-    context = getRumContext(invalid)
+    rumContext = getRumContext(invalid)
     actionId = invalid
     if (m.top.activeAction <> invalid)
         actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
@@ -429,14 +447,14 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
             id: actionId
         }
         application: {
-            id: context.applicationId
+            id: rumContext.applicationId
         }
-        context: m.global.datadogContext
+        context: mergeContext(m.global.datadogContext, context)
         date: timestamp&
         device: {
             type: "tv"
-            name: context.deviceName
-            model: context.deviceModel
+            name: rumContext.deviceName
+            model: rumContext.deviceModel
             brand: "Roku"
         }
         error: {
@@ -455,19 +473,19 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, write
         }
         os: {
             name: "Roku"
-            version: context.osVersion
-            version_major: context.osVersionMajor
+            version: rumContext.osVersion
+            version_major: rumContext.osVersionMajor
         }
-        service: context.service
+        service: rumContext.service
         session: {
             has_replay: false
-            id: context.sessionId
+            id: rumContext.sessionId
             type: "user"
         }
         source: agentSource()
         type: "error"
         usr: m.global.datadogUserInfo
-        version: context.applicationVersion
+        version: rumContext.applicationVersion
         view: {
             id: m.viewId
             url: m.top.viewUrl
@@ -482,10 +500,10 @@ end sub
 ' Send a view event
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub sendViewUpdate(writer as object)
+sub sendViewUpdate(context as object, writer as object)
     timestamp& = getTimestamp()
     ddLogThread("Sending view update")
-    context = getRumContext(invalid)
+    rumContext = getRumContext(invalid)
     m.documentVersionUpdate++
     timeSpentNs& = (timestamp& - m.startTimestamp&) * 1000000 ' convert ms to ns
     viewEvent = {
@@ -497,31 +515,31 @@ sub sendViewUpdate(writer as object)
             document_version: m.documentVersionUpdate
         }
         application: {
-            id: context.applicationId
+            id: rumContext.applicationId
         }
-        context: m.global.datadogContext
+        context: mergeContext(m.top.context, mergeContext(m.global.datadogContext, context))
         date: m.startTimestamp&
         device: {
             type: "tv"
-            name: context.deviceName
-            model: context.deviceModel
+            name: rumContext.deviceName
+            model: rumContext.deviceModel
             brand: "Roku"
         }
         os: {
             name: "Roku"
-            version: context.osVersion
-            version_major: context.osVersionMajor
+            version: rumContext.osVersion
+            version_major: rumContext.osVersionMajor
         }
-        service: context.service
+        service: rumContext.service
         session: {
             has_replay: false
-            id: context.sessionId
+            id: rumContext.sessionId
             type: "user"
         }
         source: agentSource()
         type: "view"
         usr: m.global.datadogUserInfo
-        version: context.applicationVersion
+        version: rumContext.applicationVersion
         view: {
             id: m.viewId
             url: m.top.viewUrl
@@ -544,7 +562,7 @@ sub sendViewUpdate(writer as object)
     if (m.instanceId <> invalid and m.instanceId <> "")
         path = lastViewEventFilePath(m.instanceId)
         DeleteFile(path)
-        if (context.sessionState = "tracked")
+        if (rumContext.sessionState = "tracked")
             ddLogVerbose("Keeping track of the last known view into " + path)
             viewEvent._dd.lastEvent = true
             jsonEvent = FormatJson(viewEvent)

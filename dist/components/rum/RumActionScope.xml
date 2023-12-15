@@ -3,6 +3,7 @@
     <interface>
         <field id="target" type="string" />
         <field id="actionType" type="string" />
+        <field id="context" type="assocarray" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumActionScope.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />

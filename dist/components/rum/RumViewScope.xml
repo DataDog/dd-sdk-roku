@@ -4,6 +4,7 @@
         <field id="viewName" type="string" />
         <field id="viewUrl" type="string" />
         <field id="activeAction" type="node" />
+        <field id="context" type="assocarray" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumViewScope.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
