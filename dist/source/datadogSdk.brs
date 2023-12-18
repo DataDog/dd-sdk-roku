@@ -116,7 +116,7 @@ sub initialize(configuration as object, global as object)
         })
         global.datadogLogsAgent.site = configuration.site
         global.datadogLogsAgent.clientToken = configuration.clientToken
-        global.datadogLogsAgent.service = configuration.service
+        global.datadogLogsAgent.service = service
         global.datadogLogsAgent.env = configuration.env
         global.datadogLogsAgent.uploader = global.datadogUploader
         global.datadogLogsAgent.deviceName = deviceName
@@ -170,7 +170,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.0.0-beta2"
+    return "1.0.0"
 end function
 
 ' ----------------------------------------------------------------

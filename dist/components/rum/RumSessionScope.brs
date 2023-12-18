@@ -58,6 +58,14 @@ sub handleEvent(event as object, writer as object)
         m.top.activeView.viewName = event.viewName
         m.top.activeView.viewUrl = event.viewUrl
         m.top.activeView.parentScope = m.top
+        m.top.activeView.context = (function(event)
+                __bsConsequent = event.context
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return {}
+                end if
+            end function)(event)
     end if
 end sub
 

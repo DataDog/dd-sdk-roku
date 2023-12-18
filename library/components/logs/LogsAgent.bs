@@ -134,16 +134,20 @@ sub sendLog(status as LogStatus, message as string, attributes as object)
         status: status,
         service: m.top.service,
         usr: m.global.datadogUserInfo,
-        device : {
+        device: {
             type: "tv",
             name: m.top.deviceName,
             model: m.top.deviceModel,
             brand: "Roku"
         },
         os: {
-            name : "Roku",
-            version : m.top.osVersion,
-            version_major : m.top.osVersionMajor
+            name: "Roku",
+            version: m.top.osVersion,
+            version_major: m.top.osVersionMajor
+        },
+        logger: {
+            thread_name: m.top.threadInfo().currentThread.name,
+            version: sdkVersion()
         }
     }
     for each key in attributes

@@ -11,6 +11,7 @@ Copyright 2022-Today Datadog, Inc.
     <interface>
         <field id="target" type="string" />
         <field id="actionType" type="string" />
+        <field id="context" type="assocarray" />
     </interface>
 
 </component>

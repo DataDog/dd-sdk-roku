@@ -12,6 +12,7 @@ Copyright 2022-Today Datadog, Inc.
         <field id="viewName" type="string" />
         <field id="viewUrl" type="string" />
         <field id="activeAction" type="node" />
+        <field id="context" type="assocarray" />
     </interface>
 
 </component>

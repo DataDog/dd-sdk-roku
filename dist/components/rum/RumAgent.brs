@@ -42,11 +42,12 @@ end sub
 ' Starts a view
 ' @param name (string) the view name (human-readable)
 ' @param url (string) the view url (developer identifier)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
-sub startView(name as string, url as string)
+sub startView(name as string, url as string, context = {} as object)
     ddLogThread("RumAgent.startView()")
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", startViewEvent(name, url), m.top.writer)
+    m.top.rumScope.callfunc("handleEvent", startViewEvent(name, url, context), m.top.writer)
     m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
 end sub
 
@@ -54,41 +55,45 @@ end sub
 ' Stops a view
 ' @param name (string) the view name (human-readable)
 ' @param url (string) the view url (developer identifier)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
-sub stopView(name as string, url as string)
+sub stopView(name as string, url as string, context = {} as object)
     ddLogThread("RumAgent.stopView()")
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", stopViewEvent(name, url), m.top.writer)
+    m.top.rumScope.callfunc("handleEvent", stopViewEvent(name, url, context), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds an action
 ' @param action (object) the action to track
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
-sub addAction(action as object)
+sub addAction(action as object, context = {} as object)
     ddLogThread("RumAgent.addAction()")
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", addActionEvent(action), m.top.writer)
+    m.top.rumScope.callfunc("handleEvent", addActionEvent(action, context), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds an error
 ' @param exception (object) the caught exception object
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
-sub addError(exception as object)
+sub addError(exception as object, context = {} as object)
     ddLogThread("RumAgent.addError()")
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", addErrorEvent(exception), m.top.writer)
+    m.top.rumScope.callfunc("handleEvent", addErrorEvent(exception, context), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a resource
 ' @param resource (object) the tracked resource object (as retrieved from the roSystemLog)
+' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
-sub addResource(resource as object)
+sub addResource(resource as object, context = {} as object)
     ddLogThread("RumAgent.addResource()")
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", addResourceEvent(resource), m.top.writer)
+    m.top.rumScope.callfunc("handleEvent", addResourceEvent(resource, context), m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------

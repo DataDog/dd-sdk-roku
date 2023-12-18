@@ -237,6 +237,8 @@ function checkParamMatch(expected as dynamic, actual as dynamic) as boolean
         return checkAssocArrayMatch(expected, actual)
     else if (TF_Utils__IsNumber(expected) and TF_Utils__IsNumber(actual))
         return expected = actual
+    else if (TF_Utils__IsBoolean(expected) and TF_Utils__IsBoolean(actual))
+        return expected = actual
     end if
 
     expectedType = type(expected)
