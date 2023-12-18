@@ -1,6 +1,6 @@
 {
   "name": "datadog-roku-libary",
-  "version": "1.0.0-beta2",
+  "version": "1.0.0",
   "author": "Datadog (https://github.com/DataDog)",
   "license": "Apache-2.0",
   "scripts": {},
@@ -8,7 +8,7 @@
     "rootDir": "."
   },
   "devDependencies": {
-    "@rokucommunity/bslint": "^0.8.6",
+    "@rokucommunity/bslint": "^0.8.11",
     "brighterscript": "^0.65.1"
   }
 }

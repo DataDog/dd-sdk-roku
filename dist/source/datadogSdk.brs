@@ -10,9 +10,18 @@
 '  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1")
 '  - env (string) the name of the environment to report in logs and RUM events
 '  - sessionSampleRate (integer) the rate of session to keep and send to Datadog
-'     as an integer between 0 and 100
+'     as an integer between 0 and 100 (default is 100)
 '  - service (string, optional) the name of the service to report in logs and RUM events
 '  - version (string, optional) the version of the channel to report in logs and RUM events
+'  - traceSampleRate (integer, optional) the rate of traces to keep when instrumenting network request
+'     as an integer between 0 and 100 (default is 100)
+'  - tracingHeaderTypes (array) a array of associative arrays. Each array item must have a the following entries:
+'       - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
+'       - 'header': one of the supported tracing header types :
+'           - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
+'           - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
+'           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
+'           - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
 ' @param global (object) the global node available from any node in the scenegraph
 ' ----------------------------------------------------------------
 sub initialize(configuration as object, global as object)
@@ -107,7 +116,7 @@ sub initialize(configuration as object, global as object)
         })
         global.datadogLogsAgent.site = configuration.site
         global.datadogLogsAgent.clientToken = configuration.clientToken
-        global.datadogLogsAgent.service = configuration.service
+        global.datadogLogsAgent.service = service
         global.datadogLogsAgent.env = configuration.env
         global.datadogLogsAgent.uploader = global.datadogUploader
         global.datadogLogsAgent.deviceName = deviceName
@@ -115,7 +124,31 @@ sub initialize(configuration as object, global as object)
         global.datadogLogsAgent.osVersion = deviceOsVersionFull
         global.datadogLogsAgent.osVersionMajor = deviceOsVersion.major
     end if
+    global.addFields({
+        datadogTraceAgent: {
+            traceSampleRate: (function(configuration)
+                    __bsConsequent = configuration.traceSampleRate
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return 100
+                    end if
+                end function)(configuration)
+            tracingHeaderTypes: (function(configuration)
+                    __bsConsequent = configuration.tracingHeaderTypes
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return {}
+                    end if
+                end function)(configuration)
+        }
+    })
 end sub
+' ----------------------------------------------------------------
+' The available tracing header types that can be injected into http requests.
+' ----------------------------------------------------------------
+
 ' ----------------------------------------------------------------
 ' The available track types for the uploader/writer
 ' ----------------------------------------------------------------
@@ -137,7 +170,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.0.0-beta2"
+    return "1.0.0"
 end function
 
 ' ----------------------------------------------------------------

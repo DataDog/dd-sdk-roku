@@ -11,10 +11,15 @@ function TestSuite__RumAgent() as object
     this.Name = "RumAgent"
 
     this.addTest("WhenStartView_ThenDelegateToRumScope", RumAgentTest__WhenStartView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartViewWithContext_ThenDelegateToRumScope", RumAgentTest__WhenStartViewWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStopView_ThenDelegateToRumScope", RumAgentTest__WhenStopView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStopViewWithContext_ThenDelegateToRumScope", RumAgentTest__WhenStopViewWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddAction_ThenDelegateToRumScope", RumAgentTest__WhenAddAction_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddActionWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddActionWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddError_ThenDelegateToRumScope", RumAgentTest__WhenAddError_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddErrorWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddErrorWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResourceWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddResourceWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     this.addTest("WhenAddConfigTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddConfigTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -126,6 +131,29 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the startView method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartViewWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.startView(fakeViewName, fakeViewUrl, fakeContext)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl, context: fakeContext }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the stopView method
 '  Then: delegates to the root RumScope
 '----------------------------------------------------------------
@@ -140,6 +168,29 @@ function RumAgentTest__WhenStopView_ThenDelegateToRumScope() as string
 
     ' Then
     expectedArgs = { event: { eventType: "stopView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the stopView method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStopViewWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.stopView(fakeViewName, fakeViewUrl, fakeContext)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "stopView", viewName: fakeViewName, viewUrl: fakeViewUrl, context: fakeContext }, writer: m.mockWriter }
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
@@ -163,6 +214,28 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the addAction method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddActionWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeAction = { target: IG_GetString(128), type: IG_GetString(128) }
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.addAction(fakeAction, fakeContext)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "addAction", action: fakeAction, context: fakeContext }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the addError method
 '  Then: delegates to the root RumScope
 '----------------------------------------------------------------
@@ -181,6 +254,28 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the addError method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddErrorWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeException = { number: IG_GetInteger(128), message: IG_GetString(128), backtrace: [] }
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.addError(fakeException, fakeContext)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "addError", exception: fakeException, context: fakeContext }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the addResource method
 '  Then: delegates to the root RumScope
 '----------------------------------------------------------------
@@ -194,6 +289,28 @@ function RumAgentTest__WhenAddResource_ThenDelegateToRumScope() as string
 
     ' Then
     expectedArgs = { event: { eventType: "addResource", resource: fakeResource }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the addResource method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddResourceWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeResource = { url: IG_GetString(128), method: IG_GetString(5), transferTime: IG_GetFloat() }
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.addResource(fakeResource, fakeContext)
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "addResource", resource: fakeResource, context: fakeContext }, writer: m.mockWriter }
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
@@ -258,7 +375,7 @@ end function
 '----------------------------------------------------------------
 function RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive() as string
     ' Given
-    wait3 = 5 * m.fakeKeepAliveDelayMs
+    wait3 = 3 * 2 * m.fakeKeepAliveDelayMs
 
     ' When
     sleep(wait3)
