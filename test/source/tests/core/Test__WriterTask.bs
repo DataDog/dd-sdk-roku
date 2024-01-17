@@ -145,7 +145,17 @@ function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
     ' Given
     filenames = ListDir(m.folderPath)
     Assume.that(filenames).isEmpty()
-    fakeEvents = [IG_GetString(128), IG_GetString(128), IG_GetString(128), IG_GetString(128), IG_GetString(128)]
+    fakeEventCount = 5
+    fakeEvents = []
+    expectedString = ""
+    for i = 1 to 5 :
+        fakeContent = IG_GetString(128)
+        fakeEvents.Push(fakeContent)
+        if (i > 1)
+            expectedString = expectedString + m.fakeSeparator
+        end if
+        expectedString = expectedString + fakeContent
+    end for
     timestamp& = datadogroku_getTimestamp()
     filePath = m.folderPath + "/" + timestamp&.toStr()
     WriteAsciiFile(filePath, "")
@@ -164,7 +174,7 @@ function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
     end if
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
     Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
-    Assert.that(content).isEqualTo(fakeEvents[0] + m.fakeSeparator + fakeEvents[1] + m.fakeSeparator + fakeEvents[2] + m.fakeSeparator + fakeEvents[3] + m.fakeSeparator + fakeEvents[4])
+    Assert.that(content).isEqualTo(expectedString)
     return ""
 end function
 
@@ -268,7 +278,7 @@ function WriterTaskTest__WhenIgnoredFileExists_ThenWriteInNewFile() as string
     ignoredFileName = "_" + timestamp&.toStr()
     ignoredFilePath = m.folderPath + "/" + ignoredFileName
     WriteAsciiFile(ignoredFilePath, previousData)
-    
+
     ' When
     m.testedTask.writeEvent = fakeEvent
     sleep(15)
