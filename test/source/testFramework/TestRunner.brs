@@ -90,9 +90,10 @@ end function
 
 ' @return Statistic object if run in node mode, invalid otherwise
 ' ----------------------------------------------------------------
-function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, testSuiteNamesList = [] as object) as object
+function TestRunner__Run(logger as object, scene as dynamic) as object
     alltestCount = 0
-    totalStatObj = statObj
+    totalStatObj = logger.CreateTotalStatistic()
+    testSuiteNamesList = []
     testSuitesList = m.GetTestSuitesList(testSuiteNamesList)
 
     globalErrorsList = GetGlobalAA().globalErrorsList
@@ -236,6 +237,10 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
         if (suiteStatObj.Result = "Fail" or suiteStatObj.Result = "Crashed") and m.failFast
             exit for
         end if
+
+        if (scene <> invalid)
+            scene.testResults = totalStatObj
+        end if
     end for
 
     #if false
@@ -328,6 +333,11 @@ function TestRunner__Run(statObj = m.Logger.CreateTotalStatistic() as object, te
             ? title
         end if
     #end if
+
+    totalStatObj.Complete = true
+    if (scene <> invalid)
+        scene.testResults = totalStatObj
+    end if
 end function
 
 ' ----------------------------------------------------------------

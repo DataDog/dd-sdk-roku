@@ -31,7 +31,12 @@ sub onTestResults()
 
     testResults = m.top.testResults
 
-    m.outputAbstract.text = "Ran " + testResults.total.toStr() + " tests in " + testResults.time.toStr() + "ms"
+    if (testResults.Complete)
+        m.outputAbstract.text = "Ran " + testResults.total.toStr() + " tests in " + testResults.time.toStr() + "ms"
+    else
+        m.outputAbstract.text = "Running test… " + testResults.total.toStr() + " tests in " + testResults.time.toStr() + "ms"
+    end if
+
     if (testResults.correct > 0)
         m.outputCorrect.text = testResults.correct.toStr() + " passed"
     end if
