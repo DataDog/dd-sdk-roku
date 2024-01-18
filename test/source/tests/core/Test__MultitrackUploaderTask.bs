@@ -20,7 +20,10 @@ function TestSuite__MultiTrackUploaderTask() as object
     this.addTest("WhenInit_UploadsExistingFile_429", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_429, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_4xx", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_4xx, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_500", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_500, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+    this.addTest("WhenInit_UploadsExistingFile_502", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_502, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_503", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_503, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+    this.addTest("WhenInit_UploadsExistingFile_504", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_504, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+    this.addTest("WhenInit_UploadsExistingFile_507", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_507, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_5xx", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_5xx, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
 
     this.addTest("WhenInit_IgnoreRecentFile", MultiTrackUploaderTaskTest__WhenInit_IgnoreRecentFile, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
@@ -165,6 +168,15 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_500() as strin
 end function
 
 '----------------------------------------------------------------
+' Given: an uploader and an uploadable file, server with bad gateway (502)
+'  When: waiting for the loop to run
+'  Then: the file is uploaded and kept for retry
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_502() as string
+    return m.testUploader(502, true)
+end function
+
+'----------------------------------------------------------------
 ' Given: an uploader and an uploadable file, server overloaded (503)
 '  When: waiting for the loop to run
 '  Then: the file is uploaded and kept for retry
@@ -174,13 +186,31 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_503() as strin
 end function
 
 '----------------------------------------------------------------
-' Given: an uploader and an uploadable file, unknown server error (5xx)
+' Given: an uploader and an uploadable file, server with slow gateway (504)
 '  When: waiting for the loop to run
 '  Then: the file is uploaded and kept for retry
 '----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_504() as string
+    return m.testUploader(504, true)
+end function
+
+'----------------------------------------------------------------
+' Given: an uploader and an uploadable file, server with insufficient storage (507)
+'  When: waiting for the loop to run
+'  Then: the file is uploaded and kept for retry
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_507() as string
+    return m.testUploader(507, true)
+end function
+
+'----------------------------------------------------------------
+' Given: an uploader and an uploadable file, unknown server error (5xx)
+'  When: waiting for the loop to run
+'  Then: the file is uploaded and discarded
+'----------------------------------------------------------------
 function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_5xx() as string
-    responseCode = IG_GetOneOf([IG_GetIntegerInRange(501, 502), IG_GetIntegerInRange(504, 599)])
-    return m.testUploader(responseCode, true)
+    responseCode = IG_GetOneOf([501, 505, 506, IG_GetIntegerInRange(508, 599)])
+    return m.testUploader(responseCode, false)
 end function
 
 '----------------------------------------------------------------
@@ -302,7 +332,7 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
     firstCall = calls[0]
     Assert.that(calls).isNotInvalid()
     Assert.that(firstCall.url).hasSubstring(expectedBaseUrl)
-    
+
     if (keepFile)
         Assert.that(filePath).exists()
         Assert.that(calls.count()).isGreaterThan(1)

@@ -209,14 +209,26 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code 500 Internal Server Error; if the issue persists, please contact the support.")
         retry = true
+    else if (responseCode = 502)
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code 502 Bad Gateway; if the issue persists, please contact the support.")
+        retry = true
     else if (responseCode = 503)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code 503 Unavailable; if the issue persists, please contact the support.")
         retry = true
+    else if (responseCode = 504)
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code 504 Gateway Timeout; if the issue persists, please contact the support.")
+        retry = true
+    else if (responseCode = 507)
+        ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
+        ddLogWarning("The intake server returned status code 507 Insufficient Storage; if the issue persists, please contact the support.")
+        retry = true
     else if (responseCode >= 500 and responseCode < 600)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
-        retry = true
+        retry = false
     else if (responseCode >= 400 and responseCode < 500)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
