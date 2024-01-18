@@ -1,3 +1,8 @@
+# Next release: 1.1.0
+
+* [IMPROVEMENT] Improve performance regarding internal logging (#78)
+
+
 # 1.0.0 / 2023-12-18
 
 ### Changes

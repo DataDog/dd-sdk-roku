@@ -154,13 +154,26 @@ function decToHex(number as integer) as string
     end if
 end function
 
+function __isDev() as boolean
+    return CreateObject("roAppInfo").isDev()
+end function
+
 ' ----------------------------------------------------------------
 ' Checks whether the given log level is allowed in the current app
 ' @param level (LogLevel) the level of the log (1: error; 2: warning; )
 ' ----------------------------------------------------------------
 function __isLogLevelAllowed(level as LogLevel) as boolean
+    if (__isDev() = false)
+        return false
+    end if
+
+    if (m.datadogVerbosity <> invalid)
+        return level <= m.datadogVerbosity
+    end if
+
     if (m.global <> invalid)
         verbosity = m.global.datadogVerbosity ?? 0
+        m.datadogVerbosity = verbosity
         return level <= verbosity
     end if
     return false
