@@ -8,10 +8,10 @@ body:
         Report crashes caused by the SDK. Please try to be as detailed as possible. 
         Before getting started, if the problem is urgent please use our [official support channel](https://www.datadoghq.com/support/).
   - type: textarea
-    id: stacktrace
+    id: backtrace
     attributes:
-      label: Stack trace 
-      description: Please provide us with the stack trace of the crash or a crash report.
+      label: Backtrace 
+      description: Please provide us with the backtrace of the crash or a crash report.
     validations:
       required: true
   - type: textarea
@@ -44,7 +44,7 @@ body:
       label: Latest working SDK version
       description: If you know, what was the last SDK version where the crash did manifest itself?
     validations:
-      required: true
+      required: false
   - type: dropdown
     id: checked_lastest_sdk
     attributes:
@@ -54,6 +54,13 @@ body:
         - 'No'
     validations:
       required: true 
+  - type: input
+    id: brighterscript_version
+    attributes:
+      label: BrighterScript compiler version (optional)
+      description: e.g. BrighterScript 0.65.22
+    validations:
+      required: false
   - type: textarea
     id: device_info
     attributes:

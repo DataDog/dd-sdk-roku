@@ -29,7 +29,7 @@ body:
     attributes:
       label: SDK logs
       description: |
-        Please provide console logs before, during and after the bug occurs. 
+        Please provide telnet debug console logs before, during and after the bug occurs. 
     validations:
       required: false
   - type: textarea
@@ -63,7 +63,7 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: intergration_method
+    id: integration_method
     attributes:
       label: Integration Method
       options:
@@ -73,7 +73,14 @@ body:
     id: roku_version
     attributes:
       label: RokuOS Version
-      description: e.g. RokuOS 12.5            
+      description: e.g. RokuOS 12.5          
+  - type: input
+    id: brighterscript_version
+    attributes:
+      label: BrighterScript compiler version (optional)
+      description: e.g. BrighterScript 0.65.22
+    validations:
+      required: false  
   - type: textarea
     id: device_info
     attributes:

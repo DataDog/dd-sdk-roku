@@ -50,7 +50,14 @@ body:
     id: roku_version
     attributes:
       label: RokuOS Version
-      description: e.g. RokuOS 12.5            
+      description: e.g. RokuOS 12.5     
+  - type: input
+    id: brighterscript_version
+    attributes:
+      label: BrighterScript compiler version (optional)
+      description: e.g. BrighterScript 0.65.22
+    validations:
+      required: false
   - type: textarea
     id: other_info
     attributes:
