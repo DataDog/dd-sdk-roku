@@ -40,7 +40,7 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: intergration_method
+    id: integration_method
     attributes:
       label: Integration Method
       options:
