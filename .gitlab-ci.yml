@@ -147,7 +147,7 @@ notify:publish-success:
   script:
     - ROPM_URL="https://www.npmjs.com/package/@datadog/datadog-roku/v/$CI_COMMIT_TAG"
     - 'MESSAGE_TEXT=":package: :roku: $CI_PROJECT_NAME $CI_COMMIT_TAG published on :npm: $ROPM_URL"'
-    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
 
 notify:publish-failure:
   extends: .slack-notifier-base
@@ -158,4 +158,4 @@ notify:publish-failure:
   script:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
     - 'MESSAGE_TEXT=":test-fail: :roku: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
-    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
