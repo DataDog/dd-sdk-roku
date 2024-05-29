@@ -106,7 +106,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
             message: "Channel stopped unexpectedly"
             source: "source"
             source_type: agentSource()
-            stack: ""
+            stack: m.top.lastExitConsoleLog
             type: m.top.lastExitOrTerminationReason
         }
         service: lastViewEvent.service

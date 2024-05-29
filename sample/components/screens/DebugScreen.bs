@@ -18,6 +18,7 @@ sub init()
         "Add Custom Action",
         "Add Error",
         "Add Resource",
+        "Add custom Resource",
         "Send Logs",
         "Send Config Telemetry",
         "Send Error Telemetry",
@@ -71,14 +72,16 @@ sub onItemSelected()
     else if (itemSelected = 5)
         sendResource()
     else if (itemSelected = 6)
-        sendLogs()
+        sendCustomResource()
     else if (itemSelected = 7)
-        sendErrorTelemetry()
+        sendLogs()
     else if (itemSelected = 8)
         sendErrorTelemetry()
     else if (itemSelected = 9)
-        sendDebugTelemetry()
+        sendErrorTelemetry()
     else if (itemSelected = 10)
+        sendDebugTelemetry()
+    else if (itemSelected = 11)
         sendCrash()
     end if
 end sub
@@ -129,6 +132,19 @@ sub sendResource()
     task = createObject("roSGNode", "RequestTask")
     task.setField("query", "datadog")
     task.control = "RUN"
+end sub
+
+sub sendCustomResource()
+    resource = {
+        url: "https://api.example.io/v1/path/resource.json",
+        method: "GET",
+        status: "ok",
+        httpCode: 200,
+        error: "",
+        transferTime: 42,
+        name: "get_resource.json"
+    }
+    m.global.datadogRumAgent@.addResource(resource)
 end sub
 
 sub sendLogs()

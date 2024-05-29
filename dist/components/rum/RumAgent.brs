@@ -105,7 +105,16 @@ sub sendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
     crashReporter.writer = m.top.writer
-    crashReporter.lastExitOrTerminationReason = lastExitOrTerminationReason
+    if (m.top.osVersionMajor.toInt() >= 13)
+        appManager = createObject("roAppManager")
+        lastExitInfo = appManager.GetLastExitInfo()
+        exitCode = lastExitInfo.exit_code
+        crashReporter.lastExitOrTerminationReason = lastExitInfo.exit_code
+        crashReporter.lastExitConsoleLog = lastExitInfo.console_log
+    else
+        crashReporter.lastExitOrTerminationReason = lastExitOrTerminationReason
+        crashReporter.lastExitConsoleLog = ""
+    end if
     crashReporter.instanceId = m.instanceId
     crashReporter.control = "RUN"
 end sub
