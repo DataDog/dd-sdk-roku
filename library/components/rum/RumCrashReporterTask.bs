@@ -106,7 +106,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
             message: "Channel stopped unexpectedly",
             source: "source",
             source_type: agentSource(),
-            stack: "",
+            stack: m.top.lastExitConsoleLog,
             type: m.top.lastExitOrTerminationReason
         },
         service: lastViewEvent.service,
@@ -131,7 +131,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
 
     sleep(50)
     lastViewEvent._dd.document_version = (lastViewEvent._dd.document_version ?? 0) + 1
-    lastViewEvent.view.error = { count: (lastViewEvent.view.error.count ?? 0)+ 1 }
+    lastViewEvent.view.error = { count: (lastViewEvent.view.error.count ?? 0) + 1 }
     lastViewEvent.view.crash = { count: 1 }
     lastViewEvent.view.time_spent = timeSpentNs&
     ddLogInfo("RumCrashReporterTask, writing view update")
