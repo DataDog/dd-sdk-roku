@@ -21,6 +21,13 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenPadLeftWithLargeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithLargeString_ThenReturnOriginalString)
     this.addTest("WhenPadLeftWithSmallString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString)
 
+    this.addTest("WhenGenerateUniqueId64_ThenGenerateIdDecimal", DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdDecimal)
+    this.addTest("WhenGenerateUniqueId64_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdHexadecimal)
+    this.addTest("WhenGenerateUniqueId128_ThenGenerateIdDecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdDecimal)
+    this.addTest("WhenGenerateUniqueId128_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal)
+    this.addTest("WhenGenerateUniqueIdDd_ThenGenerateAllId", DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId)
+    this.addTest("WhenPrintIdToString_ThenGenerateStringId", DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId)
+
     return this
 end function
 
@@ -201,5 +208,120 @@ function DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString(
 
     ' Then
     Assert.that(result).hasSize(length).hasSubstring(pad + input)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call the generateUniqueId64 method
+'  Then: returns a 64 bits unique id
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdDecimal() as string
+    ' Given
+
+    ' When
+    id = datadogroku_generateUniqueId64()
+
+    ' Then
+    ' 64 bit ids will never have more than 20 chars in decimal representation
+    Assert.that(Len(id)).isInRange(1, 20)
+    Assert.that(id).matches("^[0-9]+$")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call the generateUniqueId64 method
+'  Then: returns a 64 bits unique id
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdHexadecimal() as string
+    ' Given
+
+    ' When
+    id = datadogroku_generateUniqueId64(16)
+
+    ' Then
+    ' 64 bit ids will never have more than 16 chars in hexadecimal representation
+    Assert.that(Len(id)).isInRange(1, 16)
+    Assert.that(id).matches("^[0-9a-f]+$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call the generateUniqueId64 method
+'  Then: returns a 64 bits unique id
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdDecimal() as string
+    ' Given
+
+    ' When
+    id = datadogroku_generateUniqueId128()
+
+    ' Then
+    ' 64 bit ids will never have more than 39 chars in decimal representation
+    Assert.that(Len(id)).isInRange(1, 39)
+    Assert.that(id).matches("^[0-9]+$")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call the generateUniqueId64 method
+'  Then: returns a 64 bits unique id
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal() as string
+    ' Given
+
+    ' When
+    id = datadogroku_generateUniqueId128(16)
+
+    ' Then
+    ' 64 bit ids will never have more than 32 chars in hexadecimal representation
+    Assert.that(Len(id)).isInRange(1, 32)
+    Assert.that(id).matches("^[0-9a-f]+$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call the printIdToString method
+'  Then: returns a 64 bits unique id
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId() as string
+    ' Given
+
+    ' When
+    id = datadogroku_generateUniqueIdDd()
+
+    ' Then
+    Assert.that(id).hasSize(3)
+    ' the full id always starts with the high id as both are hexadecimal representations
+    Assert.that(id[0]).matches("^" + id[2] + "[0-9a-f]{16}$", "i")
+    Assert.that(id[1]).matches("^[0-9]+$", "i")
+    Assert.that(id[2]).matches("^[0-9a-f]+$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given:
+'  When: call the printIdToString method
+'  Then: returns a 64 bits unique id
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId() as string
+    ' some special cases / Decimal
+    decRadix = 10
+    Assert.that(datadogroku_printIdToString(0, 0, 0, 42, decRadix)).isEqualTo("42")
+    Assert.that(datadogroku_printIdToString(0, 0, 16, 0, decRadix)).isEqualTo("68719476736")
+    Assert.that(datadogroku_printIdToString(0, 815, 0, 0, decRadix)).isEqualTo("15034096420073284567040")
+    Assert.that(datadogroku_printIdToString(23, 0, 13, 0, decRadix)).isEqualTo("1822247737828079764707345432576")
+
+    ' some special cases / Hexadecimal
+    hexRadix = 16
+    Assert.that(datadogroku_printIdToString(0, 0, 0, 42, hexRadix)).isEqualTo("2a")
+    Assert.that(datadogroku_printIdToString(0, 0, 16, 0, hexRadix)).isEqualTo("1000000000")
+    Assert.that(datadogroku_printIdToString(0, 815, 0, 0, hexRadix)).isEqualTo("32f0000000000000000")
+    Assert.that(datadogroku_printIdToString(23, 0, 0, 0, hexRadix)).isEqualTo("17000000000000000000000000")
+
     return ""
 end function

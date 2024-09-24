@@ -674,29 +674,34 @@ class DdUrlTransfer
     sub _addSampledInHeaders(headerType as TracingHeaderType)
         m._deleteTracingHeaders()
         if (headerType = TracingHeaderType.datadog)
-            ' Datadog uses traces in base 10 and not hex
-            m.traceId = generateUniqueId(10)
-            m.spanId = generateUniqueId(10)
-            m.AddHeader("x-datadog-trace-id", m.traceId)
+            ' Datadog uses a complex system for compatibility purposes
+            ddId = generateUniqueIdDd()
+            m.traceId = ddId[0]
+            m.spanId = generateUniqueId64(10)
+            m.AddHeader("x-datadog-trace-id", ddId[1])
+            m.AddHeader("x-datadog-tags", "_dd.p.tid=" + ddId[2])
             m.AddHeader("x-datadog-parent-id", m.spanId)
             m.AddHeader("x-datadog-sampling-priority", "1")
             m.AddHeader("x-datadog-origin", "rum")
         else if (headerType = TracingHeaderType.b3)
-            m.traceId = generateUniqueId(16)
-            m.spanId = generateUniqueId(16)
-            b3 = padLeft(m.traceId, 32, "0") + "-" + padLeft(m.spanId, 16, "0") + "-1"
+            m.traceId = generateUniqueId128(16)
+            m.spanId = generateUniqueId64(16)
+            hexTraceId = padLeft(m.traceId, 32, "0")
+            hexSpanId = padLeft(m.spanId, 16, "0")
+            b3 = hexTraceId + "-" + hexSpanId + "-1"
             m.AddHeader("b3", b3)
         else if (headerType = TracingHeaderType.b3multi)
-            m.traceId = generateUniqueId(16)
-            m.spanId = generateUniqueId(16)
+            m.traceId = generateUniqueId128(16)
+            m.spanId = generateUniqueId64(16)
             m.AddHeader("X-B3-TraceId", m.traceId)
             m.AddHeader("X-B3-SpanId", m.spanId)
             m.AddHeader("X-B3-Sampled", "1")
         else if (headerType = TracingHeaderType.tracecontext)
-            m.traceId = generateUniqueId(16)
-            m.spanId = generateUniqueId(16)
+            m.traceId = generateUniqueId128(16)
+            m.spanId = generateUniqueId64(16)
+            hexTraceId = padLeft(m.traceId, 32, "0")
             hexSpanId = padLeft(m.spanId, 16, "0")
-            traceparent = "00-" + padLeft(m.traceId, 32, "0") + "-" + hexSpanId + "-01"
+            traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
             m.AddHeader("traceparent", traceparent)
             usrId = m.global.datadogUserInfo.id
             if (usrId <> invalid)
@@ -811,26 +816,71 @@ function getTracedHeaderType(url as string, tracingHeaderTypes as object) as dyn
 end function
 
 ' ----------------------------------------------------------------
-' Generates a unique identifier compatible with Datadog's APM trace and span IDs
+' Generates a unique identifier as a 64 bits random number
+' @param radix (integer) the radix to use when representing the id as a string
 ' @return (string) the generated Unique id
 ' ----------------------------------------------------------------
-function generateUniqueId(radix = 10 as integer) as string
+function generateUniqueId64(radix = 10 as integer) as string
     maxInt = 4294967295
-    low& = Rnd(maxInt) - 1
-    high& = Rnd(maxInt) - 1
+    return printIdToString(0, 0, Rnd(maxInt) - 1, Rnd(maxInt) - 1, radix)
+end function
+
+
+' ----------------------------------------------------------------
+' Generates a unique identifier as a 128 bits random number
+' @param radix (integer) the radix to use when representing the id as a string
+' @return (string) the generated Unique id
+' ----------------------------------------------------------------
+function generateUniqueId128(radix = 10 as integer) as string
+    maxInt = 4294967295
+    return printIdToString(Rnd(maxInt) - 1, Rnd(maxInt) - 1, Rnd(maxInt) - 1, Rnd(maxInt) - 1, radix)
+end function
+
+' ----------------------------------------------------------------
+' Generates a unique identifier as a 128 bits random number, fit for Datadog's specification
+' @return (array) the array with the generated id as a list of strings:
+'     - the full 128 bit id in hexadecimal
+'     - the low 64 bit part of the id in decimal (compatible with Datadog's legacy x-datadog-trace-id header)
+'     - the high 64 bit part of the id in id in hexadecimal
+' ----------------------------------------------------------------
+function generateUniqueIdDd() as object
+    maxInt = 4294967295
+    high0& = Rnd(maxInt) - 1
+    high1& = Rnd(maxInt) - 1
+    low0& = Rnd(maxInt) - 1
+    low1& = Rnd(maxInt) - 1
+
+    fullId = printIdToString(high0&, high1&, low0&, low1&, 16)
+    lowId = printIdToString(0, 0, low0&, low1&, 10)
+    highId = printIdToString(0, 0, high0&, high1&, 16)
+
+    return [fullId, lowId, highId]
+end function
+
+function printIdToString(li0& as longinteger, li1& as longinteger, li2& as longinteger, li3& as longinteger, radix = 10 as integer) as string
+    a& = li0&
+    b& = li1&
+    c& = li2&
+    d& = li3&
     id = ""
 
-    while (high& > 0 or low& > 0)
-        ' Create an intermediate value with the same modulo as the combined high and low value
+    while (a& > 0 or b& > 0 or c& > 0 or d& > 0)
+        ' Create intermediate values with the same modulo as the combined high and low value
         ' but requiring 36 bits max (32 for the low value + 4 for the high part)
-        modH = high& mod radix
-        temp& = (modH << 32) + low&
-        digit = temp& mod radix
+        ' transitively for each bucket
+        modA& = a& mod radix
+        tempB& = (modA& << 32) + b&
+        modTempB& = tempB& mod radix
+        tempC& = (modTempB& << 32) + c&
+        modTempC& = tempC& mod radix
+        tempD& = (modTempC& << 32) + d&
 
-        ' update the high value
-        high& = (high& - modH) / radix ' we reuse the modH to avoid the need of a floor op
-        ' the low value reuses the previous temp value to account for the "missing mod" in the high update
-        low& = (temp& - digit) / radix ' we reuse the digit to avoid the need of a floor op
+        digit = tempD& mod radix
+
+        a& = (a& - modA&) / radix
+        b& = (tempB& - modTempB&) / radix
+        c& = (tempC& - modTempC&) / radix
+        d& = (tempD& - digit) / radix
 
         ' update the string from right to left
         if (digit < 10)

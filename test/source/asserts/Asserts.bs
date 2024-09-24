@@ -405,8 +405,37 @@ class BaseAssert
 
         throw {
             number: m.errorCode,
-            message: "Expected " + m.actual + " to have substring " + expected + ")"
+            message: "Expected " + m.actual + " to have substring " + expected
         }
+    end function
+
+    ' ----------------------------------------------------------------
+    ' @param expected (dynamic) the expected regex to use for matching
+    ' @param flag (string) the flag for regex matching (i for case insensitive, …)
+    ' @param msg (string) the error message to use
+    ' @return (BaseAssert) this for chaining purposes
+    ' ----------------------------------------------------------------
+    function matches(expected as dynamic, flags = "" as string, msg = "" as string) as BaseAssert
+        if ((expected = invalid) or (not TF_Utils__IsString(expected)))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(expected) + " to be a string but was " + type(expected)
+            }
+        else if (not TF_Utils__IsString(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a string but was " + type(m.actual)
+            }
+        end if
+
+        regex = CreateObject("roRegex", expected, flags)
+        if (not regex.IsMatch(m.actual))
+            throw {
+                number: m.errorCode,
+                message: "Expected " + m.actual + " to match regex /" + expected + "/"
+            }
+        end if
+        return m
     end function
 
     ' ----------------------------------------------------------------
