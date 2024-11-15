@@ -9,9 +9,9 @@ include:
 
 variables:
   REPO: 'dd-sdk-roku'
-  CI_IMAGE_VERSION: "4"
+  CI_IMAGE_VERSION: "5"
   BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
-  CI_IMAGE: '$BUILD_STABLE_REGISTRY/ci/$REPO:$CI_IMAGE_VERSION'
+  CI_IMAGE: 'registry.ddbuild.io/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
   MAIN_BRANCH: 'main'
   GIT_DEPTH: 5

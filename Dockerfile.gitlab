@@ -1,4 +1,4 @@
-FROM registry.ddbuild.io/images/mirror/node:16.16.0-bullseye-slim
+FROM registry.ddbuild.io/images/mirror/ubuntu:24.04
 
 ####################################################################################################
 # DEBIAN SETUP
@@ -35,21 +35,22 @@ RUN set -x \
    && apt-get -y upgrade \
    && apt-get -y install --no-install-recommends \
    python3 \
-   python3-distutils \
    python3-apt \
+   python3-pip \
+   pipx \
    && apt-get -y clean \
    && rm -rf /var/lib/apt/lists/*
 
 #  Install pip for aws
-RUN set -x \
-   && curl -OL https://bootstrap.pypa.io/get-pip.py \
-   && python3 get-pip.py \
-   && rm get-pip.py
+# RUN set -x \
+#    && curl -OL https://bootstrap.pypa.io/get-pip.py \
+#    && python3 get-pip.py \
+#    && rm get-pip.py
 
 RUN python3 --version
 
 #  Install aws CLI
-RUN set -x && pip install awscli
+RUN set -x && pipx install awscli
 
 ####################################################################################################
 # JAVA
@@ -59,13 +60,24 @@ RUN set -x \
    && apt-get update \
    && apt-get -y upgrade \
    && apt-get -y install --no-install-recommends \
-   openjdk-17-jdk \
+   openjdk-21-jdk \
    && apt-get -y clean \
    && rm -rf /var/lib/apt/lists/*
+RUN java --version
 
 ####################################################################################################
 # NPM
 ####################################################################################################
+
+# Install Node
+RUN set -x \
+   && apt-get update \
+   && apt-get -y upgrade \
+   && apt-get -y install --no-install-recommends \
+   nodejs \
+   npm \
+   && apt-get -y clean \
+   && rm -rf /var/lib/apt/lists/*
 
 # Check Node and NPM version
 RUN node --version
@@ -95,7 +107,7 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
 ####################################################################################################
 
 ENV ROKU_SCA_URL "http://devtools.web.roku.com/static-channel-analysis/sca-cmd.zip"
-ENV ROKU_SCA_SHA256 "e287aeb52c5a5d419975779b77bfe3177f323f7aae5be1f12c53596e56219b97"
+ENV ROKU_SCA_SHA256 "b4affb79c7924c5dfc10c9f9358d32e5fa279386711c328c067e3819d5278ff8"
 RUN curl -L $ROKU_SCA_URL -o sca-cmd.zip \
    && echo "${ROKU_SCA_SHA256} sca-cmd.zip" | sha256sum -c  \
    && unzip sca-cmd.zip \
