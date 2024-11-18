@@ -145,7 +145,6 @@ function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
     ' Given
     filenames = ListDir(m.folderPath)
     Assume.that(filenames).isEmpty()
-    fakeEventCount = 5
     fakeEvents = []
     expectedString = ""
     for i = 1 to 5 :
