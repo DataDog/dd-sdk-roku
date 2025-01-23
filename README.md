@@ -80,6 +80,16 @@ Whenever you perform an operation that might throw an exception, you can forward
     end try
 ```
 
+You can also track errors manually without using a `try-catch` block, as follows:
+
+```brightscript
+   customError = {
+        type: "Error42",
+        message: "An unexpected situation occured"
+    }
+    m.global.datadogRumAgent.callfunc("addError", customError)
+```
+
 #### Track RUM Resources
 
 ##### `roUrlTransfer`
