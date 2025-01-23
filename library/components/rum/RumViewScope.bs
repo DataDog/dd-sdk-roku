@@ -122,10 +122,12 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addError(exception as object, context as object, writer as object)
-    if (exception.number = invalid)
-        errorType = "unknown"
-    else
+    if (exception.type <> invalid)
+        errorType = exception.type
+    else if (exception.number <> invalid)
         errorType = "&h" + decToHex(exception.number)
+    else
+        errorType = "unknown"
     end if
     if (exception.message <> invalid)
         errorMsg = exception.message

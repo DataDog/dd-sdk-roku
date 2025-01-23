@@ -17,6 +17,7 @@ sub init()
         "Add Click Action",
         "Add Custom Action",
         "Add Error",
+        "Add Custom Error",
         "Add Resource",
         "Add custom Resource",
         "Send Logs",
@@ -70,18 +71,20 @@ sub onItemSelected()
     else if (itemSelected = 4)
         sendError()
     else if (itemSelected = 5)
-        sendResource()
+        sendCustomError()
     else if (itemSelected = 6)
-        sendCustomResource()
+        sendResource()
     else if (itemSelected = 7)
-        sendLogs()
+        sendCustomResource()
     else if (itemSelected = 8)
-        sendErrorTelemetry()
+        sendLogs()
     else if (itemSelected = 9)
         sendErrorTelemetry()
     else if (itemSelected = 10)
-        sendDebugTelemetry()
+        sendErrorTelemetry()
     else if (itemSelected = 11)
+        sendDebugTelemetry()
+    else if (itemSelected = 12)
         sendCrash()
     end if
 end sub
@@ -107,6 +110,15 @@ sub sendError()
         datadogroku_ddLogError("Caught something", error)
         m.global.datadogRumAgent@.addError(error, { custom_add_error: Rnd(100) })
     end try
+end sub
+
+sub sendCustomError()
+    customError = {
+        type: "Error42",
+        message: "An unexpected situation occured"
+    }
+    datadogroku_ddLogError("Caught something", customError)
+    m.global.datadogRumAgent@.addError(customError, { custom_add_error: Rnd(100) })
 end sub
 
 sub sendClickAction()
