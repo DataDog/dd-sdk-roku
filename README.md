@@ -56,6 +56,10 @@ To split [user sessions][4] into logical steps, manually start a View using the 
     viewName = "VideoDetails"
     viewUrl = "components/screens/VideoDetails.xml"
     m.global.datadogRumAgent.callfunc("startView", viewName, viewUrl)
+
+    ' optionally you can also attach a context with custom properties
+    context = { myProperty: 42 }
+    m.global.datadogRumAgent.callfunc("startView", viewName, viewUrl, context)
 ```
 
 #### Track RUM Actions
@@ -65,7 +69,12 @@ RUM Actions represent the interactions your users have with your channel. You ca
 ```brightscript
     targetName = "playButton" ' the name of the SG Node the user interacted with
     actionType = "click" ' the type of interaction, should be one of "click", "back", or "custom" 
-    m.global.datadogRumAgent.callfunc("addAction", { target: targetName, type: actionType})
+    customAction = { target: targetName, type: actionType}
+    m.global.datadogRumAgent.callfunc("addAction", customAction)
+
+    ' optionally you can also attach a context with custom properties
+    context = { myProperty: 42 }
+    m.global.datadogRumAgent.callfunc("addAction", customAction, context)
 ```
 
 #### Track RUM Errors
@@ -83,11 +92,15 @@ Whenever you perform an operation that might throw an exception, you can forward
 You can also track errors manually without using a `try-catch` block, as follows:
 
 ```brightscript
-   customError = {
-        type: "Error42",
+    customError = {
+        type: "MyError",
         message: "An unexpected situation occured"
     }
     m.global.datadogRumAgent.callfunc("addError", customError)
+
+    ' optionally you can also attach a context with custom properties
+    context = { myProperty: 42 }
+    m.global.datadogRumAgent.callfunc("addError", customError, context)
 ```
 
 #### Track RUM Resources
@@ -146,6 +159,10 @@ sub performRequest()
                         status: status
                     }
                     m.global.datadogRumAgent.callfunc("addResource", resource)
+                    
+                    ' optionally you can also attach a context with custom properties
+                    context = { myProperty: 42 }
+                    m.global.datadogRumAgent.callfunc("addResource", resource, context)
                 end if
             end if
         end if
