@@ -14,6 +14,7 @@ function TestSuite__RumCrashReporterTask() as object
     this.Name = "RumCrashReporterTask"
 
     this.addTest("WhenReasonIsValid_ThenWriteErrorAndViewEvents", RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenReasonIsValid_ThenWriteErrorWithStackAndViewEvents", RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndViewEvents, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenLastViewIsCurrentSession_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenExitreasonInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
 
@@ -131,6 +132,113 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
     Assert.that(errorEvent.error.source).isEqualTo("source")
     Assert.that(errorEvent.error.source_type).isEqualTo("roku")
     Assert.that(errorEvent.error.stack).isEqualTo("")
+    Assert.that(errorEvent.error.is_crash).isEqualTo(true)
+    Assert.that(errorEvent.error.type).isEqualTo(fakeExitStatus)
+
+    viewEvent = ParseJson(updates[1])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent._dd.document_version).isEqualTo(fakePreviousViewEvent._dd.document_version + 1)
+    Assert.that(viewEvent.application.id).isEqualTo(fakePreviousViewEvent.application.id)
+    Assert.that(viewEvent.date).isEqualTo(fakePreviousViewEvent.date)
+    Assert.that(viewEvent.service).isEqualTo(fakePreviousViewEvent.service)
+    Assert.that(viewEvent.session.has_replay).isEqualTo(false)
+    Assert.that(viewEvent.session.id).isEqualTo(fakePreviousViewEvent.session.id)
+    Assert.that(viewEvent.session.type).isEqualTo("user")
+    Assert.that(viewEvent.source).isEqualTo(fakePreviousViewEvent.source)
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(viewEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
+    Assert.that(viewEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
+    Assert.that(viewEvent.view.time_spent).isEqualTo(fakePreviousViewEvent.view.time_spent + 100000000)
+    Assert.that(viewEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
+    Assert.that(viewEvent.view.action.count).isEqualTo(fakePreviousViewEvent.view.action.count)
+    Assert.that(viewEvent.view.error.count).isEqualTo(fakePreviousViewEvent.view.error.count + 1)
+    Assert.that(viewEvent.view.crash.count).isEqualTo(1)
+    Assert.that(viewEvent.view.resource.count).isEqualTo(fakePreviousViewEvent.view.resource.count)
+
+    Assert.that(lastViewFilePath).doesNotExist()
+    return ""
+end function
+
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: last view exists, and exit reason is relevant
+'  Then: writes an error and view events
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndViewEvents() as string
+    ' Given
+    fakeExitStatus = IG_GetOneOf([
+        "EXIT_BRIGHTSCRIPT_CRASH",
+        "EXIT_BRIGHTSCRIPT_TIMEOUT",
+        "EXIT_GRAPHICS_NOT_RELEASED",
+        "EXIT_SIGNAL_TIMEOUT",
+        "EXIT_OUT_OF_MEMORY",
+        "EXIT_MEM_LIMIT_EXCEEDED_FG",
+        "EXIT_MEM_LIMIT_EXCEEDED_BG"
+    ])
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    fakeConsoleLog = IG_GetString(128)
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeExitStatus
+    m.testedTask.lastExitConsoleLog = fakeConsoleLog
+
+    ' When
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(2)
+    errorEvent = ParseJson(updates[0])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.application.id).isEqualTo(fakePreviousViewEvent.application.id)
+    Assert.that(errorEvent.date).isEqualTo(fakePreviousViewEvent.date + 100)
+    Assert.that(errorEvent.service).isEqualTo(fakePreviousViewEvent.service)
+    Assert.that(errorEvent.session.has_replay).isEqualTo(false)
+    Assert.that(errorEvent.session.id).isEqualTo(fakePreviousViewEvent.session.id)
+    Assert.that(errorEvent.session.type).isEqualTo("user")
+    Assert.that(errorEvent.source).isEqualTo("roku")
+    Assert.that(errorEvent.type).isEqualTo("error")
+    Assert.that(errorEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(errorEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
+    Assert.that(errorEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
+    Assert.that(errorEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
+    Assert.that(errorEvent.error.id).isNotEmpty()
+    Assert.that(errorEvent.error.message).isEqualTo("Channel stopped unexpectedly")
+    Assert.that(errorEvent.error.source).isEqualTo("source")
+    Assert.that(errorEvent.error.source_type).isEqualTo("roku")
+    Assert.that(errorEvent.error.stack).isEqualTo(fakeConsoleLog)
     Assert.that(errorEvent.error.is_crash).isEqualTo(true)
     Assert.that(errorEvent.error.type).isEqualTo(fakeExitStatus)
 

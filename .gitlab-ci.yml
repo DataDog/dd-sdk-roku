@@ -9,9 +9,9 @@ include:
 
 variables:
   REPO: 'dd-sdk-roku'
-  CI_IMAGE_VERSION: "4"
+  CI_IMAGE_VERSION: "5"
   BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
-  CI_IMAGE: '$BUILD_STABLE_REGISTRY/ci/$REPO:$CI_IMAGE_VERSION'
+  CI_IMAGE: 'registry.ddbuild.io/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
   MAIN_BRANCH: 'main'
   GIT_DEPTH: 5
@@ -147,7 +147,7 @@ notify:publish-success:
   script:
     - ROPM_URL="https://www.npmjs.com/package/@datadog/datadog-roku/v/$CI_COMMIT_TAG"
     - 'MESSAGE_TEXT=":package: :roku: $CI_PROJECT_NAME $CI_COMMIT_TAG published on :npm: $ROPM_URL"'
-    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"
 
 notify:publish-failure:
   extends: .slack-notifier-base
@@ -158,4 +158,4 @@ notify:publish-failure:
   script:
     - BUILD_URL="$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID"
     - 'MESSAGE_TEXT=":test-fail: :roku: $CI_PROJECT_NAME $CI_COMMIT_TAG publish pipeline <$BUILD_URL|$COMMIT_MESSAGE> failed."'
-    - postmessage "#mobile-rum" "$MESSAGE_TEXT"
+    - postmessage "#mobile-sdk-ops" "$MESSAGE_TEXT"

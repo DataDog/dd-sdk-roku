@@ -16,7 +16,7 @@ sub RunUserInterface(args as dynamic)
     globalNode = screen.getGlobalNode()
     credentials = parseJson(readAsciiFile("pkg:/credentials.json"))
     globalNode.addFields({
-        datadogVerbosity: 5,
+        datadogVerbosity: 3,
         datadogOrgName: credentials.orgName,
         datadogOrgId: credentials.orgId,
         datadogSite: credentials.site,

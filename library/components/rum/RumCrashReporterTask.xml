@@ -14,6 +14,7 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="lastExitOrTerminationReason" type="string" />
+        <field id="lastExitConsoleLog" type="string" />
         <field id="instanceId" type="string" />
         <field id="writer" type="node" />
     </interface>

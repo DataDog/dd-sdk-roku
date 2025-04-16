@@ -229,14 +229,15 @@ end sub
 ' ----------------------------------------------------------------
 function Logger__CreateTotalStatistic() as object
     statTotalItem = {
-        Suites: []
-        Time: 0
-        Total: 0
-        Correct: 0
-        Fail: 0
-        Skipped: 0
+        Suites: [],
+        Time: 0,
+        Total: 0,
+        Correct: 0,
+        Fail: 0,
+        Skipped: 0,
         Crash: 0,
-        OutputLog: []
+        OutputLog: [],
+        Complete: false
     }
 
     if m.echoEnabled

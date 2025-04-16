@@ -78,11 +78,8 @@ sub runTests()
     ' run all tests to get one single report
     Runner.SetFailFast(false)
 
-    statResult = Runner.Logger.CreateTotalStatistic()
-
     try
-        Runner.Run(statResult)
-        m.top.scene.testResults = statResult
+        Runner.Run(Runner.Logger, m.top.scene)
     catch e
         m.top.scene.crash = e
     end try
