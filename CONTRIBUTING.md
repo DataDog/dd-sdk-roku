@@ -15,6 +15,7 @@ You also need to have the [BrighterScript](https://npmjs.org/package/brighterscr
 npm install -g brighterscript
 npm install -g ropm
 npm install -g @rokucommunity/bslint
+brew install telnet
 ```
 
 ### Running the static analysis
