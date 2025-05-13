@@ -526,6 +526,10 @@ class DdUrlTransfer
         return m.roUrlTransfer.AddHeader(name, value)
     end function
 
+    function GetHeader(name as string) as dynamic
+        return m.headers[name] ?? []
+    end function
+
     ' ----------------------------------------------------------------
     ' Sets the HTTP headers to be sent in the HTTP request.
     '
@@ -673,6 +677,7 @@ class DdUrlTransfer
     ' ----------------------------------------------------------------
     sub _addSampledInHeaders(headerType as TracingHeaderType)
         m._deleteTracingHeaders()
+        m.AddHeader("baggage","session.id=" + m.global.datadogRumContext.sessionId)
         if (headerType = TracingHeaderType.datadog)
             ' Datadog uses a complex system for compatibility purposes
             ddId = generateUniqueIdDd()
@@ -747,6 +752,13 @@ class DdUrlTransfer
     ' when the ddUrlTransfer is used for more than one request.
     ' ----------------------------------------------------------------
     sub _deleteTracingHeaders()
+        baggageHeader = m.GetHeader("baggage")
+        m.headers.Delete("baggage")
+        for each item in baggageHeader
+            if (Left(item, 11) <> "session.id=")
+                m.AddHeader("baggage",item)
+            end if
+        end for
         m.headers.Delete("x-datadog-trace-id")
         m.headers.Delete("x-datadog-parent-id")
         m.headers.Delete("x-datadog-sampling-priority")
