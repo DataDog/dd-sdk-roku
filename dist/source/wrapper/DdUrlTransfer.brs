@@ -22,6 +22,7 @@ function __DdUrlTransfer_builder()
         m.datadogRumAgent = global.datadogRumAgent
         m.traceSampleRate = global.datadogTraceAgent.traceSampleRate
         m.tracingHeaderTypes = global.datadogTraceAgent.tracingHeaderTypes
+        m.traceContextInjection = global.datadogTraceAgent.traceContextInjection
         m.headers = {}
     end sub
     ' ----------------------------------------------------------------
@@ -622,9 +623,11 @@ function __DdUrlTransfer_builder()
             if (isSampledIn)
                 ddLogInfo("Request trace is sampled in")
                 m._addSampledInHeaders(headerType)
-            else
+            else if (m.traceContextInjection = "all")
                 ddLogInfo("Request trace is sampled out")
                 m._addSampledOutHeaders(headerType)
+            else
+                ddLogInfo("Request trace is sampled out, but no header is added.")
             end if
         else
             ddLogInfo("Not tracing request to " + m.roUrlTransfer.GetUrl() + ", no tracing header for that host")

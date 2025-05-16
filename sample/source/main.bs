@@ -39,7 +39,8 @@ sub RunUserInterface(args as dynamic)
         env: "prod",
         launchArgs: args,
         traceSampleRate: 100,
-        tracingHeaderTypes: credentials.mirrorHostsTracingHeaderTypes
+        tracingHeaderTypes: credentials.mirrorHostsTracingHeaderTypes,
+        traceContextInjection: "all"
     }, globalNode)
     globalNode.setField("datadogUserInfo", { id: "42", name: "Abcd Efg", email: "abcd.efg@example.com" })
     globalNode.setField("datadogContext", { channel: "roku sample channel" })
