@@ -18,6 +18,7 @@ function TestSuite__Datadog() as object
     this.addTest("WhenGetEndpointUS5_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUS5_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointEU1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointEU1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointAP1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP1_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointAP2_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint)
 
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
@@ -124,7 +125,7 @@ function DatadogTest__WhenGetEndpointEU1_ThenCreateEndpoint() as string
 end function
 
 '----------------------------------------------------------------
-' Given: a eu1 site
+' Given: a ap1 site
 '  When: asking for the endpoint
 '  Then: the correct endpoint is returned
 '----------------------------------------------------------------
@@ -137,6 +138,23 @@ function DatadogTest__WhenGetEndpointAP1_ThenCreateEndpoint() as string
 
     ' Then
     Assert.that(endpoint).isEqualTo("https://browser-intake-ap1-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a ap2 site
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returned
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint() as string
+    ' Given
+    site = "ap2"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://browser-intake-ap2-datadoghq.com")
     return ""
 end function
 
