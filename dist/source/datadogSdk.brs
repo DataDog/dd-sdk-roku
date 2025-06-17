@@ -248,6 +248,7 @@ function getEndpoint(site as object) as string
         us5: "https://browser-intake-us5-datadoghq.com"
         eu1: "https://browser-intake-datadoghq.eu"
         ap1: "https://browser-intake-ap1-datadoghq.com"
+        ap2: "https://browser-intake-ap2-datadoghq.com"
         staging: "https://browser-intake-datad0g.com"
     }
     endpoint = endpoints[site]
