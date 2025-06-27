@@ -1,4 +1,12 @@
-# Next release: 1.2.0
+# Next release: 1.3.0
+
+# 1.2.0 / 2025-06-30
+* [FEATURE] Add `baggage` with Session ID in trace headers. See [#90](https://github.com/DataDog/dd-sdk-roku/pull/90)
+* [FEATURE] Add `TraceContextInjection` in trace configuration. See [#91](https://github.com/DataDog/dd-sdk-roku/pull/91)
+* [FEATURE] Add `AP2` support in SDK. See [#93](https://github.com/DataDog/dd-sdk-roku/pull/93)
+* [MAINTENANCE] Add workflow: Changelog update to Confluence . See [#94](https://github.com/DataDog/dd-sdk-roku/pull/94)
+* [MAINTENANCE] Update `.gitignore` and `CONTRIBUTING.md`. See [#89](https://github.com/DataDog/dd-sdk-roku/pull/89)
+
 
 # 1.1.0 / 2025-02-10
 
