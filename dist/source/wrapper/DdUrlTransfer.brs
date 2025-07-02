@@ -22,6 +22,7 @@ function __DdUrlTransfer_builder()
         m.datadogRumAgent = global.datadogRumAgent
         m.traceSampleRate = global.datadogTraceAgent.traceSampleRate
         m.tracingHeaderTypes = global.datadogTraceAgent.tracingHeaderTypes
+        m.traceContextInjection = global.datadogTraceAgent.traceContextInjection
         m.headers = {}
     end sub
     ' ----------------------------------------------------------------
@@ -493,6 +494,16 @@ function __DdUrlTransfer_builder()
         m.headers[name] = headerValues
         return m.roUrlTransfer.AddHeader(name, value)
     end function
+    instance.GetHeader = function(name as string) as dynamic
+        return (function(m, name)
+                __bsConsequent = m.headers[name]
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return []
+                end if
+            end function)(m, name)
+    end function
     ' ----------------------------------------------------------------
     ' Sets the HTTP headers to be sent in the HTTP request.
     '
@@ -612,9 +623,11 @@ function __DdUrlTransfer_builder()
             if (isSampledIn)
                 ddLogInfo("Request trace is sampled in")
                 m._addSampledInHeaders(headerType)
-            else
+            else if (m.traceContextInjection = "all")
                 ddLogInfo("Request trace is sampled out")
                 m._addSampledOutHeaders(headerType)
+            else
+                ddLogInfo("Request trace is sampled out, but no header is added.")
             end if
         else
             ddLogInfo("Not tracing request to " + m.roUrlTransfer.GetUrl() + ", no tracing header for that host")
@@ -631,6 +644,7 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     instance._addSampledInHeaders = sub(headerType as object)
         m._deleteTracingHeaders()
+        m.AddHeader("baggage", "session.id=" + m.global.datadogRumContext.sessionId)
         if (headerType = "datadog")
             ' Datadog uses a complex system for compatibility purposes
             ddId = generateUniqueIdDd()
@@ -703,6 +717,13 @@ function __DdUrlTransfer_builder()
     ' when the ddUrlTransfer is used for more than one request.
     ' ----------------------------------------------------------------
     instance._deleteTracingHeaders = sub()
+        baggageHeader = m.GetHeader("baggage")
+        m.headers.Delete("baggage")
+        for each item in baggageHeader
+            if (Left(item, 11) <> "session.id=")
+                m.AddHeader("baggage", item)
+            end if
+        end for
         m.headers.Delete("x-datadog-trace-id")
         m.headers.Delete("x-datadog-parent-id")
         m.headers.Delete("x-datadog-sampling-priority")

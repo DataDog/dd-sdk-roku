@@ -27,7 +27,13 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenGenerateUniqueId128_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal)
     this.addTest("WhenGenerateUniqueIdDd_ThenGenerateAllId", DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId)
     this.addTest("WhenPrintIdToString_ThenGenerateStringId", DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId)
+    this.addTest("WhenAddSampledInHeaders_ThenHeadersHaveSessionId", DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId)
+    this.addTest("WhenDeleteTracingHeaders_ThenDeleteOnlySessionId", DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteOnlySessionId)
+    this.addTest("WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders", DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders)
 
+    this.addTest("WhenSampledIn_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledIn_ThenHaveSampleInHeaders)
+    this.addTest("WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders)
+    this.addTest("WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders)
     return this
 end function
 
@@ -325,3 +331,206 @@ function DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId() as string
 
     return ""
 end function
+
+function DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId() as string
+
+    fakeSessionId = IG_GetString(32)
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    fakeHeaderType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer._addSampledInHeaders(fakeHeaderType)
+    resultList = ddUrlTransfer.GetHeader("baggage")
+    Assert.that(resultList).hasSize(1)
+    Assert.that(resultList[0]).isEqualTo("session.id="+fakeSessionId)
+    return ""
+end function
+
+
+function DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteOnlySessionId() as string
+    
+    fakeSessionId = IG_GetString(32)
+    fake3rdBaggage = IG_GetString(32)
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.addHeader("baggage", "session.id=" + fakeSessionId)
+    ddUrlTransfer.addHeader("baggage", fake3rdBaggage)
+
+    ddUrlTransfer._deleteTracingHeaders()
+
+    resultList = ddUrlTransfer.GetHeader("baggage")
+    Assert.that(resultList).hasSize(1)
+    Assert.that(resultList[0]).isEqualTo(fake3rdBaggage)
+    return ""
+
+end function
+
+function DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders() as string
+
+    fakeSessionId = IG_GetString(32)
+    fakeDatadogTraceId = IG_GetString(32)
+    fakeDatadogParentId = IG_GetString(32)
+    fakeDatadogSamplingPriority = IG_GetString(32)
+    fakeDatadogOrigin = IG_GetString(32)
+    fakeB3 = IG_GetString(32)
+    fakeB3TraceId = IG_GetString(32)
+    fakeB3SpanId = IG_GetString(32)
+    fakeB3Sampled = IG_GetString(32)
+    fakeTraceParent = IG_GetString(32)
+    fakeTraceState = IG_GetString(32)
+
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.addHeader("x-datadog-trace-id", fakeDatadogTraceId)
+    ddUrlTransfer.addHeader("x-datadog-parent-id", fakeDatadogParentId)
+    ddUrlTransfer.addHeader("x-datadog-sampling-priority", fakeDatadogSamplingPriority)
+    ddUrlTransfer.addHeader("x-datadog-origin", fakeDatadogOrigin)
+    ddUrlTransfer.addHeader("b3", fakeB3)
+    ddUrlTransfer.addHeader("X-B3-TraceId", fakeB3TraceId)
+    ddUrlTransfer.addHeader("X-B3-SpanId", fakeB3SpanId)
+    ddUrlTransfer.addHeader("X-B3-Sampled", fakeB3Sampled)
+    ddUrlTransfer.addHeader("traceparent", fakeTraceParent)
+    ddUrlTransfer.addHeader("tracestate", fakeTraceState)
+
+    ddUrlTransfer._deleteTracingHeaders()
+
+    resultDatadogTraceId = ddUrlTransfer.GetHeader("x-datadog-trace-id")
+    resultDatadogParentId = ddUrlTransfer.GetHeader("x-datadog-parent-id")
+    resultDatadogSamplingPriority = ddUrlTransfer.GetHeader("x-datadog-sampling-priority")
+    resultDatadogOrigin = ddUrlTransfer.GetHeader("x-datadog-origin")
+    resultB3 = ddUrlTransfer.GetHeader("b3")
+    resultB3TraceId = ddUrlTransfer.GetHeader("X-B3-TraceId")
+    resultB3SpanId = ddUrlTransfer.GetHeader("X-B3-SpanId")
+    resultB3Sampled= ddUrlTransfer.GetHeader("X-B3-Sampled")
+    resultTraceParent = ddUrlTransfer.GetHeader("traceparent")
+    resultTraceState = ddUrlTransfer.GetHeader("tracestate")
+    Assert.that(resultDatadogTraceId).hasSize(0)
+    Assert.that(resultDatadogParentId).hasSize(0)
+    Assert.that(resultDatadogSamplingPriority).hasSize(0)
+    Assert.that(resultDatadogOrigin).hasSize(0)
+    Assert.that(resultB3).hasSize(0)
+    Assert.that(resultB3TraceId).hasSize(0)
+    Assert.that(resultB3SpanId).hasSize(0)
+    Assert.that(resultB3Sampled).hasSize(0)
+    Assert.that(resultTraceParent).hasSize(0)
+    Assert.that(resultTraceState).hasSize(0)
+    return ""
+
+end function
+
+function DdUrlTransferTest__WhenSampledIn_ThenHaveSampleInHeaders() as string
+    fakeSessionId = IG_GetString(16)
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeId = IG_GetInteger()
+    fakeName = IG_GetString(16)
+    fakeEmail = IG_GetString(32)
+    fakeGlobal = {
+        datadogRumContext: {
+            sessionId: fakeSessionId
+        },
+        datadogRumAgent: fakeDatadogRumAgent,
+        datadogTraceAgent: {
+            traceSampleRate: 100,
+            tracingHeaderTypes: [
+                {
+                    "host": "datadog.com",
+                    "header": "datadog"
+                }
+            ],
+            traceContextInjection: "sampled"
+        },
+        datadogUserInfo:  { id: fakeId, name: fakeName, email: fakeEmail}
+    }
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetUrl("https://datadog.com")
+    ddUrlTransfer._traceRequest()
+    result = ddUrlTransfer.GetHeader("baggage")
+    Assert.that(result[0]).isEqualTo("session.id=" + fakeSessionId)
+    return ""
+end function
+
+
+function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders() as string
+    fakeSessionId = IG_GetString(16)
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeId = IG_GetInteger()
+    fakeName = IG_GetString(16)
+    fakeEmail = IG_GetString(32)
+    fakeGlobal = {
+        datadogRumContext: {
+            sessionId: fakeSessionId
+        },
+        datadogRumAgent: fakeDatadogRumAgent,
+        datadogTraceAgent: {
+            traceSampleRate: 0,
+            tracingHeaderTypes: [
+                {
+                    "host": "datadog.com",
+                    "header": "datadog"
+                }
+            ],
+            traceContextInjection: "all"
+        },
+        datadogUserInfo:  { id: fakeId, name: fakeName, email: fakeEmail}
+    }
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetUrl("https://datadog.com")
+    ddUrlTransfer._traceRequest()
+    result = ddUrlTransfer.GetHeader("x-datadog-sampling-priority")
+    Assert.that(result[0]).isEqualTo("0")
+    return ""
+end function
+
+function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders() as string
+    fakeSessionId = IG_GetString(16)
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeId = IG_GetInteger()
+    fakeName = IG_GetString(16)
+    fakeEmail = IG_GetString(32)
+    fakeGlobal = {
+        datadogRumContext: {
+            sessionId: fakeSessionId
+        },
+        datadogRumAgent: fakeDatadogRumAgent,
+        datadogTraceAgent: {
+            traceSampleRate: 0,
+            tracingHeaderTypes: [
+                {
+                    "host": "datadog.com",
+                    "header": "datadog"
+                }
+            ],
+            traceContextInjection: "sampled"
+        },
+        datadogUserInfo:  { id: fakeId, name: fakeName, email: fakeEmail}
+    }
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetUrl("https://datadog.com")
+    ddUrlTransfer._traceRequest()
+    result = ddUrlTransfer.GetHeader("x-datadog-sampling-priority")
+    Assert.that(result).hasSize(0)
+    return ""
+end function
+
+function createFakeGlobal(fakeSessionId as string) as object
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeSampleRate = IG_GetDouble()
+    fakeId = IG_GetInteger()
+    fakeName = IG_GetString(16)
+    fakeEmail = IG_GetString(32)
+    fakeGlobal = {
+        datadogRumContext: {
+            sessionId: fakeSessionId
+        },
+        datadogRumAgent: fakeDatadogRumAgent,
+        datadogTraceAgent: {
+            traceSampleRate: fakeSampleRate,
+            tracingHeaderTypes: ["X-Trace-ID", "X-Request-ID"]
+        },
+        datadogUserInfo:  { id: fakeId, name: fakeName, email: fakeEmail}
+    }
+    return fakeGlobal
+
+end function
+

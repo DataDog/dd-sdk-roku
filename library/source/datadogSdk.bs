@@ -22,6 +22,7 @@
 '           - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
 '           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
 '           - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
+'  - traceContextInjection (string) defines whether the trace context should be injected into all requests or only sampled ones.
 ' @param global (object) the global node available from any node in the scenegraph
 ' ----------------------------------------------------------------
 sub initialize(configuration as object, global as object)
@@ -92,7 +93,8 @@ sub initialize(configuration as object, global as object)
     global.addFields({
         datadogTraceAgent: {
             traceSampleRate: configuration.traceSampleRate ?? 100,
-            tracingHeaderTypes: configuration.tracingHeaderTypes ?? {}
+            tracingHeaderTypes: configuration.tracingHeaderTypes ?? {},
+            traceContextInjection: configuration.traceContextInjection ?? TraceContextInjection.Sampled
         }
     })
 end sub
@@ -124,7 +126,31 @@ enum Site
     us5 = "us5"
     eu1 = "eu1"
     ap1 = "ap1"
+    ap2 = "ap2"
     staging = "staging"
+end enum
+
+' ----------------------------------------------------------------
+' Defines whether the trace context should be injected into all requests or only sampled ones.
+' ----------------------------------------------------------------
+enum TraceContextInjection
+
+    ' ----------------------------------------------------------------
+    ' Injects trace context into all requests irrespective of the sampling decision.
+    ' For example if the request trace is sampled out, the trace context will still be injected in your request
+    ' headers but the sampling priority will be `0`. This will mean that the client will dictate the sampling priority
+    ' on the server side and no trace will be created no matter the sampling rate at the server side.
+    ' ----------------------------------------------------------------
+    All = "all"
+
+    ' ----------------------------------------------------------------
+    ' Injects trace context only into sampled requests.
+    ' For example if the request trace is sampled out neither the trace context or the sampling priority will
+    ' be injected into the request headers leaving the server side to make the sampling decision.
+    ' This will mean that if the server side sampling rate is higher than the client side sampling rate there will
+    ' be a chance that a trace will be created down the stream.
+    ' ----------------------------------------------------------------
+    Sampled = "sampled"
 end enum
 
 ' ----------------------------------------------------------------
@@ -139,7 +165,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.1.0"
+    return "1.2.0"
 end function
 
 ' ----------------------------------------------------------------
@@ -206,6 +232,7 @@ function getEndpoint(site as Site) as string
         us5: "https://browser-intake-us5-datadoghq.com",
         eu1: "https://browser-intake-datadoghq.eu",
         ap1: "https://browser-intake-ap1-datadoghq.com",
+        ap2: "https://browser-intake-ap2-datadoghq.com",
         staging: "https://browser-intake-datad0g.com"
     }
 

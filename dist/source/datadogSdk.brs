@@ -22,6 +22,7 @@
 '           - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
 '           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
 '           - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
+'  - traceContextInjection (string) defines whether the trace context should be injected into all requests or only sampled ones.
 ' @param global (object) the global node available from any node in the scenegraph
 ' ----------------------------------------------------------------
 sub initialize(configuration as object, global as object)
@@ -142,6 +143,14 @@ sub initialize(configuration as object, global as object)
                         return {}
                     end if
                 end function)(configuration)
+            traceContextInjection: (function(configuration)
+                    __bsConsequent = configuration.traceContextInjection
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return "sampled"
+                    end if
+                end function)(configuration)
         }
     })
 end sub
@@ -157,6 +166,10 @@ end sub
 ' The available Datadog sites for the uploader
 ' ----------------------------------------------------------------
 
+' ----------------------------------------------------------------
+' Defines whether the trace context should be injected into all requests or only sampled ones.
+' ----------------------------------------------------------------
+
 
 ' ----------------------------------------------------------------
 ' @return (string) the service name of the library
@@ -170,7 +183,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.1.0"
+    return "1.2.0"
 end function
 
 ' ----------------------------------------------------------------
@@ -235,6 +248,7 @@ function getEndpoint(site as object) as string
         us5: "https://browser-intake-us5-datadoghq.com"
         eu1: "https://browser-intake-datadoghq.eu"
         ap1: "https://browser-intake-ap1-datadoghq.com"
+        ap2: "https://browser-intake-ap2-datadoghq.com"
         staging: "https://browser-intake-datad0g.com"
     }
     endpoint = endpoints[site]
