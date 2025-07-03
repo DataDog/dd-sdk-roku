@@ -444,6 +444,7 @@ function DdUrlTransferTest__WhenSampledIn_ThenHaveSampleInHeaders() as string
     }
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
     ddUrlTransfer.SetUrl("https://datadog.com")
+    ddUrlTransfer.SetTraceSampleRate(100)
     ddUrlTransfer._traceRequest()
     result = ddUrlTransfer.GetHeader("baggage")
     Assert.that(result[0]).isEqualTo("session.id=" + fakeSessionId)

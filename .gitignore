@@ -12,6 +12,9 @@ package-lock.json
 # Visual Studio Code
 .vscode
 
+# Windsurf
+.windsurf
+
 # Mac OS
 .DS_Store
 
