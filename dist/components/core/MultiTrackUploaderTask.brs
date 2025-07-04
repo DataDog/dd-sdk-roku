@@ -232,11 +232,14 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
         if (not DeleteFile(filePath))
             message = "Unable to delete batch file at " + filePath
             ddLogWarning(message)
-            m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
-                number: 0
-                message: message
-                backtrace: []
-            })
+            datadogRumAgent = m.global.datadogRumAgent
+            if (datadogRumAgent <> invalid)
+                datadogRumAgent.addErrorTelemetry({
+                    number: 0
+                    message: message
+                    backtrace: []
+                })
+            end if
         end if
     end if
 end sub

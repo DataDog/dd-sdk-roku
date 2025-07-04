@@ -517,7 +517,7 @@ end function
 function createFakeGlobal(fakeSessionId as string) as object
     fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
     fakeSampleRate = IG_GetDouble()
-    fakeId = IG_GetInteger()
+    fakeId = IG_GetString(8)
     fakeName = IG_GetString(16)
     fakeEmail = IG_GetString(32)
     fakeGlobal = {
