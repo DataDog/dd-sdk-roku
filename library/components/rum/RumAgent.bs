@@ -167,24 +167,30 @@ end sub
 ' ----------------------------------------------------------------
 sub ensureRumScope()
     if (m.top.rumScope = invalid)
+        fields = m.top.getFields()
+        applicationId = fields.applicationId
         m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
         ddLogWarning("RumViewScope.instanceId:" + m.instanceId)
         m.global.addFields({ datadogRumContext: {} })
         datadogRumContext = m.global.datadogRumContext
-        datadogRumContext.applicationId = m.top.applicationId
+        datadogRumContext.applicationId = applicationId
         datadogRumContext.instanceId = m.instanceId
         m.global.setField("datadogRumContext", datadogRumContext)
 
         ddLogVerbose("Creating RumApplicationScope")
-        m.top.rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        m.top.rumScope.applicationId = m.top.applicationId
-        m.top.rumScope.service = m.top.service
-        m.top.rumScope.version = m.top.version
-        m.top.rumScope.deviceName = m.top.deviceName
-        m.top.rumScope.deviceModel = m.top.deviceModel
-        m.top.rumScope.osVersion = m.top.osVersion
-        m.top.rumScope.osVersionMajor = m.top.osVersionMajor
-        m.top.rumScope.sessionSampleRate = m.top.sessionSampleRate
+
+        rumScope = CreateObject("roSGNode", "RumApplicationScope")
+        rumScope.setFields({
+            applicationId: applicationId,
+            service: fields.service,
+            version: fields.version,
+            deviceName: fields.deviceName,
+            deviceModel: fields.deviceModel,
+            osVersion: fields.osVersion,
+            osVersionMajor: fields.osVersionMajor,
+            sessionSampleRate: fields.sessionSampleRate
+        })
+        m.top.rumScope = rumScope
     end if
 end sub
 
