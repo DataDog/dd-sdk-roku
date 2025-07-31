@@ -65,12 +65,13 @@ sub initialize(configuration as object, global as object)
         ddLogError("Trying to initialize the Datadog SDK without a Client Token, please check your configuration.")
         return
     end if
-    if (global.datadogUploader = invalid)
+    datadogUploader = global.datadogUploader
+    if (datadogUploader = invalid)
         ddLogInfo("No uploader, creating one")
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
-        uploader.clientToken = configuration.clientToken
+        datadogUploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        datadogUploader.clientToken = configuration.clientToken
         global.addFields({
-            datadogUploader: uploader
+            datadogUploader: datadogUploader
         })
     end if
     if (configuration.applicationId = invalid or configuration.applicationId = "")
@@ -79,34 +80,35 @@ sub initialize(configuration as object, global as object)
     else if (global.datadogRumAgent = invalid)
         ddLogInfo("No RUM agent, creating one")
         rumAgent = CreateObject("roSGNode", "RumAgent")
-        rumAgent.site = configuration.site
-        rumAgent.env = (function(configuration)
-                __bsConsequent = configuration.env
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return ""
-                end if
-            end function)(configuration)
-        rumAgent.clientToken = configuration.clientToken
-        rumAgent.applicationId = configuration.applicationId
-        rumAgent.service = service
-        rumAgent.version = version
-        rumAgent.uploader = global.datadogUploader
-        rumAgent.sessionSampleRate = (function(configuration)
-                __bsConsequent = configuration.sessionSampleRate
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return 100
-                end if
-            end function)(configuration)
-        rumAgent.lastExitOrTerminationReason = launchArgs.lastExitOrTerminationReason
-        rumAgent.configuration = configuration
-        rumAgent.deviceName = deviceName
-        rumAgent.deviceModel = deviceModel
-        rumAgent.osVersion = deviceOsVersionFull
-        rumAgent.osVersionMajor = deviceOsVersion.major
+        rumAgent.setFields({
+            site: configuration.site
+            env: (function(configuration)
+                    __bsConsequent = configuration.env
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return ""
+                    end if
+                end function)(configuration)
+            clientToken: configuration.clientToken
+            applicationId: configuration.applicationId
+            service: service
+            version: version
+            uploader: datadogUploader
+            sessionSampleRate: (function(configuration)
+                    __bsConsequent = configuration.sessionSampleRate
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return 100
+                    end if
+                end function)(configuration)
+            lastExitOrTerminationReason: launchArgs.lastExitOrTerminationReason
+            deviceName: deviceName
+            deviceModel: deviceModel
+            osVersion: deviceOsVersionFull
+            osVersionMajor: deviceOsVersion.major
+        })
         global.addFields({
             datadogRumAgent: rumAgent
         })
@@ -114,15 +116,25 @@ sub initialize(configuration as object, global as object)
     if (global.datadogLogsAgent = invalid)
         ddLogInfo("No Logs agent, creating one")
         agent = CreateObject("roSGNode", "LogsAgent")
-        agent.site = configuration.site
-        agent.clientToken = configuration.clientToken
-        agent.service = service
-        agent.env = configuration.env
-        agent.uploader = global.datadogUploader
-        agent.deviceName = deviceName
-        agent.deviceModel = deviceModel
-        agent.osVersion = deviceOsVersionFull
-        agent.osVersionMajor = deviceOsVersion.major
+        agent.setFields({
+            site: configuration.site
+            env: (function(configuration)
+                    __bsConsequent = configuration.env
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return ""
+                    end if
+                end function)(configuration)
+            clientToken: configuration.clientToken
+            service: service
+            version: version
+            uploader: datadogUploader
+            deviceName: deviceName
+            deviceModel: deviceModel
+            osVersion: deviceOsVersionFull
+            osVersionMajor: deviceOsVersion.major
+        })
         global.addFields({
             datadogLogsAgent: agent
         })
