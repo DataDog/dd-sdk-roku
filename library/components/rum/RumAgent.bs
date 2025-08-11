@@ -211,7 +211,7 @@ end sub
 ' ----------------------------------------------------------------
 sub ensureUploader()
     uploader = m.top.uploader
-    if (m.top.uploader = invalid)
+    if (uploader = invalid)
         ddLogVerbose("Creating MultiTrackUploaderTask")
         uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
