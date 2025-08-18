@@ -5,17 +5,19 @@
 import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
 import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+import "pkg:/source/roku_modules/datadogroku/wrapper/DdVideoPlayer.brs" 
 
 sub init()
     datadogroku_ddLogThread("VideoScreen.init()")
-
     m.devTube = m.top.findNode("devTube")
+    datadogroku_setupVideo(m.devTube)
     displaySize = CreateObject("roDeviceInfo").GetDisplaySize()
     ' center horizontally
     m.devTube.translation = [(displaySize.w - 1280) / 2, (displaySize.h - 720) / 2]
-
     setVideoContent()
 end sub
+
+
 
 function onKeyEvent(key as string, press as boolean) as boolean
     datadogroku_ddLogVerbose("VideoScreen.onKeyEvent(" + key + ", " + press.toStr() + ")")
@@ -30,7 +32,7 @@ end function
 
 sub setVideoContent()
     videoContent = createObject("RoSGNode", "ContentNode")
-    videoContent.url = "https://roku.s.cpl.delvenetworks.com/media/59021fabe3b645968e382ac726cd6c7b/60b4a471ffb74809beb2f7d5a15b3193/roku_ep_111_segment_1_final-cc_mix_033015-a7ec8a288c4bcec001c118181c668de321108861.m3u8"
+    videoContent.url = "http://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
     videoContent.title = "Test Video"
     videoContent.streamformat = "hls"
 

@@ -1,0 +1,45 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/datadogSdk.bs"
+import "pkg:/source/internalLogger.bs"
+import "pkg:/source/timeUtils.bs"
+
+' Sets up monitoring for a video node
+sub setupVideo(videoNode as Object)
+    m.videoNode = invalid
+    m._callbacks = { onStateChange: [], onStreamInfoChange: [], onError: [] }
+    if (videoNode = invalid) 
+         return
+    end if
+    m.videoNode = videoNode
+    m.videoNode.observeField("state", "_onStateChange")
+    m.videoNode.observeField("streamInfo", "_onStreamInfoChange")
+    m.videoNode.observeField("errorCode", "_onError")
+end sub
+
+' Internal handlers
+sub _onStateChange()
+    if(m.videoNode = invalid) 
+         return
+    end if
+    state = m.videoNode.state
+    ddLogInfo("--------- Video State: " + state)
+end sub
+
+sub _onStreamInfoChange()
+    if (m.videoNode = invalid) 
+        return
+    end if
+    info = m.videoNode.streamInfo
+    ddLogInfo("--------- Video Stream Info: " + info["streamBitrate"].toStr())
+end sub
+
+sub _onError()
+    if (m.videoNode = invalid) 
+         return
+    end if
+    error = { code: m.videoNode.errorCode, message: m.videoNode.errorMsg }
+    ddLogInfo("--------- Video Error: " + error)
+end sub

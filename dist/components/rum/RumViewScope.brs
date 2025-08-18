@@ -520,6 +520,9 @@ sub sendViewUpdate(context as object, writer as object)
             id: rumContext.applicationId
         }
         context: mergeContext(m.top.context, mergeContext(m.global.datadogContext, context))
+        stream: {
+            id: rumContext.applicationId
+        }
         date: m.startTimestamp&
         device: {
             type: "tv"
