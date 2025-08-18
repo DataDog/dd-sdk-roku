@@ -20,6 +20,10 @@ function TestSuite__Datadog() as object
     this.addTest("WhenGetEndpointAP1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointAP2_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint)
 
+    this.addTest("WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal)
+    this.addTest("WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal)
+    this.addTest("WhenInitialize_ThenUploaderIsSetInGlobal", DatadogTest__WhenInitialize_ThenUploaderIsSetInGlobal) 
+
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
     this.addTest("WhenGetEndpointRumUnknown_ThenCreateEndpoint", DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint)
@@ -191,3 +195,123 @@ function DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint() as string
     Assert.that(endpoint).isEqualTo("")
     return ""
 end function
+
+'----------------------------------------------------------------
+' Given: a valid configuration
+'  When: initializing the SDK
+'  Then: the configuration is properly set in the global object
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal() as string
+    
+    ' Given
+    randomClientToken = IG_GetString(16)
+    randomAppId = IG_GetString(16)
+    randomSite = "us1" 
+    randomEnv = IG_GetString(16)
+    randomSessionRate = IG_GetInteger()
+    randomService = IG_GetString(16)
+    randomVersion = IG_GetString(8) + "." + IG_GetString(8) + "." + IG_GetString(8)
+    randomTraceRate = IG_GetInteger()
+    randomHost = IG_GetString(16)
+    randomHeader = IG_GetString(16)
+    
+    configuration = {
+        clientToken: randomClientToken,
+        applicationId: randomAppId,
+        site: randomSite,
+        env: randomEnv,
+        sessionSampleRate: randomSessionRate,
+        service: randomService,
+        version: randomVersion,
+        traceSampleRate: randomTraceRate,
+        tracingHeaderTypes: [{
+            host: randomHost,
+            header: randomHeader
+        }]
+    }
+    
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    
+    datadogroku_initialize(configuration, fakeGlobal)   
+    
+    ' Then
+    actualDatadogRumAgent = fakeGlobal.getField("datadogRumAgent")
+
+    Assert.that(actualDatadogRumAgent.site).isEqualTo(randomSite)
+    Assert.that(actualDatadogRumAgent.env).isEqualTo(randomEnv)
+    Assert.that(actualDatadogRumAgent.clientToken).isEqualTo(randomClientToken)
+    Assert.that(actualDatadogRumAgent.applicationId).isEqualTo(randomAppId)
+    Assert.that(actualDatadogRumAgent.service).isEqualTo(randomService)
+    Assert.that(actualDatadogRumAgent.version).isEqualTo(randomVersion)
+    Assert.that(actualDatadogRumAgent.sessionSampleRate).isEqualTo(randomSessionRate)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Test: When Initialize - Then Logs Agent Configuration Is Set In Global
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal() as string
+    ' Given
+    randomClientToken = IG_GetString(16)
+    randomAppId = IG_GetString(16)
+    randomSite = "us1" 
+    randomEnv = IG_GetString(16)
+    randomService = IG_GetString(16)
+    randomOsVersion = IG_GetString(8)
+    randomOsVersionMajor = IG_GetInteger()
+    
+    configuration = {
+        clientToken: randomClientToken,
+        applicationId: randomAppId,
+        site: randomSite,
+        env: randomEnv,
+        service: randomService
+    }
+    
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    
+    datadogroku_initialize(configuration, fakeGlobal)   
+    
+    ' Then
+    actualLogsAgent = fakeGlobal.getField("datadogLogsAgent")
+
+    Assert.that(actualLogsAgent.site).isEqualTo(randomSite)
+    Assert.that(actualLogsAgent.clientToken).isEqualTo(randomClientToken)
+    Assert.that(actualLogsAgent.service).isEqualTo(randomService)
+    Assert.that(actualLogsAgent.env).isEqualTo(randomEnv)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Test: When Initialize - Then Uploader Is Set In Global
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_ThenUploaderIsSetInGlobal() as string
+    ' Given
+    randomClientToken = IG_GetString(16)
+    randomAppId = IG_GetString(16)
+    randomSite = "us1" 
+    randomEnv = IG_GetString(16)
+    randomService = IG_GetString(16)
+    
+    configuration = {
+        clientToken: randomClientToken,
+        applicationId: randomAppId,
+        site: randomSite,
+        env: randomEnv,
+        service: randomService
+    }
+    
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    
+    datadogroku_initialize(configuration, fakeGlobal)   
+    
+    ' Then
+    actualUploader = fakeGlobal.getField("datadogUploader")
+
+    Assert.that(actualUploader.clientToken).isEqualTo(randomClientToken)
+    return ""
+end function
+

@@ -13,9 +13,11 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
-    ddLogThread("WriterTask[" + m.top.trackType + "].init()")
+    m.trackType = m.top.trackType
+    ddLogThread("WriterTask[" + m.trackType + "].init()")
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("writeEvent", m.port)
+    m.top.observeFieldScoped("trackType", m.port)
     m.top.functionName = "writerLoop"
     m.top.control = "RUN"
 end sub
@@ -24,7 +26,7 @@ end sub
 ' Main writer loop
 ' ----------------------------------------------------------------
 sub writerLoop()
-    ddLogThread("WriterTask[" + m.top.trackType + "].writerLoop()")
+    ddLogThread("WriterTask[" + m.trackType + "].writerLoop()")
     m.fileSystem = CreateObject("roFileSystem")
     while (true)
         msg = wait(0, m.port)
@@ -34,6 +36,8 @@ sub writerLoop()
             if (fieldName = "writeEvent")
                 eventData = msg.getData()
                 onWriteEvent(eventData)
+            else if (fieldName = "trackType")
+                m.trackType = msg.getData()
             else
                 ddLogWarning(fieldName + " not handled")
             end if
@@ -46,7 +50,7 @@ end sub
 ' @param event (string) the event serialized to string
 ' ----------------------------------------------------------------
 sub onWriteEvent(event as string)
-    ddLogThread("WriterTask[" + m.top.trackType + "].onWriteEvent()")
+    ddLogThread("WriterTask[" + m.trackType + "].onWriteEvent()")
     if (event = "")
         ' Ignore empty event
         return
@@ -69,10 +73,10 @@ end sub
 ' @return (string) the path to a valid writeable file
 ' ----------------------------------------------------------------
 function getWriteableFile(eventSize as integer) as string
-    folderPath = trackFolderPath(m.top.trackType)
+    folderPath = trackFolderPath(m.trackType)
     folderExists = m.fileSystem.Exists(folderPath)
     if (not folderExists)
-        ddLogVerbose("Folder for track " + m.top.trackType + " doesn't exist")
+        ddLogVerbose("Folder for track " + m.trackType + " doesn't exist")
         mkDirs(folderPath)
     end if
     currentTimestamp& = getTimestamp()

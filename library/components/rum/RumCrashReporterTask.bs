@@ -25,7 +25,7 @@ end sub
 sub sendCrashReport()
     ddLogThread("RumCrashReporterTask.sendCrashReport()")
     currentSessionlastViewEventFilePath = lastViewEventFilePath(m.top.instanceId)
-
+    m.lastExitOrTerminationReason = m.top.lastExitOrTerminationReason
     unexpectedExitStatus = [
         "EXIT_BRIGHTSCRIPT_CRASH",
         "EXIT_BRIGHTSCRIPT_TIMEOUT",
@@ -37,14 +37,14 @@ sub sendCrashReport()
     ]
     keep = false
     for each status in unexpectedExitStatus
-        if (m.top.lastExitOrTerminationReason = status)
+        if (m.lastExitOrTerminationReason = status)
             keep = true
             exit for
         end if
     end for
 
     if (not keep)
-        ddLogInfo("Last exit status " + m.top.lastExitOrTerminationReason + " is not a crash, ignoring")
+        ddLogInfo("Last exit status " + m.lastExitOrTerminationReason + " is not a crash, ignoring")
     end if
 
     folderPath = trackFolderPath("rum")
@@ -107,7 +107,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
             source: "source",
             source_type: agentSource(),
             stack: m.top.lastExitConsoleLog,
-            type: m.top.lastExitOrTerminationReason
+            type: m.lastExitOrTerminationReason
         },
         service: lastViewEvent.service,
         session: {
