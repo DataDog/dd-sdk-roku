@@ -234,7 +234,7 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
             ddLogWarning(message)
             datadogRumAgent = m.global.datadogRumAgent
             if (datadogRumAgent <> invalid)
-                datadogRumAgent.addErrorTelemetry({
+                datadogRumAgent.callfunc("addErrorTelemetry", {
                     number: 0
                     message: message
                     backtrace: []
