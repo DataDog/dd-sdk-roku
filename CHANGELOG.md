@@ -1,4 +1,10 @@
-# Next release: 1.3.0
+# Next release: 1.4.0
+
+# 1.3.1 / 2025-09-08
+* [BUGFIX] Add missing BrighterScript `Callfunc` Operator to fix crash. See [#106](https://github.com/DataDog/dd-sdk-roku/pull/106)
+
+# 1.3.0 / 2025-08-18
+* [BUGFIX] Fix `RumAgent` crash when initialising uploader. See [#102](https://github.com/DataDog/dd-sdk-roku/pull/102)
 
 # 1.2.0 / 2025-06-30
 * [FEATURE] Add `baggage` with Session ID in trace headers. See [#90](https://github.com/DataDog/dd-sdk-roku/pull/90)
