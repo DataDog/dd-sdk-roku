@@ -18,6 +18,15 @@ import "pkg:/source/internalLogger.bs"
 sub init()
     ddLogThread("RumAgent.init()")
     m.port = createObject("roMessagePort")
+    m.top.observeFieldScoped("startView", m.port)
+    m.top.observeFieldScoped("stopView", m.port)
+    m.top.observeFieldScoped("addAction", m.port)
+    m.top.observeFieldScoped("addError", m.port)
+    m.top.observeFieldScoped("addResource", m.port)
+    m.top.observeFieldScoped("sendCrash", m.port)
+    m.top.observeFieldScoped("addConfigTelemetry", m.port)
+    m.top.observeFieldScoped("addErrorTelemetry", m.port)
+    m.top.observeFieldScoped("addDebugTelemetry", m.port)
     m.top.functionName = "rumAgentLoop"
     m.top.control = "RUN"
 end sub
@@ -27,14 +36,33 @@ end sub
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
     ddLogThread("RumAgent.rumAgentLoop()")
-    ensureSetup()
     sendCrash(m.top.lastExitOrTerminationReason)
     addConfigTelemetry(m.top.configuration)
     while(true)
-        msg = wait(m.top.keepAliveDelayMs, m.port)
-        m.top.rumScope@.handleEvent(keepAliveEvent(), m.top.writer)
+        msg = wait(0, m.port)
         msgType = type(msg)
-        if (msgType <> "Invalid")
+        if(msgType = "roSGNodeEvent")
+            fieldName = msg.getField()
+            if(fieldName = "startView")
+                __onStartView(msg.getData())
+            else if(fieldName = "stopView")
+                __onStopView(msg.getData())
+            else if(fieldName = "addAction")
+                __onAddAction(msg.getData())
+            else if(fieldName = "addError")
+                __onAddError(msg.getData())
+            else if(fieldName = "addResource")
+                __onAddResource(msg.getData())
+            else if(fieldName = "sendCrash")
+                __onSendCrash(msg.getData())
+            else if(fieldName = "addConfigTelemetry")
+                __onAddConfigTelemetry(msg.getData())
+            else if(fieldName = "addErrorTelemetry")
+                __onAddErrorTelemetry(msg.getData())
+            else if(fieldName = "addDebugTelemetry")
+                __onAddDebugTelemetry(msg.getData())
+            end if
+        else 
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
         end if
     end while
@@ -47,9 +75,16 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string, context = {} as object)
-    ddLogThread("RumAgent.startView()")
+    m.top.startView = startViewEvent(name, url, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles startView field change event
+' @param event (object) the startView event data
+' ----------------------------------------------------------------
+sub __onStartView(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(startViewEvent(name, url, context), m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.top.writer)
     m.top.rumScope@.handleEvent(keepAliveEvent(), m.top.writer)
 end sub
 
@@ -60,9 +95,16 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string, context = {} as object)
-    ddLogThread("RumAgent.stopView()")
+    m.top.stopView = stopViewEvent(name, url, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles stopView field change event
+' @param event (object) the stopView event data
+' ----------------------------------------------------------------
+sub __onStopView(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(stopViewEvent(name, url, context), m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -71,9 +113,16 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addAction(action as object, context = {} as object)
-    ddLogThread("RumAgent.addAction()")
+    m.top.addAction = addActionEvent(action, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addAction field change event
+' @param event (object) the addAction event data
+' ----------------------------------------------------------------
+sub __onAddAction(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(addActionEvent(action, context), m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -82,9 +131,16 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addError(exception as object, context = {} as object)
-    ddLogThread("RumAgent.addError()")
+    m.top.addError = addErrorEvent(exception, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addError field change event
+' @param event (object) the addError event data
+' ----------------------------------------------------------------
+sub __onAddError(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(addErrorEvent(exception, context), m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -93,9 +149,16 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addResource(resource as object, context = {} as object)
-    ddLogThread("RumAgent.addResource()")
+    m.top.addResource = addResourceEvent(resource, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addResource field change event
+' @param event (object) the addResource event data
+' ----------------------------------------------------------------
+sub __onAddResource(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(addResourceEvent(resource, context), m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -104,6 +167,14 @@ end sub
 ' from the channel's RunUserInterface
 ' ----------------------------------------------------------------
 sub sendCrash(lastExitOrTerminationReason as string)
+    m.top.sendCrash = lastExitOrTerminationReason
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles sendCrash field change event
+' @param lastExitOrTerminationReason (string) the last exit or termination reason
+' ----------------------------------------------------------------
+sub __onSendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
     crashReporter.writer = m.top.writer
@@ -126,9 +197,16 @@ end sub
 ' @param configuration (object) the configuration information
 ' ----------------------------------------------------------------
 sub addConfigTelemetry(configuration as object)
-    ddLogThread("RumAgent.addConfigTelemetry()")
+    m.top.addConfigTelemetry = addTelemetryConfigEvent(configuration)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addConfigTelemetry field change event
+' @param event (object) the addConfigTelemetry event data
+' ----------------------------------------------------------------
+sub __onAddConfigTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(addTelemetryConfigEvent(configuration), m.top.writer)
+    m.top.telemetryScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -136,9 +214,16 @@ end sub
 ' @param exception (object) the caught exception object
 ' ----------------------------------------------------------------
 sub addErrorTelemetry(exception as object)
-    ddLogThread("RumAgent.addErrorTelemetry()")
+    m.top.addErrorTelemetry = addTelemetryErrorEvent(exception)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addErrorTelemetry field change event
+' @param event (object) the addErrorTelemetry event data
+' ----------------------------------------------------------------
+sub __onAddErrorTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(addTelemetryErrorEvent(exception), m.top.writer)
+    m.top.telemetryScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -146,9 +231,16 @@ end sub
 ' @param message (string) the message to send
 ' ----------------------------------------------------------------
 sub addDebugTelemetry(message as string)
-    ddLogThread("RumAgent.addDebugTelemetry()")
+    m.top.addDebugTelemetry = addTelemetryDebugEvent(message)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addDebugTelemetry field change event
+' @param event (object) the addDebugTelemetry event data
+' ----------------------------------------------------------------
+sub __onAddDebugTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(addTelemetryDebugEvent(message), m.top.writer)
+    m.top.telemetryScope@.handleEvent(event, m.top.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -170,7 +262,7 @@ sub ensureRumScope()
         fields = m.top.getFields()
         applicationId = fields.applicationId
         m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        ddLogWarning("RumViewScope.instanceId:" + m.instanceId)
+        ddLogWarning("RumAgent.instanceId:" + m.instanceId)
         m.global.addFields({ datadogRumContext: {} })
         datadogRumContext = m.global.datadogRumContext
         datadogRumContext.applicationId = applicationId
