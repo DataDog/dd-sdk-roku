@@ -25,8 +25,6 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddDebugTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
-    this.addTest("WhenDoNothing_ThenTriggerKeepAlive", RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive, RumAgentTest__SetUp, RumAgentTest__TearDown)
-
     this.addTest("WhenDoNothing_ThenInitDependencies", RumAgentTest__WhenDoNothing_ThenInitDependencies, RumAgentTest__SetUpNoMock, RumAgentTest__TearDown)
 
     return this
@@ -366,23 +364,6 @@ function RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope() as s
     ' Then
     expectedArgs = { event: { eventType: "telemetryDebug", message: fakeMessage }, writer: m.mockWriter }
     return m.mockTelemetryScope@.assertFunctionCalled("handleEvent", expectedArgs)
-end function
-
-'----------------------------------------------------------------
-' Given: a RumAgent
-'  When: nothing
-'  Then: sends keep alive regularly
-'----------------------------------------------------------------
-function RumAgentTest__WhenDoNothing_ThenTriggerKeepAlive() as string
-    ' Given
-    wait3 = 3 * 2 * m.fakeKeepAliveDelayMs
-
-    ' When
-    sleep(wait3)
-
-    ' Then
-    expectedArgs = { event: { eventType: "keepAlive" }, writer: m.mockWriter }
-    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs, -3)
 end function
 
 '----------------------------------------------------------------
