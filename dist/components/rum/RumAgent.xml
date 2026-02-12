@@ -15,6 +15,15 @@
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value="" />
         <field id="configuration" type="assocarray" value="{}" />
+        <field id="startView" type="assocarray" />
+        <field id="stopView" type="assocarray" />
+        <field id="addAction" type="assocarray" />
+        <field id="addError" type="assocarray" />
+        <field id="addResource" type="assocarray" />
+        <field id="sendCrash" type="string" />
+        <field id="addConfigTelemetry" type="assocarray" />
+        <field id="addErrorTelemetry" type="assocarray" />
+        <field id="addDebugTelemetry" type="assocarray" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
