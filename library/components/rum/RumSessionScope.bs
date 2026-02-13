@@ -116,7 +116,7 @@ sub renewSession(timestamp& as longinteger)
         m.sessionState = RumSessionState.not_tracked
     end if
 
-    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext = m.global.datadogRumContext ?? {}
     datadogRumContext.sessionId = m.sessionId
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub

@@ -19,7 +19,14 @@ sub init()
     m.lastEventTimestamp& = m.startTimestamp&
     m.errorCount = 0
     m.resourceCount = 0
-    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext = (function(m)
+            __bsConsequent = m.global.datadogRumContext
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(m)
     datadogRumContext.actionId = m.actionId
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub
