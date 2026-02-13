@@ -11,6 +11,7 @@ function TestSuite__RumSessionScope() as object
     this.Name = "RumSessionScope"
 
     this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash", RumSessionScopeTest__WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
@@ -83,6 +84,30 @@ function RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
 
     ' Then
     Assert.that(context.sessionId).isEqualTo(m.global.datadogRumContext.sessionId)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: m.global.datadogRumContext is invalid
+'  When: renewing session (handling an interactive event)
+'  Then: does not crash and initializes correctly
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash() as string
+    ' Given
+    m.global.setField("datadogRumContext", invalid)
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+    
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    
+    ' Then
+    Assert.that(m.testedScope).isNotInvalid()
+    context = m.testedScope@.getRumContext()
+    Assert.that(context.sessionId).isNotEmpty()
+    Assert.that(m.global.datadogRumContext).isNotInvalid()
+    Assert.that(m.global.datadogRumContext.sessionId).isEqualTo(context.sessionId)
     return ""
 end function
 

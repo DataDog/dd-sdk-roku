@@ -11,6 +11,7 @@ function TestSuite__RumActionScope() as object
     this.Name = "RumActionScope"
 
     this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumActionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
+    this.addTest("WhenInitWithInvalidRumContext_ThenDoesNotCrash", RumActionScopeTest__WhenInitWithInvalidRumContext_ThenDoesNotCrash, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumActionScopeTest__WhenGetContext_ThenReturnsContext, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenIsActive_ThenReturnsTrue", RumActionScopeTest__WhenIsActive_ThenReturnsTrue, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
     this.addTest("WhenStoppedIsActive_ThenReturnsFalse", RumActionScopeTest__WhenStoppedIsActive_ThenReturnsFalse, RumActionScopeTest__SetUp, RumActionScopeTest__TearDown)
@@ -97,6 +98,32 @@ function RumActionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
 
     ' Then
     Assert.that(context.actionId).isEqualTo(m.global.datadogRumContext.actionId)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: m.global.datadogRumContext is invalid
+'  When: initializing RumActionScope
+'  Then: does not crash and initializes correctly
+'----------------------------------------------------------------
+function RumActionScopeTest__WhenInitWithInvalidRumContext_ThenDoesNotCrash() as string
+    ' Given
+    m.global.setField("datadogRumContext", invalid)
+    
+    ' When
+    testedScope = CreateObject("roSGNode", "datadogroku_RumActionScope")
+    testedScope.parentScope = m.mockParentScope
+    testedScope.target = m.fakeTarget
+    testedScope.actionType = m.fakeType
+    testedScope.context = m.fakeInitialContext
+    
+    ' Then
+    Assert.that(testedScope).isNotInvalid()
+    Assert.that(testedScope@.isActive()).isEqualTo(true)
+    context = testedScope@.getRumContext()
+    Assert.that(context.actionId).isNotEmpty()
+    Assert.that(m.global.datadogRumContext).isNotInvalid()
+    Assert.that(m.global.datadogRumContext.actionId).isEqualTo(context.actionId)
     return ""
 end function
 
