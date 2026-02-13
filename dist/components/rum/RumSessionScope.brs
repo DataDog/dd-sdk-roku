@@ -131,7 +131,14 @@ sub renewSession(timestamp& as longinteger)
     else
         m.sessionState = "not_tracked"
     end if
-    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext = (function(m)
+            __bsConsequent = m.global.datadogRumContext
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(m)
     datadogRumContext.sessionId = m.sessionId
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub
