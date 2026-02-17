@@ -37,6 +37,11 @@ Copyright 2022-Today Datadog, Inc.
         <field id="addErrorTelemetry" type="assocarray" />
         <field id="addDebugTelemetry" type="assocarray" />
 
+        <!-- Operation monitoring events -->
+        <field id="startOperation" type="assocarray" />
+        <field id="succeedOperation" type="assocarray" />
+        <field id="failOperation" type="assocarray" />
+
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
@@ -55,6 +60,11 @@ Copyright 2022-Today Datadog, Inc.
         <function name="addConfigTelemetry" />
         <function name="addErrorTelemetry" />
         <function name="addDebugTelemetry" />
+
+        <!-- Operation monitoring -->
+        <function name="startOperation" />
+        <function name="succeedOperation" />
+        <function name="failOperation" />
 
     </interface>
 
