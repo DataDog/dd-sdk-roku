@@ -131,4 +131,27 @@ enum RawEvent
     telemetryConfig = "telemetryConfig"
     telemetryDebug = "telemetryDebug"
     telemetryError = "telemetryError"
+    startFeatureOperation = "startFeatureOperation"
+    stopFeatureOperation = "stopFeatureOperation"
+end enum
+
+' ----------------------------------------------------------------
+' VitalStepType: enum listing the step types for vital operation events
+' Values match the schema-defined string equivalents from vital-operation-step-schema.json
+' ----------------------------------------------------------------
+enum VitalStepType
+    start = "start"
+    stepEnd = "end"
+    update = "update"
+    retry = "retry"
+end enum
+
+' ----------------------------------------------------------------
+' FailureReason: enum listing the failure reasons for vital operation events
+' Values match the schema-defined string equivalents from vital-operation-step-schema.json
+' ----------------------------------------------------------------
+enum FailureReason
+    error = "error"
+    abandoned = "abandoned"
+    other = "other"
 end enum
