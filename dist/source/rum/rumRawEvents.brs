@@ -115,6 +115,66 @@ function addTelemetryDebugEvent(message as string) as object
         message: message
     }
 end function
+
+' ----------------------------------------------------------------
+' @param name (string) the operation name (e.g.: "Login", "Checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel operations, or invalid for unkeyed
+' @param context (object) an assocarray of custom attributes to add to the event
+' @return (object) an event describing a startFeatureOperation action
+' ----------------------------------------------------------------
+function startFeatureOperationEvent(name as string, operationKey as dynamic, context as object) as object
+    return {
+        eventType: "startFeatureOperation"
+        name: name
+        operationKey: operationKey
+        vitalId: CreateObject("roDeviceInfo").GetRandomUUID()
+        context: context
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param name (string) the operation name (e.g.: "Login", "Checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel operations, or invalid for unkeyed
+' @param context (object) an assocarray of custom attributes to add to the event
+' @return (object) an event describing a succeedFeatureOperation action
+' ----------------------------------------------------------------
+function succeedFeatureOperationEvent(name as string, operationKey as dynamic, context as object) as object
+    return {
+        eventType: "stopFeatureOperation"
+        name: name
+        operationKey: operationKey
+        vitalId: CreateObject("roDeviceInfo").GetRandomUUID()
+        context: context
+    }
+end function
+
+' ----------------------------------------------------------------
+' @param name (string) the operation name (e.g.: "Login", "Checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel operations, or invalid for unkeyed
+' @param failureReason (string) the failure reason (use FailureReason enum values: "error", "abandoned", "other")
+' @param context (object) an assocarray of custom attributes to add to the event
+' @return (object) an event describing a failFeatureOperation action
+' ----------------------------------------------------------------
+function failFeatureOperationEvent(name as string, operationKey as dynamic, failureReason as string, context as object) as object
+    return {
+        eventType: "stopFeatureOperation"
+        name: name
+        operationKey: operationKey
+        failureReason: failureReason
+        vitalId: CreateObject("roDeviceInfo").GetRandomUUID()
+        context: context
+    }
+end function
 ' ----------------------------------------------------------------
 ' RawEvent: enum listing all the possible events handled by RUM scopes
+' ----------------------------------------------------------------
+
+' ----------------------------------------------------------------
+' VitalStepType: enum listing the step types for vital operation events
+' Values match the schema-defined string equivalents from vital-operation-step-schema.json
+' ----------------------------------------------------------------
+
+' ----------------------------------------------------------------
+' FailureReason: enum listing the failure reasons for vital operation events
+' Values match the schema-defined string equivalents from vital-operation-step-schema.json
 ' ----------------------------------------------------------------
