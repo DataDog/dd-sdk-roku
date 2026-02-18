@@ -21,10 +21,14 @@ Copyright 2022-Today Datadog, Inc.
         <Label id="debugLabel" text="Debug" translation="[800,50]" color="0xffffff80">
             <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
         </Label>
+        <Label id="operationsLabel" text="Operations" translation="[1050,50]" color="0xffffff80">
+            <Font role="font" size="48" uri="pkg:/fonts/FiraSans-Regular.ttf" />
+        </Label>
 
         <HomeScreen id="homeScreen" />
         <VideoScreen id="videoScreen" />
         <NetworkScreen id="networkScreen" />
         <DebugScreen id="debugScreen" />
+        <OperationsScreen id="operationsScreen" />
     </children>
 </component>
