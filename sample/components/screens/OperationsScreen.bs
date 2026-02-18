@@ -1,0 +1,132 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
+import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
+import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+
+sub init()
+    datadogroku_ddLogThread("OperationsScreen.init()")
+
+    m.msgLabel = m.top.findNode("messageLabel")
+    m.items = [
+        "Start Content Load",
+        "Succeed Content Load",
+        "Fail Content Load",
+        "Start Login",
+        "Fail Login (error)",
+        "Start Keyed Operation",
+        "Succeed Keyed Operation"
+    ]
+
+    m.operationsLabelList = m.top.findNode("operationsLabelList")
+    m.operationsLabelList.observeField("itemSelected", "onItemSelected")
+    list = CreateObject("RoSGNode", "ContentNode")
+
+    for each item in m.items
+        node = list.createChild("ContentNode")
+        node.title = item
+    end for
+    m.operationsLabelList.content = list
+
+    m.top.observeField("focusedChild", "onFocused")
+
+    m.contentLoadTimer = invalid
+    m.loginTimer = invalid
+    m.lastOperationKey = invalid
+end sub
+
+sub onFocused()
+    m.operationsLabelList.setFocus(true)
+end sub
+
+sub onItemSelected()
+    datadogroku_ddLogThread("onItemSelected")
+    itemSelected = m.operationsLabelList.itemSelected
+    item = m.items[itemSelected]
+
+    dateTime = CreateObject("roDateTime")
+    dateTime.ToLocalTime()
+
+    m.msgLabel.text = "Clicked on " + item + " at " + dateTime.ToISOString()
+
+    if (itemSelected = 0)
+        startContentLoad()
+    else if (itemSelected = 1)
+        succeedContentLoad()
+    else if (itemSelected = 2)
+        failContentLoad()
+    else if (itemSelected = 3)
+        startLogin()
+    else if (itemSelected = 4)
+        failLogin()
+    else if (itemSelected = 5)
+        startKeyedOperation()
+    else if (itemSelected = 6)
+        succeedKeyedOperation()
+    end if
+end sub
+
+sub startContentLoad()
+    m.global.datadogRumAgent@.startOperation("contentLoad")
+    m.contentLoadTimer = CreateObject("roSGNode", "Timer")
+    m.contentLoadTimer.duration = 2.0
+    m.contentLoadTimer.observeField("fire", "onContentLoadComplete")
+    m.contentLoadTimer.control = "start"
+    m.msgLabel.text = "Content load started... (will auto-succeed in 2s)"
+end sub
+
+sub succeedContentLoad()
+    m.global.datadogRumAgent@.succeedOperation("contentLoad")
+    if m.contentLoadTimer <> invalid then m.contentLoadTimer.control = "stop"
+    m.msgLabel.text = "Content load succeeded!"
+end sub
+
+sub failContentLoad()
+    m.global.datadogRumAgent@.failOperation("contentLoad", "abandoned")
+    if m.contentLoadTimer <> invalid then m.contentLoadTimer.control = "stop"
+    m.msgLabel.text = "Content load failed (abandoned)"
+end sub
+
+sub onContentLoadComplete()
+    m.global.datadogRumAgent@.succeedOperation("contentLoad")
+    m.msgLabel.text = "Content load auto-succeeded after 2s"
+end sub
+
+sub startLogin()
+    m.global.datadogRumAgent@.startOperation("login")
+    m.loginTimer = CreateObject("roSGNode", "Timer")
+    m.loginTimer.duration = 1.5
+    m.loginTimer.observeField("fire", "onLoginTimeout")
+    m.loginTimer.control = "start"
+    m.msgLabel.text = "Login started... (will timeout in 1.5s)"
+end sub
+
+sub failLogin()
+    m.global.datadogRumAgent@.failOperation("login", "error", invalid, { error_code: "auth_timeout" })
+    if m.loginTimer <> invalid then m.loginTimer.control = "stop"
+    m.msgLabel.text = "Login failed (error: auth_timeout)"
+end sub
+
+sub onLoginTimeout()
+    m.global.datadogRumAgent@.failOperation("login", "error", invalid, { error_code: "timeout" })
+    m.msgLabel.text = "Login timed out after 1.5s (error)"
+end sub
+
+sub startKeyedOperation()
+    opKey = "item_" + Rnd(1000).toStr()
+    m.lastOperationKey = opKey
+    m.global.datadogRumAgent@.startOperation("contentLoad", opKey, { content_type: "movie" })
+    m.msgLabel.text = "Keyed operation started: contentLoad [" + opKey + "]"
+end sub
+
+sub succeedKeyedOperation()
+    if m.lastOperationKey = invalid
+        m.msgLabel.text = "No keyed operation in progress"
+        return
+    end if
+    m.global.datadogRumAgent@.succeedOperation("contentLoad", m.lastOperationKey)
+    m.msgLabel.text = "Keyed operation succeeded: contentLoad [" + m.lastOperationKey + "]"
+    m.lastOperationKey = invalid
+end sub
