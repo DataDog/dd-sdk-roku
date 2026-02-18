@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+This product includes software developed at Datadog (https://www.datadoghq.com/).
+Copyright 2022-Today Datadog, Inc.
+-->
+<component name="OperationsScreen" extends="Group">
+
+    <children>
+
+        <LabelList id="operationsLabelList" translation="[64,192]">
+            <Font role="font" size="28" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+            <Font role="focusedFont" size="36" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </LabelList>
+
+        <Label id="messageLabel" text="Waiting for input…" translation="[64,896]" color="0xffffff80">
+            <Font role="font" size="24" uri="pkg:/fonts/FiraCode-Regular.ttf" />
+        </Label>
+    </children>
+
+    <script type="text/brightscript" uri="pkg:/components/screens/OperationsScreen.bs" />
+
+</component>
