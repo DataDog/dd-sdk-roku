@@ -74,7 +74,9 @@ sub initialize(configuration as object, global as object)
             deviceName: deviceName,
             deviceModel: deviceModel,
             osVersion: deviceOsVersionFull,
-            osVersionMajor: deviceOsVersion.major
+            osVersionMajor: deviceOsVersion.major,
+            configuration: configuration,
+            areFieldsSet: true
         })
         global.addFields({ datadogRumAgent: rumAgent })
     end if
