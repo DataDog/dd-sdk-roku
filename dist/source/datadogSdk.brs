@@ -108,6 +108,8 @@ sub initialize(configuration as object, global as object)
             deviceModel: deviceModel
             osVersion: deviceOsVersionFull
             osVersionMajor: deviceOsVersion.major
+            configuration: configuration
+            areFieldsSet: true
         })
         global.addFields({
             datadogRumAgent: rumAgent

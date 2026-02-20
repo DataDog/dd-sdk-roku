@@ -13,6 +13,8 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenStartView_ThenDelegateToRumScope", RumAgentTest__WhenStartView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartViewWithContext_ThenDelegateToRumScope", RumAgentTest__WhenStartViewWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStopView_ThenDelegateToRumScope", RumAgentTest__WhenStopView_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStopView_AfterWriterTrackTypeChanged_WriterTrackTypeRestoredToRum", RumAgentTest__WhenStopView_AfterWriterTrackTypeChanged_WriterTrackTypeRestoredToRum, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStopView_AfterUploaderTrackTypeChanged_UploaderTrackTypeRestoredToRum", RumAgentTest__WhenStopView_AfterUploaderTrackTypeChanged_UploaderTrackTypeRestoredToRum, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStopViewWithContext_ThenDelegateToRumScope", RumAgentTest__WhenStopViewWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddAction_ThenDelegateToRumScope", RumAgentTest__WhenAddAction_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddActionWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddActionWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -25,7 +27,7 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddDebugTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
-    this.addTest("WhenDoNothing_ThenInitDependencies", RumAgentTest__WhenDoNothing_ThenInitDependencies, RumAgentTest__SetUpNoMock, RumAgentTest__TearDown)
+    this.addTest("WhenHandlingEvent_ThenInitDependencies", RumAgentTest__WhenHandlingEvent_ThenInitDependencies, RumAgentTest__SetUpNoMock, RumAgentTest__TearDown)
 
     return this
 end function
@@ -67,6 +69,10 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.deviceModel = m.testSuite.fakeDeviceModel
     m.testSuite.testedNode.osVersion = m.testSuite.fakeOsVersion
     m.testSuite.testedNode.osVersionMajor = m.testSuite.fakeOsVersionMajor
+    m.testSuite.testedNode.areFieldsSet = true
+    ' Allow the RumAgent task to process DI messages (uploader, writer, rumScope, etc.)
+    ' so m.rumScope is set before tests call addAction/startView/etc.
+    sleep(100)
 end sub
 
 sub RumAgentTest__SetUpNoMock()
@@ -81,6 +87,8 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeKeepAliveDelayMs = 10 + IG_GetInteger(30)
+    m.testSuite.fakeEnv = IG_GetString(10)
+    m.testSuite.fakeVersion = IG_GetString(32)
 
     ' Tested Task
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_RumAgent")
@@ -94,12 +102,21 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.testedNode.deviceModel = m.testSuite.fakeDeviceModel
     m.testSuite.testedNode.osVersion = m.testSuite.fakeOsVersion
     m.testSuite.testedNode.osVersionMajor = m.testSuite.fakeOsVersionMajor
+    m.testSuite.testedNode.env = m.testSuite.fakeEnv
+    m.testSuite.testedNode.areFieldsSet = true
+    ' Allow the RumAgent task to process DI messages (uploader, writer, rumScope, etc.)
+    ' so m.rumScope is set before tests call addAction/startView/etc.
+    sleep(100)
 end sub
 
 sub RumAgentTest__TearDown()
     m.testSuite.testedNode.control = "STOP"
-    m.testSuite.testedNode.writer.control = "STOP"
-    m.testSuite.testedNode.uploader.control = "STOP"
+    if(m.testSuite.testedNode.writer <> invalid) 
+        m.testSuite.testedNode.writer.control = "STOP"
+    end if
+    if(m.testSuite.testedNode.uploader <> invalid)
+        m.testSuite.testedNode.uploader.control = "STOP"
+    end if
     m.testSuite.testedNode.Delete("uploader")
     m.testSuite.testedNode.Delete("writer")
     m.testSuite.Delete("mockUploader")
@@ -124,7 +141,7 @@ function RumAgentTest__WhenStartView_ThenDelegateToRumScope() as string
 
     ' Then
     expectedArgs = { event: { eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
-    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+    return m.testedNode.rumScope@.assertFunctionCalled("handleEvent", expectedArgs)
 end function
 
 '----------------------------------------------------------------
@@ -142,6 +159,7 @@ function RumAgentTest__WhenStartViewWithContext_ThenDelegateToRumScope() as stri
     end for
 
     ' When
+    m.testedNode.writer = m.mockWriter
     m.testedNode@.startView(fakeViewName, fakeViewUrl, fakeContext)
     sleep(30)
 
@@ -167,6 +185,65 @@ function RumAgentTest__WhenStopView_ThenDelegateToRumScope() as string
     ' Then
     expectedArgs = { event: { eventType: "stopView", viewName: fakeViewName, viewUrl: fakeViewUrl }, writer: m.mockWriter }
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: handle start view (writer track type becomes rum), set writer to another track type, then handle stop view
+'  Then: writer track type is still rum (ensureWriter re-applies rum on each event)
+'----------------------------------------------------------------
+function RumAgentTest__WhenStopView_AfterWriterTrackTypeChanged_WriterTrackTypeRestoredToRum() as string
+    ' Given
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+
+    ' When: start view -> ensureWriter runs, writer.trackType is set to "rum"
+    m.testedNode@.startView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: writer track type is rum
+    Assert.that(m.testedNode.writer.trackType).isEqualTo("rum")
+
+    ' When: set writer to another track type, then stop view (ensureWriter runs again)
+    m.testedNode.writer.trackType = "logs"
+    m.testedNode@.stopView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: writer track type is still rum (restored by ensureWriter in stop view handling)
+    Assert.that(m.testedNode.writer.trackType).isEqualTo("rum")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: handle start view (uploader rum track type is rum), set uploader track to another type, then handle stop view
+'  Then: uploader rum track type is still rum (ensureUploader re-applies rum on each event)
+'----------------------------------------------------------------
+function RumAgentTest__WhenStopView_AfterUploaderTrackTypeChanged_UploaderTrackTypeRestoredToRum() as string
+    ' Given
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+    expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
+
+    ' When: start view -> ensureUploader runs, uploader has rum track with trackType "rum"
+    m.testedNode@.startView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: uploader rum track type is rum
+    uploaderTracks = m.testedNode.uploader.tracks
+    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
+    Assert.that(uploaderTracks[expectedTrackName].trackType).isEqualTo("rum")
+
+    ' When: set uploader rum track to another track type, then stop view (ensureUploader runs again)
+    uploaderTracks[expectedTrackName].trackType = "logs"
+    m.testedNode@.stopView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: uploader rum track type is still rum (restored by ensureUploader in stop view handling)
+    uploaderTracks = m.testedNode.uploader.tracks
+    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
+    Assert.that(uploaderTracks[expectedTrackName].trackType).isEqualTo("rum")
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -371,16 +448,20 @@ end function
 '  When: initializing
 '  Then: ensure the dependencies are created if not present
 '----------------------------------------------------------------
-function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
+function RumAgentTest__WhenHandlingEvent_ThenInitDependencies() as string
     ' Given
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
     m.testedNode.rumScope = invalid
     site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
     m.testedNode.site = site
-    m.testedNode.env = m.fakeEnv
     expectedUrl = datadogroku_getIntakeUrl(site, "rum")
     expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
+
+    fakeMessage = IG_GetString(128)
+
+    ' When - any event handling call should trigger ensureSetup
+    m.testedNode@.addDebugTelemetry(fakeMessage)
 
     ' When
     sleep(100)
