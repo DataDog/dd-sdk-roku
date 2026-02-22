@@ -84,8 +84,8 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStartView(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
-    m.top.rumScope@.handleEvent(keepAliveEvent(), m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.writer)
+    m.top.rumScope@.handleEvent(keepAliveEvent(), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -104,7 +104,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStopView(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -122,7 +122,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddAction(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -140,7 +140,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddError(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -158,7 +158,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddResource(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.top.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -177,7 +177,7 @@ end sub
 sub __onSendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
-    crashReporter.writer = m.top.writer
+    crashReporter.writer = m.writer
     if (m.top.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
         lastExitInfo = appManager.GetLastExitInfo()
@@ -206,7 +206,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddConfigTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(event, m.top.writer)
+    m.top.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -223,7 +223,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddErrorTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(event, m.top.writer)
+    m.top.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -240,7 +240,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddDebugTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(event, m.top.writer)
+    m.top.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -299,16 +299,25 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Sets the uploader node from the top node's field,
-' or instantiate one.
+' or instantiate one. Configures the RUM track only once to avoid
+' repeated cross-thread field writes to the running uploader task.
 ' ----------------------------------------------------------------
 sub ensureUploader()
+    if (m.uploader <> invalid)
+        return
+    end if
+
     uploader = m.top.uploader
     if (uploader = invalid)
         ddLogVerbose("Creating MultiTrackUploaderTask")
         uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
 
-    trackId = "rum_" + m.top.threadInfo().node.address
+    if (m.instanceId <> invalid and m.instanceId <> "")
+        trackId = "rum_" + m.instanceId
+    else
+        trackId = "rum_" + m.top.threadInfo().node.address
+    end if
     tracks = uploader.tracks ?? {}
     tracks[trackId] = {
         url: getIntakeUrl(m.top.site, TrackType.rum),
@@ -321,13 +330,19 @@ sub ensureUploader()
     uploader.tracks = tracks
     uploader.clientToken = m.top.clientToken
     m.top.uploader = uploader
+    m.uploader = uploader
 end sub
 
 ' ----------------------------------------------------------------
 ' Sets the writer node from the top node's field,
-' or instantiate one.
+' or instantiate one. Configures the writer only once to avoid
+' repeated cross-thread field writes to the running writer task.
 ' ----------------------------------------------------------------
 sub ensureWriter()
+    if (m.writer <> invalid)
+        return
+    end if
+
     writer = m.top.writer
     if (writer = invalid)
         ddLogVerbose("Creating WriterTask")
@@ -337,4 +352,5 @@ sub ensureWriter()
     writer.trackType = TrackType.rum
     writer.payloadSeparator = chr(10)
     m.top.writer = writer
+    m.writer = writer
 end sub

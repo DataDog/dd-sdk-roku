@@ -380,7 +380,6 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     m.testedNode.site = site
     m.testedNode.env = m.fakeEnv
     expectedUrl = datadogroku_getIntakeUrl(site, "rum")
-    expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
 
     ' When
     sleep(100)
@@ -401,11 +400,19 @@ function RumAgentTest__WhenDoNothing_ThenInitDependencies() as string
     Assert.that(writer).isNotInvalid().hasSubtype("datadogroku_WriterTask")
     Assert.that(writer.trackType).isEqualTo("rum")
     Assert.that(writer.payloadSeparator).isEqualTo(chr(10))
-    Assert.that(uploader) .isNotInvalid().hasSubtype("datadogroku_MultiTrackUploaderTask")
+    Assert.that(uploader).isNotInvalid().hasSubtype("datadogroku_MultiTrackUploaderTask")
     Assert.that(uploader.clientToken).isEqualTo(m.fakeClientToken)
     uploaderTracks = uploader.tracks
-    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
-    track = uploaderTracks[expectedTrackName]
+    Assert.that(uploaderTracks).isNotInvalid()
+    rumTrackName = invalid
+    for each trackName in uploaderTracks
+        if (trackName.Left(4) = "rum_")
+            rumTrackName = trackName
+            exit for
+        end if
+    end for
+    Assert.that(rumTrackName).isNotInvalid()
+    track = uploaderTracks[rumTrackName]
     Assert.that(track).isNotInvalid().contains({
         url: expectedUrl,
         trackType: "rum",
