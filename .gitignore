@@ -15,6 +15,9 @@ package-lock.json
 # Windsurf
 .windsurf
 
+# Claude Code
+.claude
+
 # Mac OS
 .DS_Store
 
