@@ -322,18 +322,18 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Sets the uploader node from the top node's field,
-' or instantiate one. Configures the RUM track only once to avoid
-' repeated cross-thread field writes to the running uploader task.
+' or instantiate one. Re-applies the RUM track configuration on
+' every call so that external modifications are always corrected.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    if (m.uploader <> invalid)
-        return
-    end if
-
-    uploader = m.top.uploader
-    if (uploader = invalid)
-        ddLogVerbose("Creating MultiTrackUploaderTask")
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+    if (m.uploader = invalid)
+        uploader = m.top.uploader
+        if (uploader = invalid)
+            ddLogVerbose("Creating MultiTrackUploaderTask")
+            uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+            m.top.uploader = uploader
+        end if
+        m.uploader = uploader
     end if
 
     if (m.instanceId <> invalid and m.instanceId <> "")
@@ -341,7 +341,7 @@ sub ensureUploader()
     else
         trackId = "rum_" + m.top.threadInfo().node.address
     end if
-    tracks = uploader.tracks ?? {}
+    tracks = m.uploader.tracks ?? {}
     tracks[trackId] = {
         url: getIntakeUrl(m.top.site, TrackType.rum),
         trackType: TrackType.rum,
@@ -350,30 +350,26 @@ sub ensureUploader()
         contentType: "text/plain;charset=UTF-8",
         queryParams: { ddsource: agentSource(), ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.top.env }
     }
-    uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    m.top.uploader = uploader
-    m.uploader = uploader
+    m.uploader.tracks = tracks
+    m.uploader.clientToken = m.top.clientToken
 end sub
 
 ' ----------------------------------------------------------------
 ' Sets the writer node from the top node's field,
-' or instantiate one. Configures the writer only once to avoid
-' repeated cross-thread field writes to the running writer task.
+' or instantiate one. Re-applies the RUM track type on every call
+' so that external modifications are always corrected.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    if (m.writer <> invalid)
-        return
+    if (m.writer = invalid)
+        writer = m.top.writer
+        if (writer = invalid)
+            ddLogVerbose("Creating WriterTask")
+            writer = CreateObject("roSGNode", "WriterTask")
+            m.top.writer = writer
+        end if
+        m.writer = writer
     end if
 
-    writer = m.top.writer
-    if (writer = invalid)
-        ddLogVerbose("Creating WriterTask")
-        writer = CreateObject("roSGNode", "WriterTask")
-    end if
-
-    writer.trackType = TrackType.rum
-    writer.payloadSeparator = chr(10)
-    m.top.writer = writer
-    m.writer = writer
+    m.writer.trackType = TrackType.rum
+    m.writer.payloadSeparator = chr(10)
 end sub

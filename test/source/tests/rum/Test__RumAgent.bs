@@ -20,6 +20,8 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddErrorWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddErrorWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResourceWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddResourceWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStopView_AfterWriterTrackTypeChanged_WriterTrackTypeRestoredToRum", RumAgentTest__WhenStopView_AfterWriterTrackTypeChanged_WriterTrackTypeRestoredToRum, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStopView_AfterUploaderTrackTypeChanged_UploaderTrackTypeRestoredToRum", RumAgentTest__WhenStopView_AfterUploaderTrackTypeChanged_UploaderTrackTypeRestoredToRum, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     this.addTest("WhenAddConfigTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddConfigTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -364,6 +366,65 @@ function RumAgentTest__WhenAddDebugTelemetry_ThenDelegateToTelemetryScope() as s
     ' Then
     expectedArgs = { event: { eventType: "telemetryDebug", message: fakeMessage }, writer: m.mockWriter }
     return m.mockTelemetryScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: handle start view (writer track type becomes rum), set writer to another track type, then handle stop view
+'  Then: writer track type is still rum (ensureWriter re-applies rum on each event)
+'----------------------------------------------------------------
+function RumAgentTest__WhenStopView_AfterWriterTrackTypeChanged_WriterTrackTypeRestoredToRum() as string
+    ' Given
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+
+    ' When: start view -> ensureWriter runs, writer.trackType is set to "rum"
+    m.testedNode@.startView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: writer track type is rum
+    Assert.that(m.testedNode.writer.trackType).isEqualTo("rum")
+
+    ' When: set writer to another track type, then stop view (ensureWriter runs again)
+    m.testedNode.writer.trackType = "logs"
+    m.testedNode@.stopView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: writer track type is still rum (restored by ensureWriter in stop view handling)
+    Assert.that(m.testedNode.writer.trackType).isEqualTo("rum")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: handle start view (uploader rum track type is rum), set uploader track to another type, then handle stop view
+'  Then: uploader rum track type is still rum (ensureUploader re-applies rum on each event)
+'----------------------------------------------------------------
+function RumAgentTest__WhenStopView_AfterUploaderTrackTypeChanged_UploaderTrackTypeRestoredToRum() as string
+    ' Given
+    fakeViewName = IG_GetString(32)
+    fakeViewUrl = IG_GetString(32)
+    expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
+
+    ' When: start view -> ensureUploader runs, uploader has rum track with trackType "rum"
+    m.testedNode@.startView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: uploader rum track type is rum
+    uploaderTracks = m.testedNode.uploader.tracks
+    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
+    Assert.that(uploaderTracks[expectedTrackName].trackType).isEqualTo("rum")
+
+    ' When: set uploader rum track to another track type, then stop view (ensureUploader runs again)
+    uploaderTracks[expectedTrackName].trackType = "logs"
+    m.testedNode@.stopView(fakeViewName, fakeViewUrl)
+    sleep(30)
+
+    ' Then: uploader rum track type is still rum (restored by ensureUploader in stop view handling)
+    uploaderTracks = m.testedNode.uploader.tracks
+    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
+    Assert.that(uploaderTracks[expectedTrackName].trackType).isEqualTo("rum")
+    return ""
 end function
 
 '----------------------------------------------------------------

@@ -24,24 +24,24 @@ sub init()
     m.actionCount = 0
     m.errorCount = 0
     m.resourceCount = 0
-    datadogRumContext = (function(m)
-            __bsConsequent = m.global.datadogRumContext
-            if __bsConsequent <> invalid then
-                return __bsConsequent
-            else
-                return {}
-            end if
-        end function)(m)
-    datadogRumContext.viewId = m.viewId
-    m.instanceId = (function(datadogRumContext)
-            __bsConsequent = datadogRumContext.instanceId
+    m.instanceId = (function(m)
+            __bsConsequent = ((function(m)
+                    __bsConsequent = m.global.datadogRumContext
+                    if __bsConsequent <> invalid then
+                        return __bsConsequent
+                    else
+                        return {}
+                    end if
+                end function)(m)).instanceId
             if __bsConsequent <> invalid then
                 return __bsConsequent
             else
                 return ""
             end if
-        end function)(datadogRumContext)
-    m.global.setField("datadogRumContext", datadogRumContext)
+        end function)(m)
+    ' Defer the datadogRumContext.viewId update to getRumContext() to avoid
+    ' a global node write during node initialization (potential contention).
+    m.globalContextUpdated = false
 end sub
 
 ' ----------------------------------------------------------------
@@ -57,6 +57,19 @@ function getRumContext(_ph as dynamic) as object
     rumContext.viewId = m.viewId
     rumContext.viewName = m.top.viewName
     rumContext.viewUrl = m.top.viewUrl
+    if (not m.globalContextUpdated)
+        datadogRumContext = (function(m)
+                __bsConsequent = m.global.datadogRumContext
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return {}
+                end if
+            end function)(m)
+        datadogRumContext.viewId = m.viewId
+        m.global.setField("datadogRumContext", datadogRumContext)
+        m.globalContextUpdated = true
+    end if
     return rumContext
 end function
 
@@ -66,11 +79,15 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    if (m.top.activeAction <> invalid)
+    if (m.activeAction = invalid)
+        m.activeAction = m.top.activeAction
+    end if
+    if (m.activeAction <> invalid)
         ddLogVerbose("Delegate to child")
-        m.top.activeAction.callfunc("handleEvent", event, writer)
-        if (not m.top.activeAction.callfunc("isActive", invalid))
+        m.activeAction.callfunc("handleEvent", event, writer)
+        if (not m.activeAction.callfunc("isActive", invalid))
             ddLogVerbose("No child anymore")
+            m.activeAction = invalid
             m.top.activeAction = invalid
         else
             ddLogVerbose("Child still active")
@@ -165,8 +182,8 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, cont
     ddLogVerbose("Sending an error")
     rumContext = getRumContext(invalid)
     actionId = invalid
-    if (m.top.activeAction <> invalid)
-        actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
+    if (m.activeAction <> invalid)
+        actionId = m.activeAction.callfunc("getRumContext", invalid).actionId
     end if
     errorEvent = {
         _dd: {
@@ -248,12 +265,13 @@ sub addAction(action as object, context as object, writer as object)
     ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, context, writer)
-    else if (m.top.activeAction = invalid)
-        m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
-        m.top.activeAction.target = action.target
-        m.top.activeAction.actionType = action.type
-        m.top.activeAction.parentScope = m.top
-        m.top.activeAction.context = context
+    else if (m.activeAction = invalid)
+        m.activeAction = CreateObject("roSGNode", "RumActionScope")
+        m.activeAction.target = action.target
+        m.activeAction.actionType = action.type
+        m.activeAction.parentScope = m.top
+        m.activeAction.context = context
+        m.top.activeAction = m.activeAction
     end if
     m.actionCount++
 end sub
@@ -343,8 +361,8 @@ sub sendResource(resource as object, context as object, writer as object)
     ddLogVerbose("Sending a resource")
     rumContext = getRumContext(invalid)
     actionId = invalid
-    if (m.top.activeAction <> invalid)
-        actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
+    if (m.activeAction <> invalid)
+        actionId = m.activeAction.callfunc("getRumContext", invalid).actionId
     end if
     startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
     resourceEvent = {
@@ -442,8 +460,8 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, conte
     ddLogVerbose("Sending a resource error")
     rumContext = getRumContext(invalid)
     actionId = invalid
-    if (m.top.activeAction <> invalid)
-        actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
+    if (m.activeAction <> invalid)
+        actionId = m.activeAction.callfunc("getRumContext", invalid).actionId
     end if
     errorEvent = {
         _dd: {

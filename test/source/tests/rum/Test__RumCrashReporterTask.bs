@@ -54,6 +54,12 @@ end sub
 sub RumCrashReporterTaskTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("testedTask")
+    folder = datadogroku_trackFolderPath("rum")
+    for each filename in ListDir(folder)
+        if (filename.Left(10) = "_last_view")
+            DeleteFile(folder + "/" + filename)
+        end if
+    end for
 end sub
 
 '----------------------------------------------------------------
@@ -108,7 +114,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    sleep(300)
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
@@ -215,7 +221,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    sleep(300)
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")

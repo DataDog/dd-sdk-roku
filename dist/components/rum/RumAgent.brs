@@ -82,8 +82,8 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStartView(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
-    m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
+    m.rumScope.callfunc("handleEvent", keepAliveEvent(), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -102,7 +102,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStopView(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -120,7 +120,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddAction(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -138,7 +138,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddError(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -156,7 +156,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddResource(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -175,18 +175,23 @@ end sub
 sub __onSendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
-    crashReporter.writer = m.top.writer
     if (m.top.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
         lastExitInfo = appManager.GetLastExitInfo()
-        exitCode = lastExitInfo.exit_code
-        crashReporter.lastExitOrTerminationReason = lastExitInfo.exit_code
-        crashReporter.lastExitConsoleLog = lastExitInfo.console_log
+        crashReporter.setFields({
+            writer: m.writer
+            lastExitOrTerminationReason: lastExitInfo.exit_code
+            lastExitConsoleLog: lastExitInfo.console_log
+            instanceId: m.instanceId
+        })
     else
-        crashReporter.lastExitOrTerminationReason = lastExitOrTerminationReason
-        crashReporter.lastExitConsoleLog = ""
+        crashReporter.setFields({
+            writer: m.writer
+            lastExitOrTerminationReason: lastExitOrTerminationReason
+            lastExitConsoleLog: ""
+            instanceId: m.instanceId
+        })
     end if
-    crashReporter.instanceId = m.instanceId
     crashReporter.control = "RUN"
 end sub
 
@@ -204,7 +209,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddConfigTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope.callfunc("handleEvent", event, m.top.writer)
+    m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -221,7 +226,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddErrorTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope.callfunc("handleEvent", event, m.top.writer)
+    m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -238,7 +243,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddDebugTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope.callfunc("handleEvent", event, m.top.writer)
+    m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -256,32 +261,39 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureRumScope()
-    if (m.top.rumScope = invalid)
-        fields = m.top.getFields()
-        applicationId = fields.applicationId
-        m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        ddLogWarning("RumAgent.instanceId:" + m.instanceId)
-        m.global.addFields({
-            datadogRumContext: {}
-        })
-        datadogRumContext = m.global.datadogRumContext
-        datadogRumContext.applicationId = applicationId
-        datadogRumContext.instanceId = m.instanceId
-        m.global.setField("datadogRumContext", datadogRumContext)
-        ddLogVerbose("Creating RumApplicationScope")
-        rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        rumScope.setFields({
-            applicationId: applicationId
-            service: fields.service
-            version: fields.version
-            deviceName: fields.deviceName
-            deviceModel: fields.deviceModel
-            osVersion: fields.osVersion
-            osVersionMajor: fields.osVersionMajor
-            sessionSampleRate: fields.sessionSampleRate
-        })
-        m.top.rumScope = rumScope
+    if (m.rumScope <> invalid)
+        return
     end if
+    if (m.top.rumScope <> invalid)
+        ' Externally injected (e.g. via dependency injection in tests)
+        m.rumScope = m.top.rumScope
+        return
+    end if
+    fields = m.top.getFields()
+    applicationId = fields.applicationId
+    m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
+    ddLogWarning("RumAgent.instanceId:" + m.instanceId)
+    m.global.addFields({
+        datadogRumContext: {}
+    })
+    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext.applicationId = applicationId
+    datadogRumContext.instanceId = m.instanceId
+    m.global.setField("datadogRumContext", datadogRumContext)
+    ddLogVerbose("Creating RumApplicationScope")
+    rumScope = CreateObject("roSGNode", "RumApplicationScope")
+    rumScope.setFields({
+        applicationId: applicationId
+        service: fields.service
+        version: fields.version
+        deviceName: fields.deviceName
+        deviceModel: fields.deviceModel
+        osVersion: fields.osVersion
+        osVersionMajor: fields.osVersionMajor
+        sessionSampleRate: fields.sessionSampleRate
+    })
+    m.top.rumScope = rumScope
+    m.rumScope = rumScope
 end sub
 
 ' ----------------------------------------------------------------
@@ -289,31 +301,47 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureTelemetryScope()
-    if (m.top.telemetryScope = invalid)
-        ddLogVerbose("Creating RumTelemetryScope")
-        m.top.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+    if (m.telemetryScope <> invalid)
+        return
     end if
+    if (m.top.telemetryScope <> invalid)
+        ' Externally injected (e.g. via dependency injection in tests)
+        m.telemetryScope = m.top.telemetryScope
+        return
+    end if
+    ddLogVerbose("Creating RumTelemetryScope")
+    m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+    m.top.telemetryScope = m.telemetryScope
 end sub
 
 ' ----------------------------------------------------------------
 ' Sets the uploader node from the top node's field,
-' or instantiate one.
+' or instantiate one. Re-applies the RUM track configuration on
+' every call so that external modifications are always corrected.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    uploader = m.top.uploader
-    if (uploader = invalid)
-        ddLogVerbose("Creating MultiTrackUploaderTask")
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+    if (m.uploader = invalid)
+        uploader = m.top.uploader
+        if (uploader = invalid)
+            ddLogVerbose("Creating MultiTrackUploaderTask")
+            uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+            m.top.uploader = uploader
+        end if
+        m.uploader = uploader
     end if
-    trackId = "rum_" + m.top.threadInfo().node.address
-    tracks = (function(uploader)
-            __bsConsequent = uploader.tracks
+    if (m.instanceId <> invalid and m.instanceId <> "")
+        trackId = "rum_" + m.instanceId
+    else
+        trackId = "rum_" + m.top.threadInfo().node.address
+    end if
+    tracks = (function(m)
+            __bsConsequent = m.uploader.tracks
             if __bsConsequent <> invalid then
                 return __bsConsequent
             else
                 return {}
             end if
-        end function)(uploader)
+        end function)(m)
     tracks[trackId] = {
         url: getIntakeUrl(m.top.site, "rum")
         trackType: "rum"
@@ -325,22 +353,25 @@ sub ensureUploader()
             ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.top.env
         }
     }
-    uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    m.top.uploader = uploader
+    m.uploader.tracks = tracks
+    m.uploader.clientToken = m.top.clientToken
 end sub
 
 ' ----------------------------------------------------------------
 ' Sets the writer node from the top node's field,
-' or instantiate one.
+' or instantiate one. Re-applies the RUM track type on every call
+' so that external modifications are always corrected.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    writer = m.top.writer
-    if (writer = invalid)
-        ddLogVerbose("Creating WriterTask")
-        writer = CreateObject("roSGNode", "WriterTask")
+    if (m.writer = invalid)
+        writer = m.top.writer
+        if (writer = invalid)
+            ddLogVerbose("Creating WriterTask")
+            writer = CreateObject("roSGNode", "WriterTask")
+            m.top.writer = writer
+        end if
+        m.writer = writer
     end if
-    writer.trackType = "rum"
-    writer.payloadSeparator = chr(10)
-    m.top.writer = writer
+    m.writer.trackType = "rum"
+    m.writer.payloadSeparator = chr(10)
 end sub

@@ -36,7 +36,7 @@ end function
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
     ensureSessionScope()
-    m.top.sessionScope.callfunc("handleEvent", event, writer)
+    m.sessionScope.callfunc("handleEvent", event, writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -54,9 +54,13 @@ end function
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureSessionScope()
-    if (m.top.sessionScope = invalid)
-        m.top.sessionScope = CreateObject("roSGNode", "RumSessionScope")
-        m.top.sessionScope.parentScope = m.top
-        m.top.sessionScope.sessionSampleRate = m.top.sessionSampleRate
+    if (m.sessionScope = invalid)
+        m.sessionScope = m.top.sessionScope
+        if (m.sessionScope = invalid)
+            m.sessionScope = CreateObject("roSGNode", "RumSessionScope")
+            m.sessionScope.parentScope = m.top
+            m.sessionScope.sessionSampleRate = m.top.sessionSampleRate
+            m.top.sessionScope = m.sessionScope
+        end if
     end if
 end sub

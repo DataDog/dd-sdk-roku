@@ -47,18 +47,22 @@ sub handleEvent(event as object, writer as object)
             writeEvent: ""
         }
     end if
-    if (m.top.activeView <> invalid)
-        m.top.activeView.callfunc("handleEvent", event, currentWriter)
-        if (not m.top.activeView.callfunc("isActive", invalid))
+    if (m.activeView = invalid)
+        m.activeView = m.top.activeView
+    end if
+    if (m.activeView <> invalid)
+        m.activeView.callfunc("handleEvent", event, currentWriter)
+        if (not m.activeView.callfunc("isActive", invalid))
+            m.activeView = invalid
             m.top.activeView = invalid
         end if
     end if
     if (event.eventType = "startView")
-        m.top.activeView = CreateObject("roSGNode", "RumViewScope")
-        m.top.activeView.viewName = event.viewName
-        m.top.activeView.viewUrl = event.viewUrl
-        m.top.activeView.parentScope = m.top
-        m.top.activeView.context = (function(event)
+        m.activeView = CreateObject("roSGNode", "RumViewScope")
+        m.activeView.viewName = event.viewName
+        m.activeView.viewUrl = event.viewUrl
+        m.activeView.parentScope = m.top
+        m.activeView.context = (function(event)
                 __bsConsequent = event.context
                 if __bsConsequent <> invalid then
                     return __bsConsequent
@@ -66,6 +70,7 @@ sub handleEvent(event as object, writer as object)
                     return {}
                 end if
             end function)(event)
+        m.top.activeView = m.activeView
     end if
 end sub
 
