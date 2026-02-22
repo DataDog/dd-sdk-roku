@@ -251,6 +251,7 @@ end function
 '----------------------------------------------------------------
 function RumSessionScopeTest__WhenActiveViewNotActive_ThenDiscardIt() as string
     ' Given
+    m.testedScope.inactivityThresholdMs = 60000 ' prevent session expiry during cross-thread test setup
     mockScope = CreateObject("roSGNode", "MockRumScope")
     m.testedScope.activeView = mockScope
     fakeEvent = { mock: "event", eventType: "any" }

@@ -54,11 +54,12 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    if (m.top.activeAction <> invalid)
+    if (m.activeAction <> invalid)
         ddLogVerbose("Delegate to child")
-        m.top.activeAction@.handleEvent(event, writer)
-        if (not m.top.activeAction@.isActive())
+        m.activeAction@.handleEvent(event, writer)
+        if (not m.activeAction@.isActive())
             ddLogVerbose("No child anymore")
+            m.activeAction = invalid
             m.top.activeAction = invalid
         else
             ddLogVerbose("Child still active")
@@ -153,8 +154,8 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, cont
     rumContext = getRumContext(invalid)
 
     actionId = invalid
-    if (m.top.activeAction <> invalid)
-        actionId = m.top.activeAction@.getRumContext().actionId
+    if (m.activeAction <> invalid)
+        actionId = m.activeAction@.getRumContext().actionId
     end if
 
     errorEvent = {
@@ -236,12 +237,13 @@ sub addAction(action as object, context as object, writer as object)
     ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, context, writer)
-    else if (m.top.activeAction = invalid)
-        m.top.activeAction = CreateObject("roSGNode", "RumActionScope")
-        m.top.activeAction.target = action.target
-        m.top.activeAction.actionType = action.type
-        m.top.activeAction.parentScope = m.top
-        m.top.activeAction.context = context
+    else if (m.activeAction = invalid)
+        m.activeAction = CreateObject("roSGNode", "RumActionScope")
+        m.activeAction.target = action.target
+        m.activeAction.actionType = action.type
+        m.activeAction.parentScope = m.top
+        m.activeAction.context = context
+        m.top.activeAction = m.activeAction
     end if
     m.actionCount++
 end sub
@@ -332,8 +334,8 @@ sub sendResource(resource as object, context as object, writer as object)
 
     rumContext = getRumContext(invalid)
     actionId = invalid
-    if (m.top.activeAction <> invalid)
-        actionId = m.top.activeAction@.getRumContext().actionId
+    if (m.activeAction <> invalid)
+        actionId = m.activeAction@.getRumContext().actionId
     end if
     startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
 
@@ -411,8 +413,8 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, conte
 
     rumContext = getRumContext(invalid)
     actionId = invalid
-    if (m.top.activeAction <> invalid)
-        actionId = m.top.activeAction@.getRumContext().actionId
+    if (m.activeAction <> invalid)
+        actionId = m.activeAction@.getRumContext().actionId
     end if
 
     errorEvent = {

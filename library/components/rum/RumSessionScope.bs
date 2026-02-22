@@ -49,19 +49,25 @@ sub handleEvent(event as object, writer as object)
         currentWriter = { writer: "noOp", writeEvent: "" }
     end if
 
-    if (m.top.activeView <> invalid)
-        m.top.activeView@.handleEvent(event, currentWriter)
-        if (not m.top.activeView@.isActive())
+    if (m.activeView = invalid)
+        m.activeView = m.top.activeView
+    end if
+
+    if (m.activeView <> invalid)
+        m.activeView@.handleEvent(event, currentWriter)
+        if (not m.activeView@.isActive())
+            m.activeView = invalid
             m.top.activeView = invalid
         end if
     end if
 
     if (event.eventType = RawEvent.startView)
-        m.top.activeView = CreateObject("roSGNode", "RumViewScope")
-        m.top.activeView.viewName = event.viewName
-        m.top.activeView.viewUrl = event.viewUrl
-        m.top.activeView.parentScope = m.top
-        m.top.activeView.context = event.context ?? {}
+        m.activeView = CreateObject("roSGNode", "RumViewScope")
+        m.activeView.viewName = event.viewName
+        m.activeView.viewUrl = event.viewUrl
+        m.activeView.parentScope = m.top
+        m.activeView.context = event.context ?? {}
+        m.top.activeView = m.activeView
     end if
 end sub
 
