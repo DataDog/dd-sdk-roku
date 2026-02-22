@@ -177,18 +177,23 @@ end sub
 sub __onSendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
-    crashReporter.writer = m.writer
     if (m.top.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
         lastExitInfo = appManager.GetLastExitInfo()
-        exitCode = lastExitInfo.exit_code
-        crashReporter.lastExitOrTerminationReason = lastExitInfo.exit_code
-        crashReporter.lastExitConsoleLog = lastExitInfo.console_log
+        crashReporter.setFields({
+            writer: m.writer,
+            lastExitOrTerminationReason: lastExitInfo.exit_code,
+            lastExitConsoleLog: lastExitInfo.console_log,
+            instanceId: m.instanceId
+        })
     else
-        crashReporter.lastExitOrTerminationReason = lastExitOrTerminationReason
-        crashReporter.lastExitConsoleLog = ""
+        crashReporter.setFields({
+            writer: m.writer,
+            lastExitOrTerminationReason: lastExitOrTerminationReason,
+            lastExitConsoleLog: "",
+            instanceId: m.instanceId
+        })
     end if
-    crashReporter.instanceId = m.instanceId
     crashReporter.control = "RUN"
 end sub
 
