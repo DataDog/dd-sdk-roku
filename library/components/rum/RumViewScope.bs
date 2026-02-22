@@ -26,10 +26,10 @@ sub init()
     m.actionCount = 0
     m.errorCount = 0
     m.resourceCount = 0
-    datadogRumContext = m.global.datadogRumContext ?? {}
-    datadogRumContext.viewId = m.viewId
-    m.instanceId = datadogRumContext.instanceId ?? ""
-    m.global.setField("datadogRumContext", datadogRumContext)
+    m.instanceId = (m.global.datadogRumContext ?? {}).instanceId ?? ""
+    ' Defer the datadogRumContext.viewId update to getRumContext() to avoid
+    ' a global node write during node initialization (potential contention).
+    m.globalContextUpdated = false
 end sub
 
 ' ----------------------------------------------------------------
@@ -45,6 +45,12 @@ function getRumContext(_ph as dynamic) as object
     rumContext.viewId = m.viewId
     rumContext.viewName = m.top.viewName
     rumContext.viewUrl = m.top.viewUrl
+    if (not m.globalContextUpdated)
+        datadogRumContext = m.global.datadogRumContext ?? {}
+        datadogRumContext.viewId = m.viewId
+        m.global.setField("datadogRumContext", datadogRumContext)
+        m.globalContextUpdated = true
+    end if
     return rumContext
 end function
 
@@ -54,6 +60,9 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
+    if (m.activeAction = invalid)
+        m.activeAction = m.top.activeAction
+    end if
     if (m.activeAction <> invalid)
         ddLogVerbose("Delegate to child")
         m.activeAction@.handleEvent(event, writer)
