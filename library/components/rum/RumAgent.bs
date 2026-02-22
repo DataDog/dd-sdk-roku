@@ -206,7 +206,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddConfigTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(event, m.writer)
+    m.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -223,7 +223,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddErrorTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(event, m.writer)
+    m.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -240,7 +240,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddDebugTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(event, m.writer)
+    m.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -300,10 +300,19 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureTelemetryScope()
-    if (m.top.telemetryScope = invalid)
-        ddLogVerbose("Creating RumTelemetryScope")
-        m.top.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+    if (m.telemetryScope <> invalid)
+        return
     end if
+
+    if (m.top.telemetryScope <> invalid)
+        ' Externally injected (e.g. via dependency injection in tests)
+        m.telemetryScope = m.top.telemetryScope
+        return
+    end if
+
+    ddLogVerbose("Creating RumTelemetryScope")
+    m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+    m.top.telemetryScope = m.telemetryScope
 end sub
 
 ' ----------------------------------------------------------------
