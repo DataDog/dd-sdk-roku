@@ -1,5 +1,6 @@
 # Roku
 out
+sca-cmd
 
 # ROPM
 roku_modules
@@ -8,6 +9,9 @@ roku_modules
 node_modules
 package-lock.json
 .npmrc
+
+# Java
+.java-version
 
 # Visual Studio Code
 .vscode
@@ -23,3 +27,6 @@ package-lock.json
 
 # Sample App
 sample/credentials.json
+
+# Local environment variables
+.env
