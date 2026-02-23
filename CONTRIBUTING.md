@@ -25,6 +25,12 @@ The whole project is covered by a set of static analysis tools, which can be lau
 - [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) for linting rules;
 - [Static Channel Analysis](http://devtools.web.roku.com/#static-channel-analysis-tool) ensuring we follow Roku official guidelines.
 
+**Note**: `npm run sca-test` and `npm run sca-sample` require the [Static Channel Analysis tool](http://devtools.web.roku.com/#static-channel-analysis-tool) to be downloaded separately (as of now, it requires Java 21). Once downloaded, set the `ROKU_SCA` environment variable to point to the binary:
+
+```shell script
+export ROKU_SCA=/path/to/sca-cmd/bin/sca-cmd
+```
+
 ```shell script
 npm run lint
 npm run sca-test
