@@ -40,7 +40,15 @@ sub RunUserInterface(args as dynamic)
         launchArgs: args,
         traceSampleRate: 100,
         tracingHeaderTypes: credentials.mirrorHostsTracingHeaderTypes,
-        traceContextInjection: "all"
+        traceContextInjection: "all",
+        ignoredExitEvents: [
+            "EXIT_UNKNOWN",
+            "EXIT_POWER_MODE",
+            "EXIT_IDLE_AUTO_EXIT",
+            "EXIT_DIAL_DELETE",
+            "EXIT_USER_KILL",
+            "EXIT_USER_NAV"
+        ]
     }, globalNode)
     globalNode.setField("datadogUserInfo", { id: "42", name: "Abcd Efg", email: "abcd.efg@example.com" })
     globalNode.setField("datadogContext", { channel: "roku sample channel" })
