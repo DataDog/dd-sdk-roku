@@ -9,7 +9,7 @@ To propose improvements, feel free to submit a PR or open an Issue.
 
 To setup your environment, first make sure you followed the official [Roku Developer environment setup](https://developer.roku.com/en-gb/docs/developer-program/getting-started/developer-setup.md).
 
-You also need to have the [BrighterScript](https://npmjs.org/package/brighterscript), [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) and [ROPM](https://www.npmjs.com/package/ropm) `npm` packages installed: 
+You also need to have the [BrighterScript](https://npmjs.org/package/brighterscript), [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) and [ROPM](https://www.npmjs.com/package/ropm) `npm` packages installed:
 
 ```shell script
 npm install -g brighterscript
@@ -17,6 +17,17 @@ npm install -g ropm
 npm install -g @rokucommunity/bslint
 brew install telnet
 ```
+
+You also need to create a `.env` file from the template and fill in your local values:
+
+```shell script
+cp .env.template .env
+```
+
+- `ROKU_DEV_TARGET` — your Roku device's IP address (required for `npm test` and `npm run sample`)
+- `ROKU_DEV_USERNAME` — your device's dev username (required for `npm test` and `npm run sample`)
+- `ROKU_DEV_PASSWORD` — your device's dev password (required for `npm test` and `npm run sample`)
+- `ROKU_SCA` — path to the [Static Channel Analysis](http://devtools.web.roku.com/#static-channel-analysis-tool) binary (required for `npm run sca-test` and `npm run sca-sample`). The SCA tool must be downloaded separately and requires Java 21. Set it to `/path/to/sca-cmd/bin/sca-cmd`.
 
 ### Running the static analysis
 
@@ -35,7 +46,7 @@ npm run sca-sample
 
 The whole project is covered by a set of tests using Roku's official [Unit Testing Framework](https://github.com/rokudev/unit-testing-framework), which can be launched via `npm`.
 
-**Note** in order to run the test app, you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
+**Note** in order to run the test app, you need to have a Roku device set up in development mode.
 
 ```shell script
 npm test
@@ -43,9 +54,9 @@ npm test
 
 ### Running the sample app
 
-A sample app is available to showcase the basic features of the SDK. Before using the sample application, you **must** create a `sample/credentials.json` file matching the `sample/credentials.json.template`. 
+A sample app is available to showcase the basic features of the SDK. Before using the sample application, you **must** create a `sample/credentials.json` file matching the `sample/credentials.json.template`.
 
-**Note** in order to run the sample app, you need to have a Roku device set up in development mode. You also must set the `ROKU_DEV_TARGET` environment variable to your device's IP address, and the `ROKU_DEV_PASSWORD` environment variable to your device's dev password.
+**Note** in order to run the sample app, you need to have a Roku device set up in development mode.
 
 ```shell script
 npm run sample

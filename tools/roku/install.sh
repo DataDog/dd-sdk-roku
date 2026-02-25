@@ -5,6 +5,10 @@
 
 # usage: install.sh path/to/app.zip [-listen]
 
+if [ -f ".env" ]; then
+    source .env
+fi
+
 echo "---- Checking environment"
 
 if [[ -z "${ROKU_DEV_TARGET}" ]]; then
@@ -20,7 +24,7 @@ if [[ -z "${ROKU_DEV_PASSWORD}" ]]; then
     exit 1
 fi
 
-echo "   Using device $ROKU_DEV_TARGET with username $ROKU_DEV_USERNAM and password ********"
+echo "   Using device $ROKU_DEV_TARGET with username $ROKU_DEV_USERNAME and password ********"
 
 DEV_SERVER_TMP_FILE=/tmp/dev_server_out
 rm -f $DEV_SERVER_TMP_FILE
