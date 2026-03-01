@@ -21,10 +21,15 @@ sub init()
     m.top.observeFieldScoped("addAction", m.port)
     m.top.observeFieldScoped("addError", m.port)
     m.top.observeFieldScoped("addResource", m.port)
-    m.top.observeFieldScoped("sendCrash", m.port)
     m.top.observeFieldScoped("addConfigTelemetry", m.port)
     m.top.observeFieldScoped("addErrorTelemetry", m.port)
     m.top.observeFieldScoped("addDebugTelemetry", m.port)
+    m.top.observeFieldScoped("areFieldsSet", m.port)
+    'Observe nodes injected by the test
+    m.top.observeFieldScoped("uploader", m.port)
+    m.top.observeFieldScoped("writer", m.port)
+    m.top.observeFieldScoped("rumScope", m.port)
+    m.top.observeFieldScoped("telemetryScope", m.port)
     m.top.functionName = "rumAgentLoop"
     m.top.control = "RUN"
 end sub
@@ -34,8 +39,6 @@ end sub
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
     ddLogThread("RumAgent.rumAgentLoop()")
-    sendCrash(m.top.lastExitOrTerminationReason)
-    addConfigTelemetry(m.top.configuration)
     while (true)
         msg = wait(0, m.port)
         msgType = type(msg)
@@ -51,14 +54,24 @@ sub rumAgentLoop()
                 __onAddError(msg.getData())
             else if (fieldName = "addResource")
                 __onAddResource(msg.getData())
-            else if (fieldName = "sendCrash")
-                __onSendCrash(msg.getData())
             else if (fieldName = "addConfigTelemetry")
                 __onAddConfigTelemetry(msg.getData())
             else if (fieldName = "addErrorTelemetry")
                 __onAddErrorTelemetry(msg.getData())
             else if (fieldName = "addDebugTelemetry")
                 __onAddDebugTelemetry(msg.getData())
+            else if (fieldName = "uploader")
+                m.uploader = msg.getData()
+            else if (fieldName = "writer")
+                m.writer = msg.getData()
+            else if (fieldName = "rumScope")
+                m.rumScope = msg.getData()
+            else if (fieldName = "telemetryScope")
+                m.telemetryScope = msg.getData()
+            else if (fieldName = "areFieldsSet")
+                if (msg.getData())
+                    updateFields()
+                end if
             end if
         else
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
@@ -82,8 +95,10 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStartView(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
-    m.top.rumScope.callfunc("handleEvent", keepAliveEvent(), m.top.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+        m.rumScope.callfunc("handleEvent", keepAliveEvent(), m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -102,7 +117,9 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStopView(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -120,7 +137,9 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddAction(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -138,7 +157,9 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddError(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -156,27 +177,20 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddResource(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
-end sub
-
-' ----------------------------------------------------------------
-' Sends a crash report from a previous view
-' @param lastExitOrTerminationReason (object) the lastExitOrTerminationReason parameter
-' from the channel's RunUserInterface
-' ----------------------------------------------------------------
-sub sendCrash(lastExitOrTerminationReason as string)
-    m.top.sendCrash = lastExitOrTerminationReason
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
 ' Private: Handles sendCrash field change event
 ' @param lastExitOrTerminationReason (string) the last exit or termination reason
 ' ----------------------------------------------------------------
-sub __onSendCrash(lastExitOrTerminationReason as string)
+sub sendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
-    crashReporter.writer = m.top.writer
-    if (m.top.osVersionMajor.toInt() >= 13)
+    crashReporter.writer = m.writer
+    if (m.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
         lastExitInfo = appManager.GetLastExitInfo()
         exitCode = lastExitInfo.exit_code
@@ -204,7 +218,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddConfigTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope.callfunc("handleEvent", event, m.top.writer)
+    m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -221,7 +235,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddErrorTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope.callfunc("handleEvent", event, m.top.writer)
+    m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -238,7 +252,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onAddDebugTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope.callfunc("handleEvent", event, m.top.writer)
+    m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -256,31 +270,28 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureRumScope()
-    if (m.top.rumScope = invalid)
-        fields = m.top.getFields()
-        applicationId = fields.applicationId
+    if (m.rumScope = invalid and m.areFieldsSet = true)
         m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
         ddLogWarning("RumAgent.instanceId:" + m.instanceId)
         m.global.addFields({
-            datadogRumContext: {}
+            datadogRumContext: {
+                applicationId: m.applicationId
+                instanceId: m.instanceId
+            }
         })
-        datadogRumContext = m.global.datadogRumContext
-        datadogRumContext.applicationId = applicationId
-        datadogRumContext.instanceId = m.instanceId
-        m.global.setField("datadogRumContext", datadogRumContext)
         ddLogVerbose("Creating RumApplicationScope")
-        rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        rumScope.setFields({
-            applicationId: applicationId
-            service: fields.service
-            version: fields.version
-            deviceName: fields.deviceName
-            deviceModel: fields.deviceModel
-            osVersion: fields.osVersion
-            osVersionMajor: fields.osVersionMajor
-            sessionSampleRate: fields.sessionSampleRate
+        m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
+        m.rumScope.setFields({
+            applicationId: m.applicationId
+            service: m.service
+            version: m.version
+            deviceName: m.deviceName
+            deviceModel: m.deviceModel
+            osVersion: m.osVersion
+            osVersionMajor: m.osVersionMajor
+            sessionSampleRate: m.sessionSampleRate
         })
-        m.top.rumScope = rumScope
+        m.top.rumScope = m.rumScope
     end if
 end sub
 
@@ -289,9 +300,10 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureTelemetryScope()
-    if (m.top.telemetryScope = invalid)
+    if (m.telemetryScope = invalid)
         ddLogVerbose("Creating RumTelemetryScope")
-        m.top.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+        m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+        m.top.telemetryScope = m.telemetryScope
     end if
 end sub
 
@@ -300,20 +312,20 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    uploader = m.top.uploader
-    if (uploader = invalid)
+    if (m.uploader = invalid)
         ddLogVerbose("Creating MultiTrackUploaderTask")
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        m.uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        m.top.uploader = m.uploader
     end if
     trackId = "rum_" + m.top.threadInfo().node.address
-    tracks = (function(uploader)
-            __bsConsequent = uploader.tracks
+    tracks = (function(m)
+            __bsConsequent = m.uploader.tracks
             if __bsConsequent <> invalid then
                 return __bsConsequent
             else
                 return {}
             end if
-        end function)(uploader)
+        end function)(m)
     tracks[trackId] = {
         url: getIntakeUrl(m.top.site, "rum")
         trackType: "rum"
@@ -322,12 +334,13 @@ sub ensureUploader()
         contentType: "text/plain;charset=UTF-8"
         queryParams: {
             ddsource: agentSource()
-            ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.top.env
+            ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.env
         }
     }
-    uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    m.top.uploader = uploader
+    m.uploader.setFields({
+        tracks: tracks
+        clientToken: m.clientToken
+    })
 end sub
 
 ' ----------------------------------------------------------------
@@ -335,12 +348,43 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    writer = m.top.writer
-    if (writer = invalid)
+    if (m.writer = invalid)
         ddLogVerbose("Creating WriterTask")
-        writer = CreateObject("roSGNode", "WriterTask")
+        m.writer = CreateObject("roSGNode", "WriterTask")
+        m.top.writer = m.writer
     end if
-    writer.trackType = "rum"
-    writer.payloadSeparator = chr(10)
-    m.top.writer = writer
+    m.writer.setFields({
+        trackType: "rum"
+        payloadSeparator: chr(10)
+    })
+end sub
+
+sub updateFields()
+    fields = m.top.getFields()
+    m.applicationId = fields.applicationId
+    m.service = fields.service
+    m.version = fields.version
+    m.deviceName = fields.deviceName
+    m.deviceModel = fields.deviceModel
+    m.osVersion = fields.osVersion
+    m.osVersionMajor = fields.osVersionMajor
+    m.sessionSampleRate = fields.sessionSampleRate
+    m.clientToken = fields.clientToken
+    m.env = fields.env
+    m.site = fields.site
+    m.areFieldsSet = fields.areFieldsSet
+    ' lastExitOrTerminationReason should be set only once at startup and it triggers sendCrash.
+    if (m.lastExitOrTerminationReason = invalid or m.lastExitOrTerminationReason = "")
+        m.lastExitOrTerminationReason = fields.lastExitOrTerminationReason
+        if (m.lastExitOrTerminationReason <> invalid and m.lastExitOrTerminationReason <> "")
+            sendCrash(m.lastExitOrTerminationReason)
+        end if
+    end if
+    ' configuration should be set only once at startup and it triggers addConfigTelemetry.
+    if (m.configuration = invalid or m.configuration.Count() = 0)
+        m.configuration = fields.configuration
+        if (m.configuration <> invalid and m.configuration.Count() > 0)
+            addConfigTelemetry(m.configuration)
+        end if
+    end if
 end sub

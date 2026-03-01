@@ -18,8 +18,12 @@ sub init()
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("writeEvent", m.port)
     m.top.observeFieldScoped("trackType", m.port)
+    m.top.observeFieldScoped("payloadSeparator", m.port)
+    m.top.observeFieldScoped("maxBatchSize", m.port)
     m.top.functionName = "writerLoop"
     m.top.control = "RUN"
+    m.maxBatchSize = m.top.maxBatchSize
+    m.payloadSeparator = m.top.payloadSeparator
 end sub
 
 ' ----------------------------------------------------------------
@@ -38,6 +42,10 @@ sub writerLoop()
                 onWriteEvent(eventData)
             else if (fieldName = "trackType")
                 m.trackType = msg.getData()
+            else if (fieldName = "payloadSeparator")
+                m.payloadSeparator = msg.getData()
+            else if (fieldName = "maxBatchSize")
+                m.maxBatchSize = msg.getData()
             else
                 ddLogWarning(fieldName + " not handled")
             end if
@@ -60,7 +68,7 @@ sub onWriteEvent(event as string)
     if (m.fileSystem.Exists(filePath))
         fileSize = m.fileSystem.Stat(filePath).size
         if (fileSize > 0)
-            AppendAsciiFile(filePath, m.top.payloadSeparator)
+            AppendAsciiFile(filePath, m.payloadSeparator)
         end if
     end if
     AppendAsciiFile(filePath, event)
@@ -100,10 +108,10 @@ function getWriteableFile(eventSize as integer) as string
                     if __bsConsequent <> invalid then
                         return __bsConsequent
                     else
-                        return m.top.maxBatchSize
+                        return m.maxBatchSize
                     end if
                 end function)(lastFilePath, m)
-            if (lastFileSize + m.top.payloadSeparator.Len() + eventSize < m.top.maxBatchSize)
+            if (lastFileSize + m.payloadSeparator.Len() + eventSize < m.maxBatchSize)
                 return folderPath + "/" + lastFilename
             end if
         end if

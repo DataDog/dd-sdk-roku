@@ -7,6 +7,10 @@
 
 cwd=`pwd` 
 
+if [ -f ".env" ]; then
+    source .env
+fi
+
 echo "---- Static channel analysis"
 
 if [[ -z "${ROKU_SCA}" ]]; then
