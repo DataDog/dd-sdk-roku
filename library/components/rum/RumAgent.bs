@@ -293,7 +293,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStartOperation(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -321,7 +321,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onSucceedOperation(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -354,7 +354,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onFailOperation(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(event, m.top.writer)
+    m.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
