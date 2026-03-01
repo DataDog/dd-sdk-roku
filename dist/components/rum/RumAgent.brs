@@ -289,7 +289,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStartOperation(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -317,7 +317,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onSucceedOperation(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -350,7 +350,7 @@ end sub
 ' ----------------------------------------------------------------
 sub __onFailOperation(event as object)
     ensureSetup()
-    m.top.rumScope.callfunc("handleEvent", event, m.top.writer)
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
