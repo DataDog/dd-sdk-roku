@@ -29,6 +29,22 @@ function TestSuite__RumAgent() as object
 
     this.addTest("WhenHandlingEvent_ThenInitDependencies", RumAgentTest__WhenHandlingEvent_ThenInitDependencies, RumAgentTest__SetUpNoMock, RumAgentTest__TearDown)
 
+    ' Operation API dispatch tests
+    this.addTest("WhenStartOperation_ThenDelegateToRumScope", RumAgentTest__WhenStartOperation_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenStartOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenSucceedOperation_ThenDelegateToRumScope", RumAgentTest__WhenSucceedOperation_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenSucceedOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenSucceedOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenFailOperation_ThenDelegateToRumScope", RumAgentTest__WhenFailOperation_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenFailOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenFailOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+
+    ' Operation input validation tests
+    this.addTest("WhenStartOperationWithBlankName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithWhitespaceName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithWhitespaceName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithNilKey_ThenDispatch", RumAgentTest__WhenStartOperationWithNilKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithBlankKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenFailOperationWithInvalidReason_ThenDoNotDispatch", RumAgentTest__WhenFailOperationWithInvalidReason_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+
     return this
 end function
 
@@ -496,4 +512,281 @@ function RumAgentTest__WhenHandlingEvent_ThenInitDependencies() as string
         queryParams: { ddsource: "roku", ddtags: "sdk_version:" + datadogroku_sdkVersion() + ",env:" + m.fakeEnv }
     })
     return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperation_ThenDelegateToRumScope() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+
+    ' When
+    m.testedNode@.startOperation(fakeName, fakeKey)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
+    Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.context).isEqualTo({})
+    Assert.that(calls[0].writer).isEqualTo(m.mockWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.startOperation(fakeName, fakeKey, fakeContext)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
+    Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.context).isEqualTo(fakeContext)
+    Assert.that(calls[0].writer).isEqualTo(m.mockWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the succeedOperation method
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenSucceedOperation_ThenDelegateToRumScope() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+
+    ' When
+    m.testedNode@.succeedOperation(fakeName, fakeKey)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
+    Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.failureReason).isEqualTo(invalid)
+    Assert.that(capturedEvent.context).isEqualTo({})
+    Assert.that(calls[0].writer).isEqualTo(m.mockWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the succeedOperation method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenSucceedOperationWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.succeedOperation(fakeName, fakeKey, fakeContext)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
+    Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.failureReason).isEqualTo(invalid)
+    Assert.that(capturedEvent.context).isEqualTo(fakeContext)
+    Assert.that(calls[0].writer).isEqualTo(m.mockWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the failOperation method
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenFailOperation_ThenDelegateToRumScope() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+
+    ' When
+    m.testedNode@.failOperation(fakeName, "error", fakeKey)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
+    Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.failureReason).isEqualTo("error")
+    Assert.that(capturedEvent.context).isEqualTo({})
+    Assert.that(calls[0].writer).isEqualTo(m.mockWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the failOperation method with context
+'  Then: delegates to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenFailOperationWithContext_ThenDelegateToRumScope() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeContext = {}
+    for i = 1 to 5
+        fakeContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
+    end for
+
+    ' When
+    m.testedNode@.failOperation(fakeName, "error", fakeKey, fakeContext)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
+    Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.failureReason).isEqualTo("error")
+    Assert.that(capturedEvent.context).isEqualTo(fakeContext)
+    Assert.that(calls[0].writer).isEqualTo(m.mockWriter)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a blank name
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch() as string
+    ' Given
+
+    ' When
+    m.testedNode@.startOperation("", invalid)
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a whitespace-only name
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithWhitespaceName_ThenDoNotDispatch() as string
+    ' Given
+
+    ' When
+    m.testedNode@.startOperation("   ", invalid)
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with nil operationKey
+'  Then: dispatch the event (nil key means unkeyed operation)
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithNilKey_ThenDispatch() as string
+    ' Given
+    fakeName = IG_GetString(32)
+
+    ' When
+    m.testedNode@.startOperation(fakeName, invalid)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    capturedEvent = calls[0].event
+    Assert.that(capturedEvent.name).isEqualTo(fakeName)
+    Assert.that(capturedEvent.operationKey).isEqualTo(invalid)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a blank operationKey
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch() as string
+    ' Given
+    fakeName = IG_GetString(32)
+
+    ' When
+    m.testedNode@.startOperation(fakeName, "")
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a whitespace-only operationKey
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch() as string
+    ' Given
+    fakeName = IG_GetString(32)
+
+    ' When
+    m.testedNode@.startOperation(fakeName, "   ")
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the failOperation method with an invalid failure reason
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenFailOperationWithInvalidReason_ThenDoNotDispatch() as string
+    ' Given
+    fakeName = IG_GetString(32)
+
+    ' When
+    m.testedNode@.failOperation(fakeName, "invalid_reason")
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertNoInteractions()
 end function
