@@ -1,0 +1,6 @@
+# Manifest for roca unit tests
+# The title value is intentionally crafted to test service-name sanitization
+title=Datadog "TEST-channel" 42.1/k!
+major_version=4
+minor_version=8
+build_version=15

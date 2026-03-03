@@ -31,6 +31,7 @@
   ],
   "scripts": {
     "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip -listen",
+    "test:roca": "rm -rf test/node_modules sample/node_modules library/node_modules && roca --source dist/source --require tests/helpers/itemGenerator.brs 'tests/**/*.test.brs'",
     "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip -listen",
     "lint": "./tools/roku/build.sh library test sample",
     "sca-test": "./tools/roku/build.sh library test && ./tools/roku/sca.sh test/out/test.zip",
@@ -42,5 +43,9 @@
   },
   "ropm": {
     "packageRootDir": "dist"
+  },
+  "devDependencies": {
+    "@hulu/roca": "^0.27.0",
+    "brs": "^0.45.0"
   }
 }
