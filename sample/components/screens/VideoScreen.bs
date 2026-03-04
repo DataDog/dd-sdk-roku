@@ -26,6 +26,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
         m.global.datadogRumAgent@.startOperation("playbackStart")
         m.devTube.control = "play"
         m.devTube.observeField("state", "onVideoStateChange")
+        m.playbackStarted = false
+    else if (key = "back" and press)
+        if (m.playbackStarted = false)
+            m.global.datadogRumAgent@.failOperation("playbackStart", "abandoned")
+            m.devTube.unobserveField("state")
+        end if
     end if
     return false
 end function
@@ -41,10 +47,12 @@ end sub
 
 sub onVideoStateChange()
     state = m.devTube.state
-    if state = "playing"
+    if (state = "playing")
+        m.playbackStarted = true
         m.global.datadogRumAgent@.succeedOperation("playbackStart")
         m.devTube.unobserveField("state")
-    else if state = "error"
+    else if (state = "error")
+        m.playbackStarted = true
         m.global.datadogRumAgent@.failOperation("playbackStart", "error")
         m.devTube.unobserveField("state")
     end if
