@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip -listen",
-    "test:roca": "rm -rf test/node_modules sample/node_modules library/node_modules roca_tests/out && npm install --prefix roca_tests && cd roca_tests && ./node_modules/.bin/bsc && ./node_modules/.bin/roca --source ../dist/source --require out/helpers/itemGenerator.brs 'out/source/**/*.test.brs'",
+    "test:roca": "./tools/roca_test.sh",
     "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip -listen",
     "lint": "./tools/roku/build.sh library test sample",
     "sca-test": "./tools/roku/build.sh library test && ./tools/roku/sca.sh test/out/test.zip",
