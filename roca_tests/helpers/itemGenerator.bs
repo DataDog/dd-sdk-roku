@@ -1,0 +1,123 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'*****************************************************************
+' itemGenerator.bs
+' Random test data generators for roca unit tests.
+' Ported from Roku UTF ItemGenerator.brs — no UTF dependency.
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Generates a random boolean.
+' @return (boolean) random true or false.
+' ----------------------------------------------------------------
+function IG_GetBoolean() as boolean
+    return Rnd(2) = 1
+end function
+
+' ----------------------------------------------------------------
+' Generates a random integer from 1 to seed (inclusive).
+' @param seed (integer) upper bound; default 100.
+' @return (integer) random integer.
+' ----------------------------------------------------------------
+function IG_GetInteger(seed = 100 as integer) as integer
+    return Rnd(seed)
+end function
+
+' ----------------------------------------------------------------
+' Generates a random longinteger.
+' @return (longinteger) random large integer.
+' ----------------------------------------------------------------
+function IG_GetLongInteger() as longinteger
+    maxInt& = 2147483647
+    result& = IG_GetInteger(maxInt&)
+    result& *= maxInt&
+    result& += IG_GetInteger(maxInt&)
+    return result&
+end function
+
+' ----------------------------------------------------------------
+' Generates a random integer in [min, max].
+' @param min (integer) lower bound (inclusive); default 0.
+' @param max (integer) upper bound (inclusive); default 100.
+' @return (integer) random integer in range.
+' ----------------------------------------------------------------
+function IG_GetIntegerInRange(min = 0 as integer, max = 100 as integer) as integer
+    return Rnd(max - min + 1) + min - 1
+end function
+
+' ----------------------------------------------------------------
+' Generates a random float in [0, 1).
+' @return (float) random float.
+' ----------------------------------------------------------------
+function IG_GetFloat() as float
+    return Rnd(0)
+end function
+
+' ----------------------------------------------------------------
+' Generates a random double in [0, 1).
+' @return (double) random double.
+' ----------------------------------------------------------------
+function IG_GetDouble() as double
+    return Rnd(0)
+end function
+
+' ----------------------------------------------------------------
+' Generates a random alphanumeric string of up to seed characters.
+' @param seed (integer) maximum string length.
+' @return (string) random string (may be shorter than seed).
+' ----------------------------------------------------------------
+function IG_GetString(seed as integer) as string
+    item = ""
+    if seed > 0
+        stringLength = Rnd(seed)
+        for i = 1 to stringLength
+            chType = Rnd(3)
+            if chType = 1
+                chNumber = 47 + Rnd(10)   ' 0-9
+            else if chType = 2
+                chNumber = 64 + Rnd(26)   ' A-Z
+            else
+                chNumber = 96 + Rnd(26)   ' a-z
+            end if
+            item = item + Chr(chNumber)
+        end for
+    end if
+    return item
+end function
+
+' ----------------------------------------------------------------
+' Returns a random element from an array.
+' @param data (object) array to pick from.
+' @return (dynamic) a random element.
+' ----------------------------------------------------------------
+function IG_GetOneOf(data as object) as dynamic
+    index = Rnd(data.count()) - 1
+    return data[index]
+end function
+
+' ----------------------------------------------------------------
+' Generates a random backtrace array.
+' @return (object) array of backtrace frame objects.
+' ----------------------------------------------------------------
+function IG_GetBacktrace() as object
+    size = IG_GetInteger(32)
+    backtrace = []
+    for i = 1 to size
+        backtrace.Push(IG_GetBacktraceFrame())
+    end for
+    return backtrace
+end function
+
+' ----------------------------------------------------------------
+' Generates a random backtrace frame.
+' @return (object) backtrace frame with function, filename, line_number.
+' ----------------------------------------------------------------
+function IG_GetBacktraceFrame() as object
+    return {
+        function: IG_GetString(32),
+        filename: IG_GetString(32),
+        line_number: IG_GetInteger(128)
+    }
+end function
