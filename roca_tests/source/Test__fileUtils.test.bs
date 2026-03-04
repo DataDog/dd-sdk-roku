@@ -1,0 +1,70 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' NOTE: Tests that rely on roFileSystem (mkDirs, mkParentDirs, AppendAsciiFile)
+' are not migrated here because brs does not support roFileSystem or CreateDirectory.
+' Those tests require _brs_.mockComponent("roFileSystem", ...) and are deferred
+' to a future step once the mocking strategy is established.
+
+function main(args as object) as object
+    return roca(args).describe("FileUtils", sub()
+        m.it("WhenTrackFolderPath_ThenComputePath", FileUtilsTest__WhenTrackFolderPath_ThenComputePath)
+        m.it("WhenStrToLong_ThenReturnsLong", FileUtilsTest__WhenStrToLong_ThenReturnsLong)
+        m.it("WhenStrToLongOnString_ThenDoesNotCrash", FileUtilsTest__WhenStrToLongOnString_ThenDoesNotCrash)
+    end sub)
+end function
+
+'----------------------------------------------------------------
+' Checks that trackFolderPath creates a relevant path
+'----------------------------------------------------------------
+sub FileUtilsTest__WhenTrackFolderPath_ThenComputePath()
+    ' Given
+    trackType = IG_GetString(8)
+    version = IG_GetInteger(64)
+
+    ' When
+    result = trackFolderPath(trackType, version)
+
+    ' Then
+    expected = "cachefs:/datadog/v" + version.toStr() + "/" + trackType
+    m.assert.equal(result, expected, "expected '" + expected + "' but got '" + result + "'")
+end sub
+
+'----------------------------------------------------------------
+' Checks that strToLong parses long properly
+'----------------------------------------------------------------
+sub FileUtilsTest__WhenStrToLong_ThenReturnsLong()
+    for i = 0 to 100
+        ' Given
+        input& = IG_GetLongInteger()
+        input$ = input&.toStr()
+
+        ' When
+        result& = strToLong(input$)
+
+        ' Then
+        m.assert.equal(result&, input&, "strToLong failed for input " + input$)
+    end for
+end sub
+
+'----------------------------------------------------------------
+' Checks that strToLong does not crash on non-numeric input
+'----------------------------------------------------------------
+sub FileUtilsTest__WhenStrToLongOnString_ThenDoesNotCrash()
+    for i = 0 to 100
+        ' Given
+        input$ = IG_GetString(128)
+
+        ' When
+        crashed = false
+        try
+            strToLong(input$)
+        catch e
+            crashed = true
+        end try
+
+        ' Then
+        m.assert.isFalse(crashed, "strToLong crashed on input: " + input$)
+    end for
+end sub

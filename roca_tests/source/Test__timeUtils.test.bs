@@ -1,0 +1,148 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function main(args as object) as object
+    return roca(args).describe("TimeUtils", sub()
+        m.it("WhenGetTimestamp_ThenReturnsTimestampInMilliseconds", TimeUtilsTest__WhenGetTimestamp_ThenReturnsTimestampInMilliseconds)
+        m.it("WhenNanosToMillis_ThenConvertsToMillis", TimeUtilsTest__WhenNanosToMillis_ThenConvertsToMillis)
+        m.it("WhenMillisToNanos_ThenConvertsToNanos", TimeUtilsTest__WhenMillisToNanos_ThenConvertsToNanos)
+        m.it("WhenMillisToSecs_ThenConvertsToSeconds", TimeUtilsTest__WhenMillisToSecs_ThenConvertsToSeconds)
+        m.it("WhenSecsToNanos_ThenConvertsToNanos", TimeUtilsTest__WhenSecsToNanos_ThenConvertsToNanos)
+        m.it("WhenSecsToMillis_ThenConvertsToMillis", TimeUtilsTest__WhenSecsToMillis_ThenConvertsToMillis)
+    end sub)
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+sub TimeUtilsTest__WhenGetTimestamp_ThenReturnsTimestampInMilliseconds()
+    ' Given — hardcoded bounds: 1 Jan 2025 to 1 Jan 2028
+    timestampMS_1jan2025 = 1735686000000
+    timestampMS_1jan2028 = 1830294000000
+
+    ' When
+    result = getTimestamp()
+
+    ' Then
+    assertInRange(m, result, timestampMS_1jan2025, timestampMS_1jan2028)
+end sub
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+sub TimeUtilsTest__WhenNanosToMillis_ThenConvertsToMillis()
+    ' Given
+    hardcoded = [
+        { ms: 4815, ns: 4815162342 },
+        { ms: 42, ns: 42164851 },
+        { ms: 15, ns: 15764985 },
+        { ms: 1, ns: 1000000 },
+        { ms: 0, ns: 756491 },
+        { ms: 0, ns: 104862 },
+        { ms: 0, ns: 1 },
+        { ms: 0, ns: 0 },
+    ]
+
+    for each testcase in hardcoded
+        ' When
+        result = nanosToMillis(testcase.ns)
+
+        ' Then
+        m.assert.equal(result, testcase.ms, "Failed to convert " + testcase.ns.toStr() + "ns to " + testcase.ms.toStr() + "ms (was " + result.toStr() + "ms)")
+    end for
+end sub
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+sub TimeUtilsTest__WhenMillisToNanos_ThenConvertsToNanos()
+    ' Given
+    hardcoded = [
+        { ms: 4815, ns: 4815000000 },
+        { ms: 42, ns: 42000000 },
+        { ms: 15, ns: 15000000 },
+        { ms: 1, ns: 1000000 },
+        { ms: 0, ns: 0 },
+    ]
+
+    for each testcase in hardcoded
+        ' When
+        result = millisToNanos(testcase.ms)
+
+        ' Then
+        m.assert.equal(result, testcase.ns, "Failed to convert " + testcase.ms.toStr() + "ms to " + testcase.ns.toStr() + "ns (was " + result.toStr() + "ns)")
+    end for
+end sub
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+sub TimeUtilsTest__WhenMillisToSecs_ThenConvertsToSeconds()
+    ' Given — use # (double) suffix to avoid single-precision truncation in brs
+    hardcoded = [
+        { ms: 48151623, s: 48151.623# },
+        { ms: 1337, s: 1.337# },
+        { ms: 42, s: 0.042# },
+        { ms: 15, s: 0.015# },
+        { ms: 1, s: 0.001# },
+        { ms: 0, s: 0# },
+    ]
+    offset = 0.01 ' 10 ms threshold for floating point errors
+
+    for each testcase in hardcoded
+        ' When
+        result = millisToSec(testcase.ms)
+
+        ' Then
+        assertCloseTo(m, result, testcase.s, offset, "Failed to convert " + testcase.ms.toStr() + "ms to " + testcase.s.toStr() + "s (was " + result.toStr() + "s)")
+    end for
+end sub
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+sub TimeUtilsTest__WhenSecsToNanos_ThenConvertsToNanos()
+    ' Given — use # (double) suffix to avoid single-precision truncation in brs
+    hardcoded = [
+        { s: 4.815162342#, ns: 4815162342 },
+        { s: 0.1337#, ns: 133700000 },
+        { s: 0.042#, ns: 42000000 },
+        { s: 0.015#, ns: 15000000 },
+        { s: 0.001#, ns: 1000000 },
+        { s: 0#, ns: 0 },
+    ]
+    offset = 2000000 ' 2 ms threshold because of floating point error
+
+    for each testcase in hardcoded
+        ' When
+        result = secToNanos(testcase.s)
+
+        ' Then
+        assertCloseTo(m, result, testcase.ns, offset, "Failed to convert " + testcase.s.toStr() + "s to " + testcase.ns.toStr() + "ns (was " + result.toStr() + "ns)")
+    end for
+end sub
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+sub TimeUtilsTest__WhenSecsToMillis_ThenConvertsToMillis()
+    ' Given — use # (double) suffix to avoid single-precision truncation in brs
+    hardcoded = [
+        { ms: 48151623, s: 48151.623# },
+        { ms: 1337, s: 1.337# },
+        { ms: 42, s: 0.042# },
+        { ms: 15, s: 0.015# },
+        { ms: 1, s: 0.001# },
+        { ms: 0, s: 0# },
+    ]
+    offset = 2 ' 2 ms threshold because of floating point error
+
+    for each testcase in hardcoded
+        ' When
+        result = secToMillis(testcase.s)
+
+        ' Then
+        assertCloseTo(m, result, testcase.ms, offset, "Failed to convert " + testcase.s.toStr() + "s to " + testcase.ms.toStr() + "ms (was " + result.toStr() + "ms)")
+    end for
+end sub

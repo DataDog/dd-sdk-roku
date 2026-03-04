@@ -148,3 +148,47 @@ function IG_GetBacktraceFrame() as object
         line_number: IG_GetInteger(128)
     }
 end function
+
+'*****************************************************************
+' Assertion helpers for roca tests
+'
+' Roca's built-in m.assert.* does not include isCloseTo or isInRange.
+' These helpers fill the gap. Pass the roca test context `m` as `ctx`.
+'
+' Example:
+'   assertCloseTo(m, result, 1.337, 0.01, "should be ~1.337")
+'   assertInRange(m, timestamp, minMs, maxMs)
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Asserts that actual is within offset of expected (inclusive).
+' Equivalent to the old Assert.that(x).isCloseTo(expected, offset).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param actual (float/double/integer) the value under test.
+' @param expected (float/double/integer) the expected value.
+' @param offset (float/double) the allowed absolute difference.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertCloseTo(ctx as object, actual as dynamic, expected as dynamic, offset as dynamic, msg = "" as string)
+    diff = Abs(actual - expected)
+    if msg = ""
+        msg = "Expected " + actual.toStr() + " to be within " + offset.toStr() + " of " + expected.toStr() + " (diff was " + diff.toStr() + ")"
+    end if
+    ctx.assert.isTrue(diff <= offset, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that actual is within [min, max] inclusive.
+' Equivalent to the old Assert.that(x).isInRange(min, max).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param actual (float/double/integer/longinteger) the value under test.
+' @param minVal (float/double/integer/longinteger) lower bound (inclusive).
+' @param maxVal (float/double/integer/longinteger) upper bound (inclusive).
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertInRange(ctx as object, actual as dynamic, minVal as dynamic, maxVal as dynamic, msg = "" as string)
+    if msg = ""
+        msg = "Expected " + actual.toStr() + " to be in range [" + minVal.toStr() + ", " + maxVal.toStr() + "]"
+    end if
+    ctx.assert.isTrue(actual >= minVal and actual <= maxVal, msg)
+end sub
