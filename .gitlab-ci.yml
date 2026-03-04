@@ -122,6 +122,15 @@ test:roku:
     - npm install
     - npm test
 
+test:roca:
+  extends:
+    - .base-configuration
+  stage: test
+  timeout: 30m
+  script:
+    - npm install
+    - npm run test:roca -- --forbid-focused
+
 ########################################################################################################################
 # PUBLISH ARTIFACTS ON NPM
 ########################################################################################################################
