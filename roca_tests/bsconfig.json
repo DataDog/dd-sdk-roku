@@ -1,0 +1,15 @@
+{
+    "comment": "BrighterScript config for roca unit tests — compiles .bs test files to out/",
+    "rootDir": ".",
+    "files": [
+        "source/**/*.bs",
+        "helpers/**/*.bs"
+    ],
+    "createPackage": false,
+    "retainStagingDir": true,
+    "stagingDir": "./out",
+    "ignoreErrorCodes": [
+        1013,
+        1140
+    ]
+}

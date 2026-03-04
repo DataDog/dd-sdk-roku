@@ -3,7 +3,7 @@
 ' Copyright 2022-Today Datadog, Inc.
 
 '*****************************************************************
-' itemGenerator.brs
+' itemGenerator.bs
 ' Random test data generators for roca unit tests.
 ' Ported from Roku UTF ItemGenerator.brs — no UTF dependency.
 '*****************************************************************

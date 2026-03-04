@@ -1,0 +1,8 @@
+{
+  "name": "dd-sdk-roku-roca-tests",
+  "private": true,
+  "devDependencies": {
+    "@hulu/roca": "^0.27.0",
+    "brs": "^0.45.0"
+  }
+}
