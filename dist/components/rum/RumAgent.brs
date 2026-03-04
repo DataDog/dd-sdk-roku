@@ -33,9 +33,6 @@ sub init()
     m.top.observeFieldScoped("writer", m.port)
     m.top.observeFieldScoped("rumScope", m.port)
     m.top.observeFieldScoped("telemetryScope", m.port)
-    m.top.observeFieldScoped("startOperation", m.port)
-    m.top.observeFieldScoped("succeedOperation", m.port)
-    m.top.observeFieldScoped("failOperation", m.port)
     m.top.functionName = "rumAgentLoop"
     m.top.control = "RUN"
 end sub
@@ -84,12 +81,6 @@ sub rumAgentLoop()
                 if (msg.getData())
                     updateFields()
                 end if
-            else if (fieldName = "startOperation")
-                __onStartOperation(msg.getData())
-            else if (fieldName = "succeedOperation")
-                __onSucceedOperation(msg.getData())
-            else if (fieldName = "failOperation")
-                __onFailOperation(msg.getData())
             end if
         else
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
@@ -298,7 +289,9 @@ end sub
 ' ----------------------------------------------------------------
 sub __onStartOperation(event as object)
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", event, m.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -326,7 +319,9 @@ end sub
 ' ----------------------------------------------------------------
 sub __onSucceedOperation(event as object)
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", event, m.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -359,7 +354,9 @@ end sub
 ' ----------------------------------------------------------------
 sub __onFailOperation(event as object)
     ensureSetup()
-    m.rumScope.callfunc("handleEvent", event, m.writer)
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
