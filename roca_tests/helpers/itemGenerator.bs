@@ -98,6 +98,33 @@ function IG_GetOneOf(data as object) as dynamic
 end function
 
 ' ----------------------------------------------------------------
+' Generates an array of random values from a list of type specs.
+' Each element of types must be one of: "string", "integer",
+' "boolean", "float", "double".
+' @param types (object) array of type name strings.
+' @return (object) array of random values of the requested types.
+' ----------------------------------------------------------------
+function IG_GetArray(types as object) as object
+    result = []
+    for each typeName in types
+        if typeName = "string"
+            result.Push(IG_GetString(32))
+        else if typeName = "integer"
+            result.Push(IG_GetInteger())
+        else if typeName = "boolean"
+            result.Push(IG_GetBoolean())
+        else if typeName = "float"
+            result.Push(IG_GetFloat())
+        else if typeName = "double"
+            result.Push(IG_GetDouble())
+        else
+            result.Push(invalid)
+        end if
+    end for
+    return result
+end function
+
+' ----------------------------------------------------------------
 ' Generates a random backtrace array.
 ' @return (object) array of backtrace frame objects.
 ' ----------------------------------------------------------------

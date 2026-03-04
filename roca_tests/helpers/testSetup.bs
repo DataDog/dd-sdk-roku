@@ -1,0 +1,45 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'*****************************************************************
+' testSetup.bs
+' Assertion helpers for roca tests that extend m.assert.*
+'
+' Usage: pass the roca test context `m` as the first argument.
+'   assertCloseTo(m, result, 1.337, 0.01, "should be ~1.337")
+'   assertInRange(m, timestamp, minMs, maxMs, "should be in range")
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Asserts that actual is within offset of expected (inclusive).
+' Equivalent to the old Assert.that(x).isCloseTo(expected, offset).
+' @param m (object) roca test context (m.assert.isTrue, m.fail).
+' @param actual (float/double/integer) the value under test.
+' @param expected (float/double/integer) the expected value.
+' @param offset (float/double) the allowed absolute difference.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertCloseTo(m as object, actual as dynamic, expected as dynamic, offset as dynamic, msg = "" as string)
+    diff = Abs(actual - expected)
+    if msg = ""
+        msg = "Expected " + actual.toStr() + " to be within " + offset.toStr() + " of " + expected.toStr() + " (diff was " + diff.toStr() + ")"
+    end if
+    m.assert.isTrue(diff <= offset, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that actual is within [min, max] inclusive.
+' Equivalent to the old Assert.that(x).isInRange(min, max).
+' @param m (object) roca test context.
+' @param actual (float/double/integer/longinteger) the value under test.
+' @param min (float/double/integer/longinteger) lower bound (inclusive).
+' @param max (float/double/integer/longinteger) upper bound (inclusive).
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertInRange(m as object, actual as dynamic, min as dynamic, max as dynamic, msg = "" as string)
+    if msg = ""
+        msg = "Expected " + actual.toStr() + " to be in range [" + min.toStr() + ", " + max.toStr() + "]"
+    end if
+    m.assert.isTrue(actual >= min and actual <= max, msg)
+end sub
