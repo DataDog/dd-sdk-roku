@@ -79,13 +79,17 @@ end sub
 
 sub succeedContentLoad()
     m.global.datadogRumAgent@.succeedOperation("contentLoad")
-    if m.contentLoadTimer <> invalid then m.contentLoadTimer.control = "stop"
+    if (m.contentLoadTimer <> invalid)
+        m.contentLoadTimer.control = "stop"
+    end if
     m.msgLabel.text = "Content load succeeded!"
 end sub
 
 sub failContentLoad()
     m.global.datadogRumAgent@.failOperation("contentLoad", "abandoned")
-    if m.contentLoadTimer <> invalid then m.contentLoadTimer.control = "stop"
+    if (m.contentLoadTimer <> invalid)
+        m.contentLoadTimer.control = "stop"
+    end if
     m.msgLabel.text = "Content load failed (abandoned)"
 end sub
 
@@ -105,7 +109,9 @@ end sub
 
 sub failLogin()
     m.global.datadogRumAgent@.failOperation("login", "error", invalid, { error_code: "auth_timeout" })
-    if m.loginTimer <> invalid then m.loginTimer.control = "stop"
+    if (m.loginTimer <> invalid)
+        m.loginTimer.control = "stop"
+    end if
     m.msgLabel.text = "Login failed (error: auth_timeout)"
 end sub
 
@@ -122,7 +128,7 @@ sub startKeyedOperation()
 end sub
 
 sub succeedKeyedOperation()
-    if m.lastOperationKey = invalid
+    if (m.lastOperationKey = invalid)
         m.msgLabel.text = "No keyed operation in progress"
         return
     end if
