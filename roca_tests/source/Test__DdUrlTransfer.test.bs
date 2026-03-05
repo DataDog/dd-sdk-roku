@@ -1,0 +1,300 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' NOTE: The following tests are not migrated and are deferred to device testing:
+' - WhenAddSampledInHeaders, WhenDeleteTracingHeaders, WhenSampledIn, WhenSampledOut*:
+'   brs does not support CreateObject("roUrlTransfer"), required by DdUrlTransfer().
+
+function main(args as object) as object
+    return roca(args).describe("DdUrlTransfer", sub()
+        m.it("WhenGetTracedHeaderType_ThenReturnsHeaderType", DdUrlTransferTest__WhenGetTracedHeaderType_ThenReturnsHeaderType)
+        m.it("WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHeaderType", DdUrlTransferTest__WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHeaderType)
+        m.it("WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid)
+        m.it("WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid)
+        m.it("WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid)
+        
+        m.it("WhenPadLeftWithEmptyString_ThenReturnPaddedString", DdUrlTransferTest__WhenPadLeftWithEmptyString_ThenReturnPaddedString)
+        m.it("WhenPadLeftWithExactSizeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithExactSizeString_ThenReturnOriginalString)
+        m.it("WhenPadLeftWithLargeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithLargeString_ThenReturnOriginalString)
+        m.it("WhenPadLeftWithSmallString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString)
+
+        m.it("WhenGenerateUniqueId64_ThenGenerateIdDecimal", DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdDecimal)
+        m.it("WhenGenerateUniqueId64_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdHexadecimal)
+        m.it("WhenGenerateUniqueId128_ThenGenerateIdDecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdDecimal)
+        m.it("WhenGenerateUniqueId128_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal)
+        m.it("WhenGenerateUniqueIdDd_ThenGenerateAllId", DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId)
+        m.it("WhenPrintIdToString_ThenGenerateStringId", DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId)
+    end sub)
+end function
+
+'----------------------------------------------------------------
+' Given: a list of valid hosts and a URL matching one of them
+'  When: call getTracedHeaderType
+'  Then: returns the matching header type
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGetTracedHeaderType_ThenReturnsHeaderType()
+    ' Given
+    validHosts = []
+    for i = 0 to 10
+        host = IG_GetString(12) + "." + IG_GetString(3)
+        validHosts.Push({ host: host, header: IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"]) })
+    end for
+    validHost = validHosts[IG_GetIntegerInRange(0, 10)]
+    url = "https://" + validHost.host + "/" + IG_GetString(16)
+
+    ' When
+    result = getTracedHeaderType(url, validHosts)
+
+    ' Then
+    m.assert.equal(result, validHost.header, "expected header type '" + validHost.header + "' for host '" + validHost.host + "'")
+end sub
+
+'----------------------------------------------------------------
+' Given: a list with a single valid host and a matching URL
+'  When: call getTracedHeaderType
+'  Then: returns the header type
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHeaderType()
+    ' Given
+    validHost = IG_GetString(12) + "." + IG_GetString(3)
+    headerType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
+    validHosts = []
+    validHosts.Push({ host: validHost, header: headerType })
+    url = "https://" + validHost + "/" + IG_GetString(16)
+
+    ' When
+    result = getTracedHeaderType(url, validHosts)
+
+    ' Then
+    m.assert.equal(result, headerType, "expected header type '" + headerType + "' for single-host list")
+end sub
+
+'----------------------------------------------------------------
+' Given: a list of valid hosts and a URL for an unknown host
+'  When: call getTracedHeaderType
+'  Then: returns invalid
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid()
+    ' Given
+    validHosts = []
+    for i = 0 to 10
+        validHosts.Push({ host: IG_GetString(12) + "." + IG_GetString(3), header: IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"]) })
+    end for
+    url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
+
+    ' When
+    result = getTracedHeaderType(url, validHosts)
+
+    ' Then
+    m.assert.isInvalid(result, "expected invalid for unknown host in url: " + url)
+end sub
+
+'----------------------------------------------------------------
+' Given: an empty host list and a URL
+'  When: call getTracedHeaderType
+'  Then: returns invalid
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid()
+    ' Given
+    validHosts = []
+    url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
+
+    ' When
+    result = getTracedHeaderType(url, validHosts)
+
+    ' Then
+    m.assert.isInvalid(result, "expected invalid for empty host list, url: " + url)
+end sub
+
+'----------------------------------------------------------------
+' Given: a list of valid hosts and a non-URL string
+'  When: call getTracedHeaderType
+'  Then: returns invalid
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid()
+    ' Given
+    validHosts = []
+    for i = 0 to 10
+        validHosts.Push({ host: IG_GetString(12) + "." + IG_GetString(3), header: IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"]) })
+    end for
+    url = IG_GetString(64)
+
+    ' When
+    result = getTracedHeaderType(url, validHosts)
+
+    ' Then
+    m.assert.isInvalid(result, "expected invalid for non-url input: " + url)
+end sub
+
+'----------------------------------------------------------------
+' Given: an empty string and a padding character
+'  When: call padLeft with target length
+'  Then: returns a padded string of the correct length containing the pad
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenPadLeftWithEmptyString_ThenReturnPaddedString()
+    ' Given
+    length = IG_GetIntegerInRange(10, 20)
+    pad = IG_GetString(1)
+
+    ' When
+    result = padLeft("", length, pad)
+
+    ' Then
+    assertHasSize(m, result, length, "expected padded string of length " + length.toStr())
+    assertHasSubstring(m, result, pad + pad + pad + pad + pad + pad + pad + pad + pad, "expected pad repeated in result")
+end sub
+
+'----------------------------------------------------------------
+' Given: a string of exactly the target length
+'  When: call padLeft
+'  Then: returns the original string unchanged
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenPadLeftWithExactSizeString_ThenReturnOriginalString()
+    ' Given
+    input = IG_GetString(20)
+    length = input.Len()
+    pad = IG_GetString(1)
+
+    ' When
+    result = padLeft(input, length, pad)
+
+    ' Then
+    m.assert.equal(result, input, "expected original string when input already matches length")
+end sub
+
+'----------------------------------------------------------------
+' Given: a string longer than the target length
+'  When: call padLeft
+'  Then: returns the original string unchanged
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenPadLeftWithLargeString_ThenReturnOriginalString()
+    ' Given
+    input = IG_GetString(10) + IG_GetString(10) + IG_GetString(10) + IG_GetString(10)
+    length = input.Len() / 2
+    pad = IG_GetString(1)
+
+    ' When
+    result = padLeft(input, length, pad)
+
+    ' Then
+    m.assert.equal(result, input, "expected original string when input is longer than target length")
+end sub
+
+'----------------------------------------------------------------
+' Given: a string shorter than the target length
+'  When: call padLeft
+'  Then: returns a padded string of the correct length starting with pad
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString()
+    ' Given
+    length = IG_GetIntegerInRange(10, 20)
+    pad = IG_GetString(1)
+    input = IG_GetString(IG_GetIntegerInRange(1, length - 1))
+
+    ' When
+    result = padLeft(input, length, pad)
+
+    ' Then
+    assertHasSize(m, result, length, "expected padded string of length " + length.toStr())
+    assertHasSubstring(m, result, pad + input, "expected pad prepended to input")
+end sub
+
+'----------------------------------------------------------------
+' Given: no input
+'  When: call generateUniqueId64 (default decimal radix)
+'  Then: returns a non-empty string of up to 20 decimal digits
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdDecimal()
+    ' When
+    id = generateUniqueId64()
+
+    ' Then
+    ' 64 bit ids will never have more than 20 chars in decimal representation
+    assertInRange(m, id.Len(), 1, 20, "expected decimal id length in [1, 20], got: " + id.Len().toStr())
+    assertMatches(m, id, "^[0-9]+$", "", "expected decimal digits only, got: " + id)
+end sub
+
+'----------------------------------------------------------------
+' Given: no input
+'  When: call generateUniqueId64 with hexadecimal radix
+'  Then: returns a non-empty string of up to 16 hex digits
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdHexadecimal()
+    ' When
+    id = generateUniqueId64(16)
+
+    ' Then
+    ' 64 bit ids will never have more than 16 chars in hexadecimal representation
+    assertInRange(m, id.Len(), 1, 16, "expected hex id length in [1, 16], got: " + id.Len().toStr())
+    assertMatches(m, id, "^[0-9a-f]+$", "i", "expected hex digits only, got: " + id)
+end sub
+
+'----------------------------------------------------------------
+' Given: no input
+'  When: call generateUniqueId128 (default decimal radix)
+'  Then: returns a non-empty string of up to 39 decimal digits
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdDecimal()
+    ' When
+    id = generateUniqueId128()
+
+    ' Then
+    ' 128 bit ids will never have more than 39 chars in decimal representation
+    assertInRange(m, id.Len(), 1, 39, "expected decimal id length in [1, 39], got: " + id.Len().toStr())
+    assertMatches(m, id, "^[0-9]+$", "", "expected decimal digits only, got: " + id)
+end sub
+
+'----------------------------------------------------------------
+' Given: no input
+'  When: call generateUniqueId128 with hexadecimal radix
+'  Then: returns a non-empty string of up to 32 hex digits
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal()
+    ' When
+    id = generateUniqueId128(16)
+
+    ' Then
+    ' 128 bit ids will never have more than 32 chars in hexadecimal representation
+    assertInRange(m, id.Len(), 1, 32, "expected hex id length in [1, 32], got: " + id.Len().toStr())
+    assertMatches(m, id, "^[0-9a-f]+$", "i", "expected hex digits only, got: " + id)
+end sub
+
+'----------------------------------------------------------------
+' Given: no input
+'  When: call generateUniqueIdDd
+'  Then: returns array of 3 strings: [full128hex, low64dec, high64hex]
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId()
+    ' When
+    id = generateUniqueIdDd()
+
+    ' Then
+    assertHasSize(m, id, 3, "expected array of 3 ids")
+    ' the full id always starts with the high id (both are hex)
+    assertMatches(m, id[0], "^" + id[2] + "[0-9a-f]{16}$", "i", "expected full id to start with high id")
+    assertMatches(m, id[1], "^[0-9]+$", "", "expected low64 to be decimal digits")
+    assertMatches(m, id[2], "^[0-9a-f]+$", "i", "expected high64 to be hex digits")
+end sub
+
+'----------------------------------------------------------------
+' Given: specific hardcoded inputs
+'  When: call printIdToString
+'  Then: returns the expected string representation
+'----------------------------------------------------------------
+sub DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId()
+    ' Decimal cases
+    decRadix = 10
+    m.assert.equal(printIdToString(0, 0, 0, 42, decRadix), "42", "printIdToString(0,0,0,42,10)")
+    m.assert.equal(printIdToString(0, 0, 16, 0, decRadix), "68719476736", "printIdToString(0,0,16,0,10)")
+    m.assert.equal(printIdToString(0, 815, 0, 0, decRadix), "15034096420073284567040", "printIdToString(0,815,0,0,10)")
+    m.assert.equal(printIdToString(23, 0, 13, 0, decRadix), "1822247737828079764707345432576", "printIdToString(23,0,13,0,10)")
+
+    ' Hexadecimal cases
+    hexRadix = 16
+    m.assert.equal(printIdToString(0, 0, 0, 42, hexRadix), "2a", "printIdToString(0,0,0,42,16)")
+    m.assert.equal(printIdToString(0, 0, 16, 0, hexRadix), "1000000000", "printIdToString(0,0,16,0,16)")
+    m.assert.equal(printIdToString(0, 815, 0, 0, hexRadix), "32f0000000000000000", "printIdToString(0,815,0,0,16)")
+    m.assert.equal(printIdToString(23, 0, 0, 0, hexRadix), "17000000000000000000000000", "printIdToString(23,0,0,0,16)")
+end sub
+

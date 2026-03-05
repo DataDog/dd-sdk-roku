@@ -192,3 +192,57 @@ sub assertInRange(ctx as object, actual as dynamic, minVal as dynamic, maxVal as
     end if
     ctx.assert.isTrue(actual >= minVal and actual <= maxVal, msg)
 end sub
+
+' ----------------------------------------------------------------
+' Asserts that value matches a regular expression pattern.
+' Equivalent to the old Assert.that(x).matches(pattern, flags).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param value (string) the string to test.
+' @param pattern (string) the regex pattern.
+' @param flags (string) regex flags (e.g. "i" for case-insensitive); default "".
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertMatches(ctx as object, value as string, pattern as string, flags = "" as string, msg = "" as string)
+    regex = CreateObject("roRegex", pattern, flags)
+    isMatch = regex.IsMatch(value)
+    if msg = ""
+        msg = "Expected '" + value + "' to match '" + pattern + "'"
+    end if
+    ctx.assert.isTrue(isMatch, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that a string contains the given substring.
+' Equivalent to the old Assert.that(x).hasSubstring(sub).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param value (string) the string under test.
+' @param sub (string) the expected substring.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertHasSubstring(ctx as object, value as string, substring as string, msg = "" as string)
+    if msg = ""
+        msg = "Expected '" + value + "' to contain '" + substring + "'"
+    end if
+    ctx.assert.isTrue(value.Instr(substring) >= 0, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that a string or array has the given size.
+' Equivalent to the old Assert.that(x).hasSize(n).
+' For strings, checks Len(). For arrays, checks Count().
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param value (dynamic) the string or array under test.
+' @param size (integer) the expected size.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertHasSize(ctx as object, value as dynamic, size as integer, msg = "" as string)
+    if type(value) = "roArray"
+        actual = value.Count()
+    else
+        actual = Len(value)
+    end if
+    if msg = ""
+        msg = "Expected size " + size.toStr() + " but got " + actual.toStr()
+    end if
+    ctx.assert.equal(actual, size, msg)
+end sub
