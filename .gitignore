@@ -13,6 +13,9 @@ package-lock.json
 # Java
 .java-version
 
+# JetBrains
+.idea
+
 # Visual Studio Code
 .vscode
 
