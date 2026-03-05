@@ -15,9 +15,12 @@ function TestSuite__RumCrashReporterTask() as object
 
     this.addTest("WhenReasonIsValid_ThenWriteErrorAndViewEvents", RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenReasonIsValid_ThenWriteErrorWithStackAndViewEvents", RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndViewEvents, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenReasonIsUnknown_ThenWriteErrorAndViewEvents", RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEvents, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenLastViewIsCurrentSession_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
-    this.addTest("WhenExitreasonInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenExitreasonIsIgnored_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonIsIgnored_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+    this.addTest("WhenExitreasonIsCustomIgnored_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonIsCustomIgnored_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
 
+    this.addTest("WhenExitreasonIsEmpty_ThenDoNothing", RumCrashReporterTaskTest__WhenExitreasonIsEmpty_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenLastViewIsMissing_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsMissing_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenLastViewIsInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
 
@@ -40,6 +43,18 @@ sub RumCrashReporterTaskTest__SetUp()
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
+
+    ' Global configuration
+    m.testSuite.global.addFields({
+        datadogIgnoredExitEvents: [
+            "EXIT_UNKNOWN",
+            "EXIT_POWER_MODE",
+            "EXIT_IDLE_AUTO_EXIT",
+            "EXIT_DIAL_DELETE",
+            "EXIT_USER_KILL",
+            "EXIT_USER_NAV"
+        ]
+    })
 
     ' Tested Task
     m.testSuite.testedTask = CreateObject("roSGNode", "datadogroku_RumCrashReporterTask")
@@ -269,6 +284,64 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumCrashReporterTask
+'  When: last view exists, and exit reason is unknown (not in the ignore list)
+'  Then: writes an error and view events (unknown statuses are treated as crashes)
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEvents() as string
+    ' Given
+    fakeUnknownExitStatus = "EXIT_SOME_NEW_FIRMWARE_STATUS"
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeUnknownExitStatus
+
+    ' When
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(2)
+    errorEvent = ParseJson(updates[0])
+    Assert.that(errorEvent).isNotInvalid()
+    Assert.that(errorEvent.error.type).isEqualTo(fakeUnknownExitStatus)
+    Assert.that(errorEvent.error.is_crash).isEqualTo(true)
+
+    Assert.that(lastViewFilePath).doesNotExist()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
 '  When: last view exists for current instance
 '  Then: ignore and does nothing
 '----------------------------------------------------------------
@@ -329,10 +402,124 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumCrashReporterTask
-'  When: last view exists for current instance
+'  When: exit reason is in the default ignore list
 '  Then: ignore and does nothing
 '----------------------------------------------------------------
-function RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing() as string
+function RumCrashReporterTaskTest__WhenExitreasonIsIgnored_ThenDoNothing() as string
+    ' Given
+    fakeIgnoredExitStatus = IG_GetOneOf([
+        "EXIT_UNKNOWN",
+        "EXIT_POWER_MODE",
+        "EXIT_IDLE_AUTO_EXIT",
+        "EXIT_DIAL_DELETE",
+        "EXIT_USER_KILL",
+        "EXIT_USER_NAV"
+    ])
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeIgnoredExitStatus
+
+    ' When
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    Assert.that(lastViewFilePath).doesNotExist()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask with custom ignored exit events configured
+'  When: exit reason is in the custom ignore list
+'  Then: ignore and does nothing
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenExitreasonIsCustomIgnored_ThenDoNothing() as string
+    ' Given
+    fakeCustomIgnoredStatus = "EXIT_BRIGHTSCRIPT_CRASH"
+    m.global.datadogIgnoredExitEvents = [fakeCustomIgnoredStatus]
+    fakePreviousViewEvent = {
+        _dd: {
+            document_version: IG_GetInteger()
+        },
+        application: {
+            id: IG_GetString(16)
+        },
+        context: m.global.datadogContext,
+        date: IG_GetLongInteger(),
+        service: m.fakeGlobalContext,
+        session: {
+            has_replay: false,
+            id: IG_GetString(16),
+            type: "user"
+        },
+        source: IG_GetString(16),
+        type: "view",
+        usr: m.fakeGlobalUserInfo,
+        version: IG_GetString(16),
+        view: {
+            id: IG_GetString(16),
+            url: IG_GetString(16),
+            name: IG_GetString(16),
+            time_spent: IG_GetInteger(),
+            action: { count: IG_GetInteger() },
+            error: { count: IG_GetInteger() },
+            resource: { count: IG_GetInteger() }
+        }
+    }
+    previousInstanceId = IG_GetString(32)
+    lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
+    WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
+    m.testedTask.lastExitOrTerminationReason = fakeCustomIgnoredStatus
+
+    ' When
+    m.testedTask.control = "RUN"
+    sleep(100)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(0)
+    Assert.that(lastViewFilePath).doesNotExist()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumCrashReporterTask
+'  When: exit reason is an empty string
+'  Then: does not write a crash report but still deletes the last view file
+'----------------------------------------------------------------
+function RumCrashReporterTaskTest__WhenExitreasonIsEmpty_ThenDoNothing() as string
     ' Given
     fakePreviousViewEvent = {
         _dd: {
@@ -366,7 +553,7 @@ function RumCrashReporterTaskTest__WhenExitreasonInvalid_ThenDoNothing() as stri
     previousInstanceId = IG_GetString(32)
     lastViewFilePath = datadogroku_lastViewEventFilePath(previousInstanceId)
     WriteAsciiFile(lastViewFilePath, FormatJson(fakePreviousViewEvent))
-    m.testedTask.lastExitOrTerminationReason = IG_GetString(16)
+    m.testedTask.lastExitOrTerminationReason = ""
 
     ' When
     m.testedTask.control = "RUN"
