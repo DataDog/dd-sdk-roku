@@ -1,0 +1,43 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' NOTE: The following tests are not migrated and are deferred to device testing:
+' - WhenGetEndpoint*: brs 0.45.0 cannot use a string-typed value boxed as `object`
+'   to index an associative array; getEndpoint(site as object) triggers
+'   "Associative array indexes must be strings" in brs.
+' - WhenInitialize_*: brs does not support the custom roSGNode components
+'   (MultiTrackUploaderTask, RumAgent, LogsAgent) required by initialize().
+
+function main(args as object) as object
+    return roca(args).describe("Datadog", sub()
+        m.it("WhenGetChannelServiceName_ThenReturnServiceName", DatadogTest__WhenGetChannelServiceName_ThenReturnServiceName)
+        m.it("WhenGetChannelVersion_ThenReturnVersion", DatadogTest__WhenGetChannelVersion_ThenReturnVersion)
+    end sub)
+end function
+
+'----------------------------------------------------------------
+' Given: a channel with the manifest from roca_tests/manifest
+'  When: asking for the channel service name
+'  Then: the sanitized service from the manifest title
+'----------------------------------------------------------------
+sub DatadogTest__WhenGetChannelServiceName_ThenReturnServiceName()
+    ' When
+    serviceName = channelServiceName()
+
+    ' Then
+    m.assert.equal(serviceName, "datadog__test-channel__42.1/k_", "expected sanitized service name from manifest title")
+end sub
+
+'----------------------------------------------------------------
+' Given: a channel with the manifest from roca_tests/manifest
+'  When: asking for the channel version
+'  Then: the correct version from the manifest
+'----------------------------------------------------------------
+sub DatadogTest__WhenGetChannelVersion_ThenReturnVersion()
+    ' When
+    version = channelVersion()
+
+    ' Then
+    m.assert.equal(version, "4.8.15", "expected version from manifest major.minor.build")
+end sub

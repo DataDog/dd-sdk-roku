@@ -98,6 +98,33 @@ function IG_GetOneOf(data as object) as dynamic
 end function
 
 ' ----------------------------------------------------------------
+' Generates an array of random values from a list of type specs.
+' Each element of types must be one of: "string", "integer",
+' "boolean", "float", "double".
+' @param types (object) array of type name strings.
+' @return (object) array of random values of the requested types.
+' ----------------------------------------------------------------
+function IG_GetArray(types as object) as object
+    result = []
+    for each typeName in types
+        if typeName = "string"
+            result.Push(IG_GetString(32))
+        else if typeName = "integer"
+            result.Push(IG_GetInteger())
+        else if typeName = "boolean"
+            result.Push(IG_GetBoolean())
+        else if typeName = "float"
+            result.Push(IG_GetFloat())
+        else if typeName = "double"
+            result.Push(IG_GetDouble())
+        else
+            result.Push(invalid)
+        end if
+    end for
+    return result
+end function
+
+' ----------------------------------------------------------------
 ' Generates a random backtrace array.
 ' @return (object) array of backtrace frame objects.
 ' ----------------------------------------------------------------
@@ -121,3 +148,101 @@ function IG_GetBacktraceFrame() as object
         line_number: IG_GetInteger(128)
     }
 end function
+
+'*****************************************************************
+' Assertion helpers for roca tests
+'
+' Roca's built-in m.assert.* does not include isCloseTo or isInRange.
+' These helpers fill the gap. Pass the roca test context `m` as `ctx`.
+'
+' Example:
+'   assertCloseTo(m, result, 1.337, 0.01, "should be ~1.337")
+'   assertInRange(m, timestamp, minMs, maxMs)
+'*****************************************************************
+
+' ----------------------------------------------------------------
+' Asserts that actual is within offset of expected (inclusive).
+' Equivalent to the old Assert.that(x).isCloseTo(expected, offset).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param actual (float/double/integer) the value under test.
+' @param expected (float/double/integer) the expected value.
+' @param offset (float/double) the allowed absolute difference.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertCloseTo(ctx as object, actual as dynamic, expected as dynamic, offset as dynamic, msg = "" as string)
+    diff = Abs(actual - expected)
+    if msg = ""
+        msg = "Expected " + actual.toStr() + " to be within " + offset.toStr() + " of " + expected.toStr() + " (diff was " + diff.toStr() + ")"
+    end if
+    ctx.assert.isTrue(diff <= offset, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that actual is within [min, max] inclusive.
+' Equivalent to the old Assert.that(x).isInRange(min, max).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param actual (float/double/integer/longinteger) the value under test.
+' @param minVal (float/double/integer/longinteger) lower bound (inclusive).
+' @param maxVal (float/double/integer/longinteger) upper bound (inclusive).
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertInRange(ctx as object, actual as dynamic, minVal as dynamic, maxVal as dynamic, msg = "" as string)
+    if msg = ""
+        msg = "Expected " + actual.toStr() + " to be in range [" + minVal.toStr() + ", " + maxVal.toStr() + "]"
+    end if
+    ctx.assert.isTrue(actual >= minVal and actual <= maxVal, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that value matches a regular expression pattern.
+' Equivalent to the old Assert.that(x).matches(pattern, flags).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param value (string) the string to test.
+' @param pattern (string) the regex pattern.
+' @param flags (string) regex flags (e.g. "i" for case-insensitive); default "".
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertMatches(ctx as object, value as string, pattern as string, flags = "" as string, msg = "" as string)
+    regex = CreateObject("roRegex", pattern, flags)
+    isMatch = regex.IsMatch(value)
+    if msg = ""
+        msg = "Expected '" + value + "' to match '" + pattern + "'"
+    end if
+    ctx.assert.isTrue(isMatch, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that a string contains the given substring.
+' Equivalent to the old Assert.that(x).hasSubstring(sub).
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param value (string) the string under test.
+' @param sub (string) the expected substring.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertHasSubstring(ctx as object, value as string, substring as string, msg = "" as string)
+    if msg = ""
+        msg = "Expected '" + value + "' to contain '" + substring + "'"
+    end if
+    ctx.assert.isTrue(value.Instr(substring) >= 0, msg)
+end sub
+
+' ----------------------------------------------------------------
+' Asserts that a string or array has the given size.
+' Equivalent to the old Assert.that(x).hasSize(n).
+' For strings, checks Len(). For arrays, checks Count().
+' @param ctx (object) roca test context — pass `m` from your m.it() sub.
+' @param value (dynamic) the string or array under test.
+' @param size (integer) the expected size.
+' @param msg (string) failure message; auto-generated if empty.
+' ----------------------------------------------------------------
+sub assertHasSize(ctx as object, value as dynamic, size as integer, msg = "" as string)
+    if type(value) = "roArray"
+        actual = value.Count()
+    else
+        actual = Len(value)
+    end if
+    if msg = ""
+        msg = "Expected size " + size.toStr() + " but got " + actual.toStr()
+    end if
+    ctx.assert.equal(actual, size, msg)
+end sub

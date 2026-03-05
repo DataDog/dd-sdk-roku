@@ -884,18 +884,18 @@ function printIdToString(li0& as longinteger, li1& as longinteger, li2& as longi
         ' but requiring 36 bits max (32 for the low value + 4 for the high part)
         ' transitively for each bucket
         modA& = a& mod radix
-        tempB& = (modA& << 32) + b&
+        tempB& = (modA& * 4294967296&) + b&
         modTempB& = tempB& mod radix
-        tempC& = (modTempB& << 32) + c&
+        tempC& = (modTempB& * 4294967296&) + c&
         modTempC& = tempC& mod radix
-        tempD& = (modTempC& << 32) + d&
+        tempD& = (modTempC& * 4294967296&) + d&
 
         digit = tempD& mod radix
 
-        a& = (a& - modA&) / radix
-        b& = (tempB& - modTempB&) / radix
-        c& = (tempC& - modTempC&) / radix
-        d& = (tempD& - digit) / radix
+        a& = (a& - modA&) \ radix
+        b& = (tempB& - modTempB&) \ radix
+        c& = (tempC& - modTempC&) \ radix
+        d& = (tempD& - digit) \ radix
 
         ' update the string from right to left
         if (digit < 10)

@@ -9,6 +9,7 @@
     "retainStagingDir": true,
     "stagingDir": "./out",
     "ignoreErrorCodes": [
+        1003,
         1013,
         1140
     ]
