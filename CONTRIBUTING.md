@@ -9,12 +9,10 @@ To propose improvements, feel free to submit a PR or open an Issue.
 
 To setup your environment, first make sure you followed the official [Roku Developer environment setup](https://developer.roku.com/en-gb/docs/developer-program/getting-started/developer-setup.md).
 
-You also need to have the [BrighterScript](https://npmjs.org/package/brighterscript), [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) and [ROPM](https://www.npmjs.com/package/ropm) `npm` packages installed:
+You also need to install the project dependencies:
 
 ```shell script
-npm install -g brighterscript
-npm install -g ropm
-npm install -g @rokucommunity/bslint
+npm install
 brew install telnet
 ```
 
