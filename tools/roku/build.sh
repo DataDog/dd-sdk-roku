@@ -15,11 +15,11 @@ do
 
     if [ -f "package.json" ]; then
         echo " - Install ROPM dependencies"
-        ropm install
+        npx ropm install
     fi
 
-    echo " - Run BrighterScript compiler/linter (version ‘$(bsc --version)’)"
-    bsc --lintConfig ../tools/lint/bslint.json
+    echo " - Run BrighterScript compiler/linter (version ‘$(npx bsc --version)’)"
+    npx bsc --lintConfig ../tools/lint/bslint.json
     result=$?
 
     # Needs to happen after calling bsc as it needs bslint in node_modules
