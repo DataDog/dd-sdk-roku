@@ -24,6 +24,9 @@ sub init()
     m.top.observeFieldScoped("addConfigTelemetry", m.port)
     m.top.observeFieldScoped("addErrorTelemetry", m.port)
     m.top.observeFieldScoped("addDebugTelemetry", m.port)
+    m.top.observeFieldScoped("startOperation", m.port)
+    m.top.observeFieldScoped("succeedOperation", m.port)
+    m.top.observeFieldScoped("failOperation", m.port)
     m.top.observeFieldScoped("areFieldsSet", m.port)
     'Observe nodes injected by the test
     m.top.observeFieldScoped("uploader", m.port)
@@ -60,6 +63,12 @@ sub rumAgentLoop()
                 __onAddErrorTelemetry(msg.getData())
             else if (fieldName = "addDebugTelemetry")
                 __onAddDebugTelemetry(msg.getData())
+            else if (fieldName = "startOperation")
+                __onStartOperation(msg.getData())
+            else if (fieldName = "succeedOperation")
+                __onSucceedOperation(msg.getData())
+            else if (fieldName = "failOperation")
+                __onFailOperation(msg.getData())
             else if (fieldName = "uploader")
                 m.uploader = msg.getData()
             else if (fieldName = "writer")
@@ -254,6 +263,139 @@ sub __onAddDebugTelemetry(event as object)
     ensureSetup()
     m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
+
+' ----------------------------------------------------------------
+' Starts a feature operation
+' @param name (string) the operation name (e.g.: "login", "checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel
+'     operations, or invalid for unkeyed operations
+' @param context (object) an assocarray of custom attributes to add to the event
+' ----------------------------------------------------------------
+sub startOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
+    if (not __isValidOperationName(name))
+        ddLogError("RumAgent: startOperation called with blank name, ignoring")
+        return
+    end if
+    if (not __isValidOperationKey(operationKey))
+        ddLogError("RumAgent: startOperation called with blank operationKey, ignoring")
+        return
+    end if
+    m.top.startOperation = startFeatureOperationEvent(name, operationKey, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles startOperation field change event
+' @param event (object) the startOperation event data
+' ----------------------------------------------------------------
+sub __onStartOperation(event as object)
+    ensureSetup()
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Succeeds a feature operation
+' @param name (string) the operation name (e.g.: "login", "checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel
+'     operations, or invalid for unkeyed operations
+' @param context (object) an assocarray of custom attributes to add to the event
+' ----------------------------------------------------------------
+sub succeedOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
+    if (not __isValidOperationName(name))
+        ddLogError("RumAgent: succeedOperation called with blank name, ignoring")
+        return
+    end if
+    if (not __isValidOperationKey(operationKey))
+        ddLogError("RumAgent: succeedOperation called with blank operationKey, ignoring")
+        return
+    end if
+    m.top.succeedOperation = succeedFeatureOperationEvent(name, operationKey, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles succeedOperation field change event
+' @param event (object) the succeedOperation event data
+' ----------------------------------------------------------------
+sub __onSucceedOperation(event as object)
+    ensureSetup()
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Fails a feature operation
+' @param name (string) the operation name (e.g.: "login", "checkout")
+' @param failureReason (string) the failure reason (use "error", "abandoned", or "other")
+' @param operationKey (dynamic) the operation key for distinguishing parallel
+'     operations, or invalid for unkeyed operations
+' @param context (object) an assocarray of custom attributes to add to the event
+' ----------------------------------------------------------------
+sub failOperation(name as string, failureReason as string, operationKey = invalid as dynamic, context = {} as object)
+    if (not __isValidOperationName(name))
+        ddLogError("RumAgent: failOperation called with blank name, ignoring")
+        return
+    end if
+    if (not __isValidOperationKey(operationKey))
+        ddLogError("RumAgent: failOperation called with blank operationKey, ignoring")
+        return
+    end if
+    if (not __isValidFailureReason(failureReason))
+        ddLogError("RumAgent: failOperation called with invalid failureReason '" + failureReason + "', ignoring")
+        return
+    end if
+    m.top.failOperation = failFeatureOperationEvent(name, operationKey, failureReason, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles failOperation field change event
+' @param event (object) the failOperation event data
+' ----------------------------------------------------------------
+sub __onFailOperation(event as object)
+    ensureSetup()
+    if (m.rumScope <> invalid)
+        m.rumScope.callfunc("handleEvent", event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Returns true if the operation name is valid (non-blank after trimming)
+' @param name (string) the operation name to validate
+' @return (boolean) whether the name is valid
+' ----------------------------------------------------------------
+function __isValidOperationName(name as string) as boolean
+    return name.Trim().Len() > 0
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the operationKey is valid:
+'   - invalid is VALID (means unkeyed operation)
+'   - non-empty string after trimming is VALID
+'   - empty or whitespace-only string is INVALID
+'   - non-string, non-invalid values are INVALID
+' @param operationKey (dynamic) the operation key to validate
+' @return (boolean) whether the key is valid
+' ----------------------------------------------------------------
+function __isValidOperationKey(operationKey as dynamic) as boolean
+    if (operationKey = invalid)
+        return true
+    end if
+    if (type(operationKey) = "roString" or type(operationKey) = "String")
+        return operationKey.Trim().Len() > 0
+    end if
+    ' Non-string, non-invalid values are invalid
+    return false
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the failureReason is a known FailureReason value
+' @param failureReason (string) the failure reason to validate
+' @return (boolean) whether the failure reason is valid
+' ----------------------------------------------------------------
+function __isValidFailureReason(reason as string) as boolean
+    return (reason = "error" or reason = "abandoned" or reason = "other")
+end function
 
 ' ----------------------------------------------------------------
 ' Ensure all dependencies are present (from DI or generated)

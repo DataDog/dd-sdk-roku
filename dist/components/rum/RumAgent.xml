@@ -24,6 +24,9 @@
         <field id="addConfigTelemetry" type="assocarray" />
         <field id="addErrorTelemetry" type="assocarray" />
         <field id="addDebugTelemetry" type="assocarray" />
+        <field id="startOperation" type="assocarray" />
+        <field id="succeedOperation" type="assocarray" />
+        <field id="failOperation" type="assocarray" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
@@ -37,6 +40,9 @@
         <function name="addConfigTelemetry" />
         <function name="addErrorTelemetry" />
         <function name="addDebugTelemetry" />
+        <function name="startOperation" />
+        <function name="succeedOperation" />
+        <function name="failOperation" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />

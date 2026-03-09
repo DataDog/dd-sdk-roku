@@ -23,7 +23,15 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if(key = "play" and press)
         datadogroku_ddLogInfo("Video State: " + m.devTube.state)
         m.global.datadogRumAgent@.addAction({ target: "play", type: "click" })
+        m.global.datadogRumAgent@.startOperation("playbackStart")
         m.devTube.control = "play"
+        m.devTube.observeField("state", "onVideoStateChange")
+        m.playbackStarted = false
+    else if (key = "back" and press)
+        if (m.playbackStarted = false)
+            m.global.datadogRumAgent@.failOperation("playbackStart", "abandoned")
+            m.devTube.unobserveField("state")
+        end if
     end if
     return false
 end function
@@ -35,4 +43,17 @@ sub setVideoContent()
     videoContent.streamformat = "hls"
 
     m.devTube.content = videoContent
+end sub
+
+sub onVideoStateChange()
+    state = m.devTube.state
+    if (state = "playing")
+        m.playbackStarted = true
+        m.global.datadogRumAgent@.succeedOperation("playbackStart")
+        m.devTube.unobserveField("state")
+    else if (state = "error")
+        m.playbackStarted = true
+        m.global.datadogRumAgent@.failOperation("playbackStart", "error")
+        m.devTube.unobserveField("state")
+    end if
 end sub
