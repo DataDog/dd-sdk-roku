@@ -125,6 +125,11 @@ end sub
 sub sendLog(status as object, message as string, attributes as object)
     timestamp& = getTimestamp()
     ensureSetup()
+    threadInfoFn = m.top.threadInfo
+    threadName = ""
+    if (threadInfoFn <> invalid)
+        threadName = threadInfoFn().currentThread.name
+    end if
     logEvent = {
         date: timestamp&
         ddtags: "env:" + m.top.env + ",version:" + m.top.version
@@ -144,7 +149,7 @@ sub sendLog(status as object, message as string, attributes as object)
             version_major: m.top.osVersionMajor
         }
         logger: {
-            thread_name: m.top.threadInfo().currentThread.name
+            thread_name: threadName
             version: sdkVersion()
         }
     }
@@ -186,7 +191,12 @@ sub ensureUploader()
     if (m.top.uploader = invalid)
         uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
     end if
-    trackId = "logs_" + m.top.threadInfo().node.address
+    threadInfoFn = m.top.threadInfo
+    nodeAddress = "0"
+    if (threadInfoFn <> invalid)
+        nodeAddress = threadInfoFn().node.address
+    end if
+    trackId = "logs_" + nodeAddress
     tracks = (function(uploader)
             __bsConsequent = uploader.tracks
             if __bsConsequent <> invalid then

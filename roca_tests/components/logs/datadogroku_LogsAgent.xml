@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Roca component stub for datadogroku_LogsAgent.
+     The script is a symlink to dist/components/logs/LogsAgent.brs (the real compiled file).
+     The source guards m.top.threadInfo() with a null-check so it is safely skipped when
+     brs returns invalid for that built-in. -->
+<component name="datadogroku_LogsAgent" extends="Node">
+    <script type="text/brightscript" uri="pkg:/components/logs/datadogroku_LogsAgent.brs" />
+    <interface>
+        <field id="site" type="string" value="us1" />
+        <field id="clientToken" type="string" />
+        <field id="service" type="string" />
+        <field id="version" type="string" />
+        <field id="env" type="string" />
+        <field id="deviceName" type="string" />
+        <field id="deviceModel" type="string" />
+        <field id="osVersion" type="string" />
+        <field id="osVersionMajor" type="string" />
+        <field id="uploader" type="node" />
+        <field id="writer" type="node" />
+        <function name="logOk" />
+        <function name="logDebug" />
+        <function name="logInfo" />
+        <function name="logNotice" />
+        <function name="logWarn" />
+        <function name="logError" />
+        <function name="logCritical" />
+        <function name="logAlert" />
+        <function name="logEmergency" />
+    </interface>
+</component>

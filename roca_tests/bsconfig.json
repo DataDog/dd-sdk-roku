@@ -9,8 +9,17 @@
     "retainStagingDir": true,
     "stagingDir": "./out",
     "ignoreErrorCodes": [
+        1001,
         1003,
         1013,
+        1128,
         1140
-    ]
+    ],
+    "ignoreErrorCodesReasons": {
+        "1001 cannotFindName": "roca runtime globals (_brs_, roca, IG_GetString, m.assert, etc.) are injected at runtime and unknown to bsc at compile time",
+        "1003 duplicateFunctionImplementation": "every test file defines its own main() entry point; bsc sees them all in one scope and flags duplicates",
+        "1013 fileNotReferencedByAnyOtherFile": "test files are roca entry points run directly — they are never imported by another file",
+        "1128 unknownRoSGNode": "component stubs (datadogroku_LogsAgent, MockWriterTask, etc.) live in components/ which is not in bsc's file scan",
+        "1140 cannotFindFunction": "SDK functions loaded via roca --source and roca lib functions are unavailable to bsc at compile time"
+    }
 }
