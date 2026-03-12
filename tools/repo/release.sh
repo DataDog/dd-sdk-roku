@@ -5,7 +5,12 @@
 
 # usage: release.sh version
 
-cwd=`pwd` 
+if [ -z "$1" ]; then
+    echo "Error: version argument is required (e.g., release.sh 1.4.0)"
+    exit 1
+fi
+
+cwd=`pwd`
 
 rootdir=`git rev-parse --show-toplevel`
 subdirs=("library" "test" "sample")
@@ -30,8 +35,12 @@ echo "---- Bump version in root dir"
 cd $rootdir
 npm --no-git-tag-version version $1
 
+echo "---- Packaging release"
+cd $rootdir
+npm run package
+
 echo "---- Creating a commit for version $1"
-git add **/*.brs **/*.bs **/package.json package.json
+git add **/*.brs **/*.bs **/package.json package.json CHANGELOG.md
 git add "datadogroku-$1.zip"
 git commit -s -m "Bump version to $1"
 
