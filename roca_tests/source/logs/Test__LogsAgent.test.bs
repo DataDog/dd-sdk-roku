@@ -1,0 +1,300 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function main(args as object) as object
+    return roca(args).describe("LogsAgent", sub()
+        m.beforeEach(LogsAgentTest__beforeEach)
+        m.afterEach(LogsAgentTest__afterEach)
+        LogsAgentTest__registerTests(m)
+    end sub)
+end function
+
+sub LogsAgentTest__beforeEach()
+    _brs_.mockFunction("ddLogThread")
+    _brs_.mockFunction("ddLogVerbose")
+    _brs_.mockFunction("ddLogInfo")
+    _brs_.mockFunction("ddLogWarning")
+    _brs_.mockFunction("ddLogError")
+    _brs_.mockFunction("getTimestamp", function()
+        return 1741000000000#
+    end function)
+    _brs_.mockFunction("sdkVersion", function()
+        return "1.2.3"
+    end function)
+    _brs_.mockComponentPartial("datadogroku_LogsAgent", {
+        ensureSetup: sub() end sub
+    })
+    _brs_.global.datadogContext = invalid
+    _brs_.global.datadogUserInfo = invalid
+    _brs_.global.datadogRumContext = invalid
+    _brs_.mockComponent("MockWriterTask", { writeEvent: "" })
+    mockWriter = CreateObject("roSGNode", "MockWriterTask")
+    fakeService = IG_GetString(32)
+    fakeEnv = IG_GetString(8)
+    fakeVersion = IG_GetString(8)
+    fakeDeviceName = IG_GetString(16)
+    fakeDeviceModel = IG_GetString(16)
+    fakeOsVersion = IG_GetString(16)
+    fakeOsVersionMajor = IG_GetString(4)
+    node = CreateObject("roSGNode", "datadogroku_LogsAgent")
+    node.service = fakeService
+    node.env = fakeEnv
+    node.version = fakeVersion
+    node.deviceName = fakeDeviceName
+    node.deviceModel = fakeDeviceModel
+    node.osVersion = fakeOsVersion
+    node.osVersionMajor = fakeOsVersionMajor
+    node.writer = mockWriter
+    m.node = node
+    m.mockWriter = mockWriter
+    m.fakeService = fakeService
+    m.fakeEnv = fakeEnv
+    m.fakeVersion = fakeVersion
+    m.fakeDeviceName = fakeDeviceName
+    m.fakeDeviceModel = fakeDeviceModel
+    m.fakeOsVersion = fakeOsVersion
+    m.fakeOsVersionMajor = fakeOsVersionMajor
+end sub
+
+sub LogsAgentTest__afterEach()
+    _brs_.resetMocks()
+end sub
+
+sub LogsAgentTest__registerTests(suite as object)
+    suite.it("WhenLogOk_ThenWriteLog", LogsAgentTest__WhenLogOk_ThenWriteLog)
+    suite.it("WhenLogOk_ThenEventIncludesNodeFields", LogsAgentTest__WhenLogOk_ThenEventIncludesNodeFields)
+    suite.it("WhenLogOkWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogOkWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogOkWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogOkWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogDebug_ThenWriteLog", LogsAgentTest__WhenLogDebug_ThenWriteLog)
+    suite.it("WhenLogDebugWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogDebugWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogDebugWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogDebugWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogDebugWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogInfo_ThenWriteLog", LogsAgentTest__WhenLogInfo_ThenWriteLog)
+    suite.it("WhenLogInfoWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogInfoWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogInfoWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogInfoWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogNotice_ThenWriteLog", LogsAgentTest__WhenLogNotice_ThenWriteLog)
+    suite.it("WhenLogNoticeWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogNoticeWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogNoticeWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogNoticeWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogWarn_ThenWriteLog", LogsAgentTest__WhenLogWarn_ThenWriteLog)
+    suite.it("WhenLogWarnWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogWarnWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogWarnWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogWarnWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogError_ThenWriteLog", LogsAgentTest__WhenLogError_ThenWriteLog)
+    suite.it("WhenLogErrorWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogErrorWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogErrorWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogErrorWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogCritical_ThenWriteLog", LogsAgentTest__WhenLogCritical_ThenWriteLog)
+    suite.it("WhenLogCriticalWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogCriticalWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogCriticalWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogCriticalWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogAlert_ThenWriteLog", LogsAgentTest__WhenLogAlert_ThenWriteLog)
+    suite.it("WhenLogAlertWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogAlertWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogAlertWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogAlertWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog)
+
+    suite.it("WhenLogEmergency_ThenWriteLog", LogsAgentTest__WhenLogEmergency_ThenWriteLog)
+    suite.it("WhenLogEmergencyWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog)
+    suite.it("WhenLogEmergencyWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog)
+    suite.it("WhenLogEmergencyWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog)
+    suite.it("WhenLogEmergencyWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog)
+
+    ' deferred — requires sleep/real CreateObject/threadInfo, unsupported in brs:
+    ' WhenDoNothing_ThenInitDependencies
+end sub
+
+
+' Variant: global context attributes merged into event
+sub LogsAgentTest__verifyGlobalAttributes(testM as object, methodName as string, expectedStatus as string)
+    fakeMessage = IG_GetString(32)
+    fakeKey1 = IG_GetString(12)
+    fakeVal1 = IG_GetString(16)
+    fakeKey2 = IG_GetString(12)
+    fakeVal2 = IG_GetString(16)
+    ctx = {}
+    ctx[fakeKey1] = fakeVal1
+    ctx[fakeKey2] = fakeVal2
+    _brs_.global.datadogContext = ctx
+    testM.node.callFunc(methodName, fakeMessage, {})
+    event = ParseJson(testM.mockWriter.writeEvent)
+    LogsAgentTest__assertBaseFields(testM, event, expectedStatus, fakeMessage)
+    testM.assert.equal(event[fakeKey1], fakeVal1, "first context key should be in event")
+    testM.assert.equal(event[fakeKey2], fakeVal2, "second context key should be in event")
+end sub
+
+' Variant: usr.* fields populated from datadogUserInfo
+sub LogsAgentTest__verifyUserInfo(testM as object, methodName as string, expectedStatus as string)
+    fakeMessage = IG_GetString(32)
+    fakeUserId = IG_GetString(16)
+    fakeUserName = IG_GetString(16)
+    fakeUserEmail = IG_GetString(24)
+    _brs_.global.datadogUserInfo = { "id": fakeUserId, "name": fakeUserName, "email": fakeUserEmail }
+    testM.node.callFunc(methodName, fakeMessage, {})
+    event = ParseJson(testM.mockWriter.writeEvent)
+    LogsAgentTest__assertBaseFields(testM, event, expectedStatus, fakeMessage)
+    testM.assert.equal(event.usr.id, fakeUserId, "usr.id should match datadogUserInfo.id")
+    testM.assert.equal(event.usr.name, fakeUserName, "usr.name should match datadogUserInfo.name")
+    testM.assert.equal(event.usr.email, fakeUserEmail, "usr.email should match datadogUserInfo.email")
+end sub
+
+' Variant: RUM context fields (application_id, session_id, view.id, user_action.id)
+sub LogsAgentTest__verifyRumContext(testM as object, methodName as string, expectedStatus as string)
+    fakeMessage = IG_GetString(32)
+    fakeAppId = IG_GetString(32)
+    fakeSessionId = IG_GetString(32)
+    fakeViewId = IG_GetString(32)
+    fakeActionId = IG_GetString(32)
+    _brs_.global.datadogRumContext = {
+        "applicationId": fakeAppId,
+        "sessionId": fakeSessionId,
+        "viewId": fakeViewId,
+        "actionId": fakeActionId
+    }
+    testM.node.callFunc(methodName, fakeMessage, {})
+    event = ParseJson(testM.mockWriter.writeEvent)
+    LogsAgentTest__assertBaseFields(testM, event, expectedStatus, fakeMessage)
+    testM.assert.equal(event.application_id, fakeAppId, "application_id should match")
+    testM.assert.equal(event.session_id, fakeSessionId, "session_id should match")
+    testM.assert.equal(event.view.id, fakeViewId, "view.id should match")
+    testM.assert.equal(event.user_action.id, fakeActionId, "user_action.id should match")
+end sub
+
+'================================================================
+' Per-level test subs — each delegates to the matching verify helper.
+'================================================================
+
+sub LogsAgentTest__WhenLogOk_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logOk", "ok") : end sub
+sub LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logOk", "ok") : end sub
+sub LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logOk", "ok") : end sub
+sub LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logOk", "ok") : end sub
+sub LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logOk", "ok") : end sub
+
+sub LogsAgentTest__WhenLogDebug_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logDebug", "debug") : end sub
+sub LogsAgentTest__WhenLogDebugWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logDebug", "debug") : end sub
+sub LogsAgentTest__WhenLogDebugWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logDebug", "debug") : end sub
+sub LogsAgentTest__WhenLogDebugWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logDebug", "debug") : end sub
+sub LogsAgentTest__WhenLogDebugWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logDebug", "debug") : end sub
+
+sub LogsAgentTest__WhenLogInfo_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logInfo", "info") : end sub
+sub LogsAgentTest__WhenLogInfoWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logInfo", "info") : end sub
+sub LogsAgentTest__WhenLogInfoWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logInfo", "info") : end sub
+sub LogsAgentTest__WhenLogInfoWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logInfo", "info") : end sub
+sub LogsAgentTest__WhenLogInfoWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logInfo", "info") : end sub
+
+sub LogsAgentTest__WhenLogNotice_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logNotice", "notice") : end sub
+sub LogsAgentTest__WhenLogNoticeWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logNotice", "notice") : end sub
+sub LogsAgentTest__WhenLogNoticeWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logNotice", "notice") : end sub
+sub LogsAgentTest__WhenLogNoticeWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logNotice", "notice") : end sub
+sub LogsAgentTest__WhenLogNoticeWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logNotice", "notice") : end sub
+
+sub LogsAgentTest__WhenLogWarn_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logWarn", "warn") : end sub
+sub LogsAgentTest__WhenLogWarnWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logWarn", "warn") : end sub
+sub LogsAgentTest__WhenLogWarnWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logWarn", "warn") : end sub
+sub LogsAgentTest__WhenLogWarnWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logWarn", "warn") : end sub
+sub LogsAgentTest__WhenLogWarnWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logWarn", "warn") : end sub
+
+sub LogsAgentTest__WhenLogError_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logError", "error") : end sub
+sub LogsAgentTest__WhenLogErrorWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logError", "error") : end sub
+sub LogsAgentTest__WhenLogErrorWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logError", "error") : end sub
+sub LogsAgentTest__WhenLogErrorWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logError", "error") : end sub
+sub LogsAgentTest__WhenLogErrorWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logError", "error") : end sub
+
+sub LogsAgentTest__WhenLogCritical_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logCritical", "critical") : end sub
+sub LogsAgentTest__WhenLogCriticalWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logCritical", "critical") : end sub
+sub LogsAgentTest__WhenLogCriticalWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logCritical", "critical") : end sub
+sub LogsAgentTest__WhenLogCriticalWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logCritical", "critical") : end sub
+sub LogsAgentTest__WhenLogCriticalWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logCritical", "critical") : end sub
+
+sub LogsAgentTest__WhenLogAlert_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logAlert", "alert") : end sub
+sub LogsAgentTest__WhenLogAlertWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logAlert", "alert") : end sub
+sub LogsAgentTest__WhenLogAlertWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logAlert", "alert") : end sub
+sub LogsAgentTest__WhenLogAlertWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logAlert", "alert") : end sub
+sub LogsAgentTest__WhenLogAlertWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logAlert", "alert") : end sub
+
+sub LogsAgentTest__WhenLogEmergency_ThenWriteLog() : LogsAgentTest__verifyBasicLog(m, "logEmergency", "emergency") : end sub
+sub LogsAgentTest__WhenLogEmergencyWithCustomAttributes_ThenWriteLog() : LogsAgentTest__verifyCustomAttributes(m, "logEmergency", "emergency") : end sub
+sub LogsAgentTest__WhenLogEmergencyWithGlobalAttributes_ThenWriteLog() : LogsAgentTest__verifyGlobalAttributes(m, "logEmergency", "emergency") : end sub
+sub LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog() : LogsAgentTest__verifyUserInfo(m, "logEmergency", "emergency") : end sub
+sub LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() : LogsAgentTest__verifyRumContext(m, "logEmergency", "emergency") : end sub
+
+' Helper: assert all base fields of a log event.
+' testM must be the test's m passed explicitly — plain subs have their own m scope.
+sub LogsAgentTest__assertBaseFields(testM as object, event as object, expectedStatus as string, expectedMessage as string)
+    testM.assert.equal(event.status, expectedStatus, "status should be " + expectedStatus)
+    testM.assert.equal(event.message, expectedMessage, "message should match")
+    testM.assert.equal(event.date, 1741000000000#, "date should match mocked timestamp")
+    testM.assert.equal(event.service, testM.fakeService, "service should match")
+    testM.assert.equal(event.ddtags, "env:" + testM.fakeEnv + ",version:" + testM.fakeVersion, "ddtags should include env and version")
+    testM.assert.equal(event.device.type, "tv", "device type should be tv")
+    testM.assert.equal(event.device.name, testM.fakeDeviceName, "device name should match")
+    testM.assert.equal(event.device.model, testM.fakeDeviceModel, "device model should match")
+    testM.assert.equal(event.device.brand, "Roku", "device brand should be Roku")
+    testM.assert.equal(event.os.name, "Roku", "os name should be Roku")
+    testM.assert.equal(event.os.version, testM.fakeOsVersion, "os version should match")
+    testM.assert.equal(event.os.version_major, testM.fakeOsVersionMajor, "os version_major should match")
+    testM.assert.equal(event.logger.version, "1.2.3", "logger.version should match mocked sdkVersion")
+    testM.assert.equal(event.logger.thread_name, "", "logger.thread_name should be empty when threadInfo unavailable")
+end sub
+
+
+'----------------------------------------------------------------
+' Unique test: verifies all node-derived base fields are written for logOk.
+' The WithCustomAttributes/GlobalAttributes/UserInfo/RumContext variants
+' already call assertBaseFields for every level, so this coverage is
+' only needed once.
+'----------------------------------------------------------------
+sub LogsAgentTest__WhenLogOk_ThenEventIncludesNodeFields()
+    fakeMessage = IG_GetString(32)
+    m.node@.logOk(fakeMessage, {})
+    event = ParseJson(m.mockWriter.writeEvent)
+    LogsAgentTest__assertBaseFields(m, event, "ok", fakeMessage)
+end sub
+
+'================================================================
+' Parameterized verify helpers — one per variant.
+' Each test sub is a one-liner delegating to the appropriate helper.
+' Dynamic dispatch uses node.callFunc(methodName, ...) so the same
+' helper body covers all 9 log levels.
+'================================================================
+
+' Variant: basic write (status + message only)
+sub LogsAgentTest__verifyBasicLog(testM as object, methodName as string, expectedStatus as string)
+    fakeMessage = IG_GetString(32)
+    testM.node.callFunc(methodName, fakeMessage, {})
+    event = ParseJson(testM.mockWriter.writeEvent)
+    testM.assert.equal(event.status, expectedStatus, "status should be " + expectedStatus)
+    testM.assert.equal(event.message, fakeMessage, "message should match")
+end sub
+
+' Variant: custom attributes merged into event
+sub LogsAgentTest__verifyCustomAttributes(testM as object, methodName as string, expectedStatus as string)
+    fakeMessage = IG_GetString(32)
+    attrs = {}
+    for i = 0 to 4
+        attrs[IG_GetString(12)] = IG_GetString(16)
+    end for
+    testM.node.callFunc(methodName, fakeMessage, attrs)
+    event = ParseJson(testM.mockWriter.writeEvent)
+    LogsAgentTest__assertBaseFields(testM, event, expectedStatus, fakeMessage)
+    for each key in attrs
+        testM.assert.equal(event[key], attrs[key], "custom attribute '" + key + "' should be in event")
+    end for
+end sub
