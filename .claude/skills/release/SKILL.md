@@ -5,18 +5,19 @@ Automates the dd-sdk-roku release workflow. Run with `/release <version>` (e.g.,
 ## Version Argument
 
 If the user did not provide a version number (e.g., they just typed `/release` with no arguments), read the current version from `package.json` and use AskUserQuestion to present an interactive menu with options:
-- **Patch** (e.g., `1.3.1` → `1.3.2`) — for bugfixes
-- **Minor** (e.g., `1.3.1` → `1.4.0`) — for new features
-- **Major** (e.g., `1.3.1` → `2.0.0`) — for breaking changes
+- **Patch** (e.g., `1.3.0` → `1.3.1`) — for hotfixes only
+- **Minor** (e.g., `1.3.1` → `1.4.0`) — for regular releases (may contain breaking changes)
+- **Major** (e.g., `1.3.1` → `2.0.0`) — for planned large-scale changes
 
 Calculate the actual version numbers from the current version and show them in the labels. Use the selected version for the rest of the process.
+
+If the user provided a version directly, read the current version from `package.json` and validate that the requested version is strictly greater (using semver ordering). If not (e.g., user requests `1.3.0` but current is `1.5.0`), warn the user and abort unless they explicitly confirm it's intentional.
 
 ## Prerequisites Check
 
 Before starting, verify:
 1. You are on the `develop` branch with a clean working tree (`git status`)
 2. All CI checks are passing on develop
-3. **Version validation**: Read the current version from `package.json` and compare it with the requested version. The new version must be strictly greater than the current one (using semver ordering). If not (e.g., user requests `1.3.0` but current is `1.5.0`), warn the user and abort unless they explicitly confirm it's intentional.
 
 Ask the user to confirm prerequisites are met before proceeding.
 
@@ -24,29 +25,41 @@ Ask the user to confirm prerequisites are met before proceeding.
 
 Execute these steps **sequentially**, confirming with the user at each gate:
 
-### Step 1: Create release branch
+### Step 1: Create release and working branches
+
+Create the release branch from develop and push it, then create a personal working branch:
 
 ```bash
 git checkout -b release/<version> develop
+git push -u origin release/<version>
+git checkout -b <github-username>/prepare-release-<version>
 ```
+
+All changes in Steps 2-3 will be made on the personal branch.
 
 ### Step 2: Update CHANGELOG.md
 
-Read the current CHANGELOG.md. Replace the first header line (e.g., `# Next release: x.y.z`) with a dated release header in the format used by existing entries:
+Read the current CHANGELOG.md. The first line should be a "Next release" header (e.g., `# Next release: x.y.z`).
 
-```
-# <version> / <YYYY-MM-DD>
-```
-
-Where `<YYYY-MM-DD>` is today's date.
-
-If there are no bullet points under the "Next release" header, ask the user what changes should be listed. Use the existing format:
+**Auto-generate changelog entries**: Collect all commits since the last release tag and generate changelog entries from them. Use the existing format and categorize by type:
 - `* [FEATURE] Description. See [#PR](https://github.com/DataDog/dd-sdk-roku/pull/PR)`
 - `* [BUGFIX] ...`
 - `* [IMPROVEMENT] ...`
 - `* [MAINTENANCE] ...`
 
-Show the user the proposed CHANGELOG diff and get approval before committing.
+To get commits since the last tag:
+```bash
+git log $(git describe --tags --abbrev=0)..HEAD --oneline
+```
+
+Then update the CHANGELOG as follows:
+1. Replace the "Next release" header with the next development version: `# Next release: <next_minor_version>` (bump the minor version, e.g., `1.4.0` → `1.5.0`)
+2. Below it, add the dated release header: `# <version> / <YYYY-MM-DD>` (where `<YYYY-MM-DD>` is today's date)
+3. Below the dated header, add the auto-generated changelog entries
+
+Show the user the proposed CHANGELOG changes and get approval. The user may request edits to wording, categorization, or which entries to include. Iterate until the user is satisfied.
+
+**GATE: Do not proceed until the user approves the CHANGELOG.**
 
 ### Step 3: Bump version numbers
 
@@ -62,40 +75,52 @@ This script:
 - Packages the release into `datadogroku-<version>.zip`
 - Creates a signed commit with all the above changes
 
-### Step 4: Push release branch
+### Step 4: Push and open PR
+
+Push the personal branch and create a PR targeting the release branch:
 
 ```bash
-git push -u origin release/<version>
+git push -u origin <github-username>/prepare-release-<version>
+gh pr create --base release/<version> --head <github-username>/prepare-release-<version> --title "Bump version to <version>" --body ""
 ```
 
-Tell the user: "Release branch `release/<version>` has been pushed. Please open a PR targeting `develop` for review."
-
-**GATE: Wait for user to confirm the PR has been reviewed and merged.**
+**GATE: Wait for user to confirm the PR has been reviewed and merged into the release branch.**
 
 ### Step 5: Tag and push
 
-After the PR is merged, switch to develop and pull:
+After the PR is merged, pull the release branch to get the merge commit, then tag it:
 
 ```bash
-git checkout develop
-git pull origin develop
+git checkout release/<version>
+git pull origin release/<version>
 git tag <version>
 git push --tags
 ```
 
 ### Step 6: Create GitHub Release
 
-Tell the user to create the GitHub release:
+Generate the release notes body from the CHANGELOG entries for this version. Include the setup instructions template:
 
-> Go to https://github.com/DataDog/dd-sdk-roku/releases/new
-> - Tag: `<version>` (select existing tag)
-> - Target: `develop`
-> - Title: `<version>`
-> - Paste the changelog entries for this version in the description
->
-> **Important:** Creating the GitHub release automatically triggers the npm publish workflow (`.github/workflows/publish.yaml`), so there is no need to run `npm publish` manually.
+```
+## ROPM Setup
+If your project is set up to use ROPM, you can use the following command to install the Datadog dependency:
 
-Offer to draft the release notes body from the CHANGELOG for the user to copy.
+ropm install datadogroku
+
+## Manual Setup
+If your project does not use ROPM, install the library manually by downloading the Roku SDK zip archive,
+and unzipping it in your project's root folder.
+
+Make sure you have a roku_modules/datadogroku subfolder in both the components and source folders of your project.
+```
+
+Then create the release:
+
+```bash
+gh release create <version> --title "<version>" --notes "<changelog entries + setup instructions>"
+```
+
+This automatically triggers the npm publish workflow (`.github/workflows/publish.yaml`).
 
 ### Step 7: Verify npm publish
 
@@ -107,46 +132,41 @@ After the GitHub release is created, tell the user:
 > Once complete, verify the package is available:
 > https://www.npmjs.com/package/datadog-roku
 
-### Step 8: Merge release branch to main
+### Step 8: Merge to main and develop
+
+Never push directly to `main` or `develop`. Both merges must go through PRs.
+
+Merge release branch into main via a PR:
 
 ```bash
-git checkout main
-git pull origin main
-git merge develop
-git push origin main
+git checkout -b merge/release-<version>-to-main release/<version>
+git push -u origin merge/release-<version>-to-main
+gh pr create --base main --head merge/release-<version>-to-main --title "Merge release <version> to main" --body ""
 ```
 
-Ask the user to confirm before pushing to main.
+**GATE: Wait for user to confirm the PR has been merged.**
 
-### Step 9: Prepare next development cycle
-
-Ask the user what the next version will be (e.g., `1.5.0`). Then update CHANGELOG.md by adding at the top:
-
-```
-# Next release: <next_version>
-
-```
-
-Commit and push to develop:
+Merge release branch into develop via a PR:
 
 ```bash
-git checkout develop
-git add CHANGELOG.md
-git commit -s -m "Prepare next development cycle (<next_version>)"
-git push origin develop
+git checkout -b merge/release-<version>-to-develop release/<version>
+git push -u origin merge/release-<version>-to-develop
+gh pr create --base develop --head merge/release-<version>-to-develop --title "Merge release <version> to develop" --body ""
 ```
+
+**GATE: Wait for user to confirm the PR has been merged.**
 
 ## Summary Checklist
 
 At the end, print a summary of what was done:
 
 - [ ] Release branch created
-- [ ] CHANGELOG updated with release date
+- [ ] CHANGELOG updated with release date and next version header
 - [ ] Version bumped in all files
 - [ ] Release packaged (zip)
-- [ ] PR merged to develop
+- [ ] Prepare-release PR merged into release branch
 - [ ] Tag created and pushed
 - [ ] GitHub release created (triggers npm publish)
 - [ ] npm publish verified
-- [ ] Release branch merged to main
-- [ ] Next development cycle prepared
+- [ ] Release branch merged to main (via PR)
+- [ ] Release branch merged to develop (via PR)
