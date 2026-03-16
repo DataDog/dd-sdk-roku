@@ -16,10 +16,22 @@ If the user provided a version directly, read the current version from `package.
 ## Prerequisites Check
 
 Before starting, verify:
-1. You are on the `develop` branch with a clean working tree (`git status`)
-2. All CI checks are passing on develop
+1. You are on the `develop` branch (`git status`)
+2. Pull latest changes: `git pull origin develop`
+3. Working tree is clean (`git status`)
+4. All CI checks are passing on develop. Use the following command to check CI status:
 
-Ask the user to confirm prerequisites are met before proceeding.
+```bash
+gh api repos/{owner}/{repo}/commits/develop/status --jq '.state'
+```
+
+If the result is not `success`, show the failing checks and **abort the release**:
+
+```bash
+gh api repos/{owner}/{repo}/commits/develop/status --jq '.statuses[] | select(.state != "success") | "\(.context): \(.state)"'
+```
+
+Ask the user to fix CI before retrying the release.
 
 ## Release Steps
 
