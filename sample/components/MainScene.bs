@@ -16,11 +16,13 @@ sub init()
     m.videoLabel = m.top.findNode("videoLabel")
     m.networkLabel = m.top.findNode("networkLabel")
     m.debugLabel = m.top.findNode("debugLabel")
+    m.operationsLabel = m.top.findNode("operationsLabel")
 
     m.homeScreen = m.top.findNode("homeScreen")
     m.videoScreen = m.top.findNode("videoScreen")
     m.networkScreen = m.top.findNode("networkScreen")
     m.debugScreen = m.top.findNode("debugScreen")
+    m.operationsScreen = m.top.findNode("operationsScreen")
     switchScreen("home")
 end sub
 
@@ -58,6 +60,9 @@ sub switchScreen(name as string)
     m.debugScreen.visible = false
     m.debugScreen.setFocus(false)
     m.debugLabel.color = "0xffffff80"
+    m.operationsScreen.visible = false
+    m.operationsScreen.setFocus(false)
+    m.operationsLabel.color = "0xffffff80"
 
     if (m.global.datadogLogsAgent <> invalid)
         m.global.datadogLogsAgent@.logOk("Switching screen to " + name, { screen: name })
@@ -80,6 +85,8 @@ function getScreenByName(name as string) as dynamic
         return m.networkScreen
     else if (name = "debug")
         return m.debugScreen
+    else if (name = "operations")
+        return m.operationsScreen
     end if
     return invalid
 end function
@@ -93,6 +100,8 @@ function getLabelByName(name as string) as dynamic
         return m.networkLabel
     else if (name = "debug")
         return m.debugLabel
+    else if (name = "operations")
+        return m.operationsLabel
     end if
     return invalid
 end function
@@ -105,6 +114,8 @@ function getNextScreen() as string
     else if (m.screen = "network")
         return "debug"
     else if (m.screen = "debug")
+        return "operations"
+    else if (m.screen = "operations")
         return "home"
     end if
     return "home"
@@ -112,13 +123,15 @@ end function
 
 function getPreviousScreen() as string
     if (m.screen = "home")
-        return "debug"
+        return "operations"
     else if (m.screen = "video")
         return "home"
     else if (m.screen = "network")
         return "video"
     else if (m.screen = "debug")
         return "network"
+    else if (m.screen = "operations")
+        return "debug"
     end if
     return "home"
 end function

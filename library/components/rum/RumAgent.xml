@@ -26,6 +26,21 @@ Copyright 2022-Today Datadog, Inc.
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value=""/>
         <field id="configuration" type="assocarray" value="{}"/>
+        <field id="areFieldsSet" type="boolean" value="false"/>
+
+        <field id="startView" type="assocarray" />
+        <field id="stopView" type="assocarray" />
+        <field id="addAction" type="assocarray" />
+        <field id="addError" type="assocarray" />
+        <field id="addResource" type="assocarray" />
+        <field id="addConfigTelemetry" type="assocarray" />
+        <field id="addErrorTelemetry" type="assocarray" />
+        <field id="addDebugTelemetry" type="assocarray" />
+
+        <!-- Operation monitoring events -->
+        <field id="startOperation" type="assocarray" />
+        <field id="succeedOperation" type="assocarray" />
+        <field id="failOperation" type="assocarray" />
 
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />
@@ -45,6 +60,11 @@ Copyright 2022-Today Datadog, Inc.
         <function name="addConfigTelemetry" />
         <function name="addErrorTelemetry" />
         <function name="addDebugTelemetry" />
+
+        <!-- Operation monitoring -->
+        <function name="startOperation" />
+        <function name="succeedOperation" />
+        <function name="failOperation" />
 
     </interface>
 

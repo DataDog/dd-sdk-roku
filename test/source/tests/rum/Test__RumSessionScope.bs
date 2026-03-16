@@ -11,6 +11,7 @@ function TestSuite__RumSessionScope() as object
     this.Name = "RumSessionScope"
 
     this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash", RumSessionScopeTest__WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEventWithLocalContext_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
@@ -32,6 +33,33 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenHandleActionEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleViewEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
+    ' Vital event payload structure tests
+    this.addTest("WhenHandleStartVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleStartVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleFailVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleFailVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+
+    ' Developer warning behavioral tests
+    this.addTest("WhenDuplicateStartSameNameAndKey_ThenBothEventsEmitted", RumSessionScopeTest__WhenDuplicateStartSameNameAndKey_ThenBothEventsEmitted, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenDuplicateStartUnkeyed_ThenBothEventsEmitted", RumSessionScopeTest__WhenDuplicateStartUnkeyed_ThenBothEventsEmitted, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenStopWithoutStart_ThenEventStillEmitted", RumSessionScopeTest__WhenStopWithoutStart_ThenEventStillEmitted, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenStartThenStop_ThenBothEventsEmitted", RumSessionScopeTest__WhenStartThenStop_ThenBothEventsEmitted, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+
+    ' Parallel keyed operations tests
+    this.addTest("WhenParallelKeyedOperations_ThenTrackedIndependently", RumSessionScopeTest__WhenParallelKeyedOperations_ThenTrackedIndependently, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenStopWrongKey_ThenEventStillEmitted", RumSessionScopeTest__WhenStopWrongKey_ThenEventStillEmitted, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenUnkeyedOperationDispatch_ThenCorrectPayload", RumSessionScopeTest__WhenUnkeyedOperationDispatch_ThenCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+
+    ' Edge case and integration flow tests
+    this.addTest("WhenVitalEventWithNoView_ThenWriteWithNullViewId", RumSessionScopeTest__WhenVitalEventWithNoView_ThenWriteWithNullViewId, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenCrossViewOperation_ThenEachEventCarriesCorrectViewContext", RumSessionScopeTest__WhenCrossViewOperation_ThenEachEventCarriesCorrectViewContext, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenSessionRenewalMidOperation_ThenActiveOperationsCleared", RumSessionScopeTest__WhenSessionRenewalMidOperation_ThenActiveOperationsCleared, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenVitalEventWithUnicodeNameAndKey_ThenWriteCorrectPayload", RumSessionScopeTest__WhenVitalEventWithUnicodeNameAndKey_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenVitalEventWithLongName_ThenWriteCorrectPayload", RumSessionScopeTest__WhenVitalEventWithLongName_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenVitalEventWithSpecialCharsInName_ThenWriteCorrectPayload", RumSessionScopeTest__WhenVitalEventWithSpecialCharsInName_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+
+    ' Attribute merging priority test
+    this.addTest("WhenVitalEventWithMergedAttributes_ThenCommandOverridesViewOverridesGlobal", RumSessionScopeTest__WhenVitalEventWithMergedAttributes_ThenCommandOverridesViewOverridesGlobal, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+
     return this
 end function
 
@@ -41,7 +69,7 @@ sub RumSessionScopeTest__SetUp()
     m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
 
     ' Fake data
-    m.testSuite.global.addFields({ datadogRumContext: {} })
+    m.testSuite.global.addFields({ datadogRumContext: {}, datadogContext: {}, datadogUserInfo: {} })
 
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
@@ -66,6 +94,47 @@ sub RumSessionScopeTest__SetUpNoSession()
     m.testSuite.testedScope.maxDurationMs = 1000
 end sub
 
+sub RumSessionScopeTest__SetUpWithView()
+    ' Mocks
+    m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
+    m.testSuite.mockParentScope = CreateObject("roSGNode", "MockRumScope")
+
+    ' Fake data for parent context
+    m.testSuite.fakeApplicationId = IG_GetString(32)
+    m.testSuite.fakeService = IG_GetString(32)
+    m.testSuite.fakeVersion = IG_GetString(16)
+    m.testSuite.fakeDeviceName = IG_GetString(16)
+    m.testSuite.fakeDeviceModel = IG_GetString(16)
+    m.testSuite.fakeOsVersion = IG_GetString(16)
+    m.testSuite.fakeOsVersionMajor = IG_GetString(16)
+    m.testSuite.fakeViewName = IG_GetString(16)
+    m.testSuite.fakeViewUrl = "https://" + IG_GetString(32)
+    m.testSuite.fakeParentContext = {
+        applicationId: m.testSuite.fakeApplicationId,
+        service: m.testSuite.fakeService,
+        applicationVersion: m.testSuite.fakeVersion,
+        deviceName: m.testSuite.fakeDeviceName,
+        deviceModel: m.testSuite.fakeDeviceModel,
+        osVersion: m.testSuite.fakeOsVersion,
+        osVersionMajor: m.testSuite.fakeOsVersionMajor
+    }
+    m.testSuite.mockParentScope@.stubCall("getRumContext", { _ph: invalid }, m.testSuite.fakeParentContext)
+
+    ' Global fields (required by SDK infrastructure)
+    m.testSuite.global.addFields({ datadogRumContext: {}, datadogContext: {}, datadogUserInfo: {} })
+
+    ' Create and initialize session scope
+    m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
+    m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
+    m.testSuite.testedScope.inactivityThresholdMs = 100
+    m.testSuite.testedScope.maxDurationMs = 1000
+    ' Initialize session (resetSession triggers renewSession)
+    m.testSuite.testedScope@.handleEvent({ mock: "event", eventType: "resetSession" }, { mock: "writer" })
+
+    ' Create an active view
+    m.testSuite.testedScope@.handleEvent({ mock: "event", eventType: "startView", viewName: m.testSuite.fakeViewName, viewUrl: m.testSuite.fakeViewUrl }, m.testSuite.mockWriter)
+end sub
+
 sub RumSessionScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("mockParentScope")
@@ -83,6 +152,30 @@ function RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
 
     ' Then
     Assert.that(context.sessionId).isEqualTo(m.global.datadogRumContext.sessionId)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: m.global.datadogRumContext is invalid
+'  When: renewing session (handling an interactive event)
+'  Then: does not crash and initializes correctly
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash() as string
+    ' Given
+    m.global.setField("datadogRumContext", invalid)
+    fakeAction = { target: IG_GetString(16), type: IG_GetOneOf(["click", "tap", "scroll", "swipe", "application_start", "back"]) }
+    fakeEvent = { mock: "event", eventType: "addAction", action: fakeAction }
+    fakeWriter = { mock: "writer" }
+    
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    
+    ' Then
+    Assert.that(m.testedScope).isNotInvalid()
+    context = m.testedScope@.getRumContext()
+    Assert.that(context.sessionId).isNotEmpty()
+    Assert.that(m.global.datadogRumContext).isNotInvalid()
+    Assert.that(m.global.datadogRumContext.sessionId).isEqualTo(context.sessionId)
     return ""
 end function
 
@@ -543,5 +636,661 @@ function RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession()
     ' Then
     Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
     Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: handling a startFeatureOperation vital event
+'  Then: writes a complete vital event payload with correct structure
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleStartVitalEvent_ThenWriteCorrectPayload() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId, context: {} }
+
+    ' Count existing writer updates from setUp (startView does NOT write to writer)
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    timestampBefore& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    timestampAfter& = datadogroku_getTimestamp()
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+
+    ' _dd section
+    Assert.that(vitalEvent._dd.format_version).isEqualTo(2)
+    Assert.that(vitalEvent._dd.session.plan).isEqualTo(1)
+
+    ' Application and session context
+    Assert.that(vitalEvent.application.id).isEqualTo(m.fakeApplicationId)
+    Assert.that(vitalEvent.session.id).isNotEmpty()
+    Assert.that(vitalEvent.session.type).isEqualTo("user")
+    Assert.that(vitalEvent.session.has_replay).isEqualTo(false)
+
+    ' Device and OS
+    Assert.that(vitalEvent.device.type).isEqualTo("tv")
+    Assert.that(vitalEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(vitalEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(vitalEvent.device.brand).isEqualTo("Roku")
+    Assert.that(vitalEvent.os.name).isEqualTo("Roku")
+    Assert.that(vitalEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(vitalEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+
+    ' Common fields
+    Assert.that(vitalEvent.service).isEqualTo(m.fakeService)
+    Assert.that(vitalEvent.source).isEqualTo("roku")
+    Assert.that(vitalEvent.type).isEqualTo("vital")
+    Assert.that(vitalEvent.version).isEqualTo(m.fakeVersion)
+    Assert.that(vitalEvent.date).isInRange(timestampBefore&, timestampAfter& + 5)
+
+    ' View context
+    Assert.that(vitalEvent.view.id).isNotEmpty()
+    Assert.that(vitalEvent.view.url).isEqualTo(m.fakeViewUrl)
+
+    ' Vital-specific section
+    Assert.that(vitalEvent.vital.id).isEqualTo(fakeVitalId)
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent.vital.type).isEqualTo("operation_step")
+    Assert.that(vitalEvent.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent.vital.operation_key).isEqualTo(fakeKey)
+    Assert.that(vitalEvent.vital.failure_reason).isEqualTo(invalid)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: handling a stopFeatureOperation vital event (succeed, no failure)
+'  Then: writes a complete vital event payload with step_type "end" and no failure_reason
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "stopFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId, context: {} }
+
+    ' Count existing writer updates from setUp
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    timestampBefore& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    timestampAfter& = datadogroku_getTimestamp()
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+
+    ' _dd section
+    Assert.that(vitalEvent._dd.format_version).isEqualTo(2)
+    Assert.that(vitalEvent._dd.session.plan).isEqualTo(1)
+
+    ' Application and session context
+    Assert.that(vitalEvent.application.id).isEqualTo(m.fakeApplicationId)
+    Assert.that(vitalEvent.session.id).isNotEmpty()
+    Assert.that(vitalEvent.session.type).isEqualTo("user")
+    Assert.that(vitalEvent.session.has_replay).isEqualTo(false)
+
+    ' Device and OS
+    Assert.that(vitalEvent.device.type).isEqualTo("tv")
+    Assert.that(vitalEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(vitalEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(vitalEvent.device.brand).isEqualTo("Roku")
+    Assert.that(vitalEvent.os.name).isEqualTo("Roku")
+    Assert.that(vitalEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(vitalEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+
+    ' Common fields
+    Assert.that(vitalEvent.service).isEqualTo(m.fakeService)
+    Assert.that(vitalEvent.source).isEqualTo("roku")
+    Assert.that(vitalEvent.type).isEqualTo("vital")
+    Assert.that(vitalEvent.version).isEqualTo(m.fakeVersion)
+    Assert.that(vitalEvent.date).isInRange(timestampBefore&, timestampAfter& + 5)
+
+    ' View context
+    Assert.that(vitalEvent.view.id).isNotEmpty()
+    Assert.that(vitalEvent.view.url).isEqualTo(m.fakeViewUrl)
+
+    ' Vital-specific section
+    Assert.that(vitalEvent.vital.id).isEqualTo(fakeVitalId)
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent.vital.type).isEqualTo("operation_step")
+    Assert.that(vitalEvent.vital.step_type).isEqualTo("end")
+    Assert.that(vitalEvent.vital.operation_key).isEqualTo(fakeKey)
+    Assert.that(vitalEvent.vital.failure_reason).isEqualTo(invalid)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: handling a stopFeatureOperation vital event (fail, with failure reason)
+'  Then: writes a complete vital event payload with step_type "end" and failure_reason "error"
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleFailVitalEvent_ThenWriteCorrectPayload() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "stopFeatureOperation", name: fakeName, operationKey: fakeKey, failureReason: "error", vitalId: fakeVitalId, context: {} }
+
+    ' Count existing writer updates from setUp
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    timestampBefore& = datadogroku_getTimestamp()
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+    timestampAfter& = datadogroku_getTimestamp()
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+
+    ' _dd section
+    Assert.that(vitalEvent._dd.format_version).isEqualTo(2)
+    Assert.that(vitalEvent._dd.session.plan).isEqualTo(1)
+
+    ' Application and session context
+    Assert.that(vitalEvent.application.id).isEqualTo(m.fakeApplicationId)
+    Assert.that(vitalEvent.session.id).isNotEmpty()
+    Assert.that(vitalEvent.session.type).isEqualTo("user")
+    Assert.that(vitalEvent.session.has_replay).isEqualTo(false)
+
+    ' Device and OS
+    Assert.that(vitalEvent.device.type).isEqualTo("tv")
+    Assert.that(vitalEvent.device.name).isEqualTo(m.fakeDeviceName)
+    Assert.that(vitalEvent.device.model).isEqualTo(m.fakeDeviceModel)
+    Assert.that(vitalEvent.device.brand).isEqualTo("Roku")
+    Assert.that(vitalEvent.os.name).isEqualTo("Roku")
+    Assert.that(vitalEvent.os.version).isEqualTo(m.fakeOsVersion)
+    Assert.that(vitalEvent.os.version_major).isEqualTo(m.fakeOsVersionMajor)
+
+    ' Common fields
+    Assert.that(vitalEvent.service).isEqualTo(m.fakeService)
+    Assert.that(vitalEvent.source).isEqualTo("roku")
+    Assert.that(vitalEvent.type).isEqualTo("vital")
+    Assert.that(vitalEvent.version).isEqualTo(m.fakeVersion)
+    Assert.that(vitalEvent.date).isInRange(timestampBefore&, timestampAfter& + 5)
+
+    ' View context
+    Assert.that(vitalEvent.view.id).isNotEmpty()
+    Assert.that(vitalEvent.view.url).isEqualTo(m.fakeViewUrl)
+
+    ' Vital-specific section
+    Assert.that(vitalEvent.vital.id).isEqualTo(fakeVitalId)
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent.vital.type).isEqualTo("operation_step")
+    Assert.that(vitalEvent.vital.step_type).isEqualTo("end")
+    Assert.that(vitalEvent.vital.operation_key).isEqualTo(fakeKey)
+    Assert.that(vitalEvent.vital.failure_reason).isEqualTo("error")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending two startFeatureOperation events with same name and same operationKey
+'  Then: both events are written to the writer (warnings don't suppress emission)
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenDuplicateStartSameNameAndKey_ThenBothEventsEmitted() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent1 = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId1, context: {} }
+    fakeEvent2 = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId2, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent1, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent2, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 2)
+    vitalEvent1 = ParseJson(updates[existingCount])
+    vitalEvent2 = ParseJson(updates[existingCount + 1])
+    Assert.that(vitalEvent1).isNotInvalid()
+    Assert.that(vitalEvent2).isNotInvalid()
+    Assert.that(vitalEvent1.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent2.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent1.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent2.vital.name).isEqualTo(fakeName)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending two startFeatureOperation events with same name, operationKey = invalid (unkeyed)
+'  Then: both events are emitted
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenDuplicateStartUnkeyed_ThenBothEventsEmitted() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent1 = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId1, context: {} }
+    fakeEvent2 = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId2, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent1, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent2, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 2)
+    vitalEvent1 = ParseJson(updates[existingCount])
+    vitalEvent2 = ParseJson(updates[existingCount + 1])
+    Assert.that(vitalEvent1).isNotInvalid()
+    Assert.that(vitalEvent2).isNotInvalid()
+    Assert.that(vitalEvent1.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent2.vital.step_type).isEqualTo("start")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view, NO prior startFeatureOperation
+'  When: sending a stopFeatureOperation event
+'  Then: event is still emitted (Roku is a thin pipe — warnings don't suppress)
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenStopWithoutStart_ThenEventStillEmitted() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "stopFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.vital.step_type).isEqualTo("end")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending startFeatureOperation then stopFeatureOperation with same name/key
+'  Then: 2 events written. First has step_type "start", second has step_type "end".
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenStartThenStop_ThenBothEventsEmitted() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeStartEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId1, context: {} }
+    fakeStopEvent = { eventType: "stopFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId2, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeStartEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeStopEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 2)
+    startVitalEvent = ParseJson(updates[existingCount])
+    stopVitalEvent = ParseJson(updates[existingCount + 1])
+    Assert.that(startVitalEvent).isNotInvalid()
+    Assert.that(stopVitalEvent).isNotInvalid()
+    Assert.that(startVitalEvent.vital.step_type).isEqualTo("start")
+    Assert.that(stopVitalEvent.vital.step_type).isEqualTo("end")
+    Assert.that(startVitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(stopVitalEvent.vital.name).isEqualTo(fakeName)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: start "checkout" with key "cart1", start "checkout" with key "cart2", stop "checkout" with key "cart1"
+'  Then: 3 events emitted, all valid vital events
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenParallelKeyedOperations_ThenTrackedIndependently() as string
+    ' Given
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId3 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent1 = { eventType: "startFeatureOperation", name: "checkout", operationKey: "cart1", vitalId: fakeVitalId1, context: {} }
+    fakeEvent2 = { eventType: "startFeatureOperation", name: "checkout", operationKey: "cart2", vitalId: fakeVitalId2, context: {} }
+    fakeEvent3 = { eventType: "stopFeatureOperation", name: "checkout", operationKey: "cart1", vitalId: fakeVitalId3, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent1, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent2, m.mockWriter)
+    m.testedScope@.handleEvent(fakeEvent3, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 3)
+    vitalEvent1 = ParseJson(updates[existingCount])
+    vitalEvent2 = ParseJson(updates[existingCount + 1])
+    vitalEvent3 = ParseJson(updates[existingCount + 2])
+    Assert.that(vitalEvent1).isNotInvalid()
+    Assert.that(vitalEvent2).isNotInvalid()
+    Assert.that(vitalEvent3).isNotInvalid()
+    Assert.that(vitalEvent1.type).isEqualTo("vital")
+    Assert.that(vitalEvent2.type).isEqualTo("vital")
+    Assert.that(vitalEvent3.type).isEqualTo("vital")
+    Assert.that(vitalEvent1.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent2.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent3.vital.step_type).isEqualTo("end")
+    Assert.that(vitalEvent1.vital.operation_key).isEqualTo("cart1")
+    Assert.that(vitalEvent2.vital.operation_key).isEqualTo("cart2")
+    Assert.that(vitalEvent3.vital.operation_key).isEqualTo("cart1")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view, start "checkout" with key "cart1"
+'  When: stop "checkout" with key "cart3" (never started)
+'  Then: both events emitted (stop-without-start warning logged but doesn't suppress)
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenStopWrongKey_ThenEventStillEmitted() as string
+    ' Given
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeStartEvent = { eventType: "startFeatureOperation", name: "checkout", operationKey: "cart1", vitalId: fakeVitalId1, context: {} }
+    fakeStopEvent = { eventType: "stopFeatureOperation", name: "checkout", operationKey: "cart3", vitalId: fakeVitalId2, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeStartEvent, m.mockWriter)
+    m.testedScope@.handleEvent(fakeStopEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 2)
+    startVitalEvent = ParseJson(updates[existingCount])
+    stopVitalEvent = ParseJson(updates[existingCount + 1])
+    Assert.that(startVitalEvent).isNotInvalid()
+    Assert.that(stopVitalEvent).isNotInvalid()
+    Assert.that(startVitalEvent.vital.operation_key).isEqualTo("cart1")
+    Assert.that(stopVitalEvent.vital.operation_key).isEqualTo("cart3")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending startFeatureOperation with name = fakeName, operationKey = invalid (unkeyed)
+'  Then: vital event payload has operation_key = invalid (FormatJson omits it, ParseJson returns invalid for missing key)
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenUnkeyedOperationDispatch_ThenCorrectPayload() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent.vital.step_type).isEqualTo("start")
+    Assert.that(vitalEvent.vital.operation_key).isEqualTo(invalid)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope initialized (via SetUp, no active view)
+'  When: sending a startFeatureOperation event
+'  Then: payload has view.id = "00000000-0000-0000-0000-000000000000", view.url = ""
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenVitalEventWithNoView_ThenWriteWithNullViewId() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.view.id).isEqualTo("00000000-0000-0000-0000-000000000000")
+    Assert.that(vitalEvent.view.url).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with view A active, start vital operation
+'  When: start view B, then stop vital operation
+'  Then: first vital event has view A context, second has view B context (emit-time capture)
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenCrossViewOperation_ThenEachEventCarriesCorrectViewContext() as string
+    ' Given
+    fakeViewUrlB = "https://" + IG_GetString(32)
+    fakeViewNameB = IG_GetString(16)
+    fakeName = IG_GetString(32)
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeStartEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId1, context: {} }
+    fakeStopEvent = { eventType: "stopFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId2, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When: start vital (view A is active from SetUpWithView)
+    m.testedScope@.handleEvent(fakeStartEvent, m.mockWriter)
+    ' Switch to view B
+    m.testedScope@.handleEvent({ eventType: "startView", viewName: fakeViewNameB, viewUrl: fakeViewUrlB }, m.mockWriter)
+    ' Stop vital (now view B is active)
+    m.testedScope@.handleEvent(fakeStopEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 2)
+    startVitalEvent = ParseJson(updates[existingCount])
+    stopVitalEvent = ParseJson(updates[existingCount + 1])
+    Assert.that(startVitalEvent).isNotInvalid()
+    Assert.that(stopVitalEvent).isNotInvalid()
+    Assert.that(startVitalEvent.view.url).isEqualTo(m.fakeViewUrl)
+    Assert.that(stopVitalEvent.view.url).isEqualTo(fakeViewUrlB)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with view active, start vital operation "login"
+'  When: expire session, send interactive event to trigger renewal, then stop "login"
+'  Then: stop event has different session.id than start event (session renewed), stop is effectively stop-without-start in new session
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenSessionRenewalMidOperation_ThenActiveOperationsCleared() as string
+    ' Given
+    fakeName = "login"
+    fakeKey = IG_GetString(32)
+    fakeVitalId1 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeVitalId2 = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeStartEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId1, context: {} }
+    fakeStopEvent = { eventType: "stopFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId2, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When: start vital
+    m.testedScope@.handleEvent(fakeStartEvent, m.mockWriter)
+    ' Expire session (sleep for inactivityThresholdMs)
+    sleep(100)
+    ' Trigger session renewal with interactive event (addAction is interactive)
+    fakeAction = { target: IG_GetString(16), type: "tap" }
+    fakeRenewalEvent = { eventType: "addAction", action: fakeAction }
+    m.testedScope@.handleEvent(fakeRenewalEvent, m.mockWriter)
+    ' Stop vital in new session
+    m.testedScope@.handleEvent(fakeStopEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 2)
+    startVitalEvent = ParseJson(updates[existingCount])
+    stopVitalEvent = ParseJson(updates[existingCount + 1])
+    Assert.that(startVitalEvent).isNotInvalid()
+    Assert.that(stopVitalEvent).isNotInvalid()
+    ' Session IDs should be different (session was renewed)
+    Assert.that(stopVitalEvent.session.id).isNotEqualTo(startVitalEvent.session.id)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending startFeatureOperation with accented characters in name and key
+'  Then: payload preserves unicode characters correctly
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenVitalEventWithUnicodeNameAndKey_ThenWriteCorrectPayload() as string
+    ' Given
+    fakeName = "paiement-cafe"
+    fakeKey = "cle-unicode-123"
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent.vital.operation_key).isEqualTo(fakeKey)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending startFeatureOperation with long name and key (256/128 chars)
+'  Then: payload preserves full strings
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenVitalEventWithLongName_ThenWriteCorrectPayload() as string
+    ' Given
+    fakeName = IG_GetString(256)
+    fakeKey = IG_GetString(128)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    Assert.that(vitalEvent.vital.operation_key).isEqualTo(fakeKey)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: sending startFeatureOperation with special characters in name
+'  Then: payload preserves special characters exactly
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenVitalEventWithSpecialCharsInName_ThenWriteCorrectPayload() as string
+    ' Given
+    fakeName = "login/signup@v2#test"
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.vital.name).isEqualTo(fakeName)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with view active, global context, view context, and command context
+'  When: sending startFeatureOperation with command context
+'  Then: context merging follows command > view > global priority
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenVitalEventWithMergedAttributes_ThenCommandOverridesViewOverridesGlobal() as string
+    ' Given: set global context
+    m.global.setField("datadogContext", { "key_a": "global", "key_b": "global", "key_c": "global" })
+    ' Set view context by starting a new view with context
+    fakeViewName = IG_GetString(16)
+    fakeViewUrl = "https://" + IG_GetString(32)
+    viewContext = { "key_a": "view", "key_b": "view" }
+    m.testedScope@.handleEvent({ eventType: "startView", viewName: fakeViewName, viewUrl: fakeViewUrl, context: viewContext }, m.mockWriter)
+    ' Prepare command context
+    commandContext = { "key_a": "command" }
+
+    fakeName = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: invalid, vitalId: fakeVitalId, context: commandContext }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    ' Attribute merging priority: command > view > global
+    Assert.that(vitalEvent.context.key_a).isEqualTo("command")
+    Assert.that(vitalEvent.context.key_b).isEqualTo("view")
+    Assert.that(vitalEvent.context.key_c).isEqualTo("global")
     return ""
 end function

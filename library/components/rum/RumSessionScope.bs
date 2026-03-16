@@ -2,8 +2,10 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/datadogSdk.bs"
 import "pkg:/source/internalLogger.bs"
 import "pkg:/source/timeUtils.bs"
+import "pkg:/source/rum/rumHelper.bs"
 import "pkg:/source/rum/rumRawEvents.bs"
 import "pkg:/source/rum/rumSessionState.bs"
 
@@ -47,6 +49,12 @@ sub handleEvent(event as object, writer as object)
         currentWriter = writer
     else
         currentWriter = { writer: "noOp", writeEvent: "" }
+    end if
+
+    ' Handle vital events at session scope (not delegated to view)
+    if (event.eventType = RawEvent.startFeatureOperation or event.eventType = RawEvent.stopFeatureOperation)
+        handleVitalEvent(event, currentWriter)
+        return
     end if
 
     if (m.top.activeView <> invalid)
@@ -108,6 +116,7 @@ sub renewSession(timestamp& as longinteger)
     ddLogInfo("Renewing the session (sampling rate: " + m.top.sessionSampleRate.toStr() + ")")
     m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
     m.sessionStartMs = timestamp&
+    m.activeOperations = {}
 
     rndSession = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
     if (rndSession < m.top.sessionSampleRate)
@@ -116,7 +125,172 @@ sub renewSession(timestamp& as longinteger)
         m.sessionState = RumSessionState.not_tracked
     end if
 
-    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext = m.global.datadogRumContext ?? {}
     datadogRumContext.sessionId = m.sessionId
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub
+
+' ----------------------------------------------------------------
+' Handles a vital operation event (start or stop)
+' @param event (object) the raw event (startFeatureOperation or stopFeatureOperation)
+' @param writer (object) the writer node (see WriterTask component)
+' ----------------------------------------------------------------
+sub handleVitalEvent(event as object, writer as object)
+    ' Determine step type from event type
+    if (event.eventType = RawEvent.startFeatureOperation)
+        stepType = VitalStepType.start
+    else
+        stepType = VitalStepType.stepEnd
+    end if
+
+    ' Track active operations and log developer warnings
+    lookupKey = __operationLookupKey(event.name, event.operationKey)
+    if (stepType = VitalStepType.start)
+        __trackOperationStart(event.name, event.operationKey, lookupKey)
+    else
+        __trackOperationEnd(event.name, event.operationKey, lookupKey)
+    end if
+
+    ' Build and write the vital event (always emitted, warnings do not suppress)
+    sendVitalEvent(event, stepType, writer)
+end sub
+
+' ----------------------------------------------------------------
+' Sends a vital operation step event
+' @param event (object) the raw event containing vitalId, name, operationKey, failureReason, and context
+' @param stepType (string) the step type (VitalStepType enum value: "start" or "end")
+' @param writer (object) the writer node (see WriterTask component)
+' ----------------------------------------------------------------
+sub sendVitalEvent(event as object, stepType as string, writer as object)
+    timestamp& = getTimestamp()
+    rumContext = getRumContext(invalid)
+
+    ' Get view context if available
+    if (m.top.activeView <> invalid)
+        viewId = m.top.activeView@.getRumContext().viewId
+        viewUrl = m.top.activeView.viewUrl
+        viewName = m.top.activeView.viewName
+        viewContext = m.top.activeView.context ?? {}
+    else
+        ddLogWarning("Vital operation event received without an active view. The event will be sent with incomplete context information.")
+        viewId = "00000000-0000-0000-0000-000000000000"
+        viewUrl = ""
+        viewName = invalid
+        viewContext = {}
+    end if
+
+    ' Merge attributes: Global < View < Command
+    mergedContext = mergeContext(mergeContext(m.global.datadogContext, viewContext), event.context ?? {})
+
+    vitalEvent = {
+        _dd: {
+            format_version: 2,
+            session: { plan: 1 }
+        },
+        application: {
+            id: rumContext.applicationId
+        },
+        context: mergedContext,
+        date: timestamp&,
+        device: {
+            type: "tv",
+            name: rumContext.deviceName,
+            model: rumContext.deviceModel,
+            brand: "Roku"
+        },
+        os: {
+            name: "Roku",
+            version: rumContext.osVersion,
+            version_major: rumContext.osVersionMajor
+        },
+        service: rumContext.service,
+        session: {
+            has_replay: false,
+            id: rumContext.sessionId,
+            type: "user"
+        },
+        source: agentSource(),
+        type: "vital",
+        usr: m.global.datadogUserInfo,
+        version: rumContext.applicationVersion,
+        view: {
+            id: viewId,
+            url: viewUrl,
+            name: viewName
+        },
+        vital: {
+            id: event.vitalId,
+            name: event.name,
+            type: "operation_step",
+            operation_key: event.operationKey,
+            step_type: stepType,
+            failure_reason: event.failureReason
+        }
+    }
+
+    ddLogInfo("Tracking vital operation '" + event.name + "' (" + stepType + ")")
+    writer.writeEvent = FormatJson(vitalEvent)
+end sub
+
+' ----------------------------------------------------------------
+' Returns the lookup key for an operation based on its name and operationKey
+' @param name (string) the operation name
+' @param operationKey (dynamic) the operation key, or invalid for unkeyed operations
+' @return (string) the lookup key for tracking active operations
+' ----------------------------------------------------------------
+function __operationLookupKey(name as string, operationKey as dynamic) as string
+    if (operationKey <> invalid)
+        return name + operationKey
+    end if
+    return name
+end function
+
+' ----------------------------------------------------------------
+' Ensures the active operations map is initialized (lazy initialization)
+' ----------------------------------------------------------------
+sub __ensureActiveOperations()
+    if (m.activeOperations = invalid)
+        m.activeOperations = {}
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Tracks the start of an operation, logging a warning if already active
+' @param name (string) the operation name
+' @param operationKey (dynamic) the operation key, or invalid for unkeyed operations
+' @param lookupKey (string) the lookup key from __operationLookupKey()
+' ----------------------------------------------------------------
+sub __trackOperationStart(name as string, operationKey as dynamic, lookupKey as string)
+    __ensureActiveOperations()
+    if (m.activeOperations.DoesExist(lookupKey))
+        ddLogWarning("Operation " + __formatOperationName(name, operationKey) + " has already been started. The previous instance may be terminated by the backend.")
+    end if
+    m.activeOperations[lookupKey] = true
+end sub
+
+' ----------------------------------------------------------------
+' Tracks the end of an operation, logging a warning if not currently active
+' @param name (string) the operation name
+' @param operationKey (dynamic) the operation key, or invalid for unkeyed operations
+' @param lookupKey (string) the lookup key from __operationLookupKey()
+' ----------------------------------------------------------------
+sub __trackOperationEnd(name as string, operationKey as dynamic, lookupKey as string)
+    __ensureActiveOperations()
+    if (not m.activeOperations.DoesExist(lookupKey))
+        ddLogWarning("Stop was called, but operation " + __formatOperationName(name, operationKey) + " is currently not active. Make sure to call startOperation first.")
+    end if
+    m.activeOperations.Delete(lookupKey)
+end sub
+
+' ----------------------------------------------------------------
+' Formats an operation name and key for use in developer warning messages
+' @param name (string) the operation name
+' @param operationKey (dynamic) the operation key, or invalid for unkeyed operations
+' @return (string) formatted operation identifier for warning messages
+' ----------------------------------------------------------------
+function __formatOperationName(name as string, operationKey as dynamic) as string
+    if (operationKey <> invalid)
+        return "'" + name + "' (key '" + operationKey + "')"
+    end if
+    return "'" + name + "'"
+end function

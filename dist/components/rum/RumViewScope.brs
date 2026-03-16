@@ -24,7 +24,14 @@ sub init()
     m.actionCount = 0
     m.errorCount = 0
     m.resourceCount = 0
-    datadogRumContext = m.global.datadogRumContext
+    datadogRumContext = (function(m)
+            __bsConsequent = m.global.datadogRumContext
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(m)
     datadogRumContext.viewId = m.viewId
     m.instanceId = (function(datadogRumContext)
             __bsConsequent = datadogRumContext.instanceId

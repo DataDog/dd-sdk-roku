@@ -10,7 +10,6 @@ include:
 variables:
   REPO: 'dd-sdk-roku'
   CI_IMAGE_VERSION: "5"
-  BUILD_STABLE_REGISTRY: '486234852809.dkr.ecr.us-east-1.amazonaws.com'
   CI_IMAGE: 'registry.ddbuild.io/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
   MAIN_BRANCH: 'main'
@@ -32,7 +31,7 @@ stages:
   - notify
 
 .base-configuration:
-  tags: ['runner:main', 'size:large']
+  tags: ['arch:amd64']
   image: $CI_IMAGE
 
 ########################################################################################################################
@@ -43,12 +42,16 @@ ci-image:
   stage: ci-image
   when: manual
   except: [ tags, schedules ]
-  tags: ['runner:docker', 'size:large']
-  image: $BUILD_STABLE_REGISTRY/docker:18.03.1
+  tags: ['arch:amd64']
+  image: "registry.ddbuild.io/images/docker:27.3.1"
   script:
     - echo $CI_IMAGE
-    - docker build --tag $CI_IMAGE -f Dockerfile.gitlab .
-    - docker push $CI_IMAGE
+    - docker buildx build
+      --file Dockerfile.gitlab
+      --platform linux/amd64
+      --tag $CI_IMAGE
+      --push
+      .
 
 ########################################################################################################################
 # STATIC ANALYSIS

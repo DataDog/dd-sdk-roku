@@ -26,22 +26,19 @@ sub sendCrashReport()
     ddLogThread("RumCrashReporterTask.sendCrashReport()")
     currentSessionlastViewEventFilePath = lastViewEventFilePath(m.top.instanceId)
     m.lastExitOrTerminationReason = m.top.lastExitOrTerminationReason
-    unexpectedExitStatus = [
-        "EXIT_BRIGHTSCRIPT_CRASH",
-        "EXIT_BRIGHTSCRIPT_TIMEOUT",
-        "EXIT_GRAPHICS_NOT_RELEASED",
-        "EXIT_SIGNAL_TIMEOUT",
-        "EXIT_OUT_OF_MEMORY",
-        "EXIT_MEM_LIMIT_EXCEEDED_FG",
-        "EXIT_MEM_LIMIT_EXCEEDED_BG"
-    ]
-    keep = false
-    for each status in unexpectedExitStatus
-        if (m.lastExitOrTerminationReason = status)
-            keep = true
-            exit for
-        end if
-    end for
+    ignoredExitEvents = m.global.datadogIgnoredExitEvents ?? []
+    keep = true
+    if (m.lastExitOrTerminationReason = "")
+        ddLogInfo("Last exit status is empty, ignoring")
+        keep = false
+    else
+        for each status in ignoredExitEvents
+            if (m.lastExitOrTerminationReason = status)
+                keep = false
+                exit for
+            end if
+        end for
+    end if
 
     if (not keep)
         ddLogInfo("Last exit status " + m.lastExitOrTerminationReason + " is not a crash, ignoring")

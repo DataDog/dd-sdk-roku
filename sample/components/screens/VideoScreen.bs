@@ -23,16 +23,37 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if(key = "play" and press)
         datadogroku_ddLogInfo("Video State: " + m.devTube.state)
         m.global.datadogRumAgent@.addAction({ target: "play", type: "click" })
+        m.global.datadogRumAgent@.startOperation("playbackStart")
         m.devTube.control = "play"
+        m.devTube.observeField("state", "onVideoStateChange")
+        m.playbackStarted = false
+    else if (key = "back" and press)
+        if (m.playbackStarted = false)
+            m.global.datadogRumAgent@.failOperation("playbackStart", "abandoned")
+            m.devTube.unobserveField("state")
+        end if
     end if
     return false
 end function
 
 sub setVideoContent()
     videoContent = createObject("RoSGNode", "ContentNode")
-    videoContent.url = "https://roku.s.cpl.delvenetworks.com/media/59021fabe3b645968e382ac726cd6c7b/60b4a471ffb74809beb2f7d5a15b3193/roku_ep_111_segment_1_final-cc_mix_033015-a7ec8a288c4bcec001c118181c668de321108861.m3u8"
+    videoContent.url = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8"
     videoContent.title = "Test Video"
     videoContent.streamformat = "hls"
 
     m.devTube.content = videoContent
+end sub
+
+sub onVideoStateChange()
+    state = m.devTube.state
+    if (state = "playing")
+        m.playbackStarted = true
+        m.global.datadogRumAgent@.succeedOperation("playbackStart")
+        m.devTube.unobserveField("state")
+    else if (state = "error")
+        m.playbackStarted = true
+        m.global.datadogRumAgent@.failOperation("playbackStart", "error")
+        m.devTube.unobserveField("state")
+    end if
 end sub

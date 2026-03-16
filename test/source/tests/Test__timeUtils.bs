@@ -28,13 +28,13 @@ function TimeUtilsTest__WhenGetTimestamp_ThenReturnsTimestampInMilliseconds() as
     ' Given
     ' hardcoded values to get a valid range
     timestampMS_1jan2025 = 1735686000000
-    timestampMS_1jan2026 = 1767225600000
+    timestampMS_1jan2028 = 1830294000000
 
     ' When
     result = datadogroku_getTimestamp()
 
     ' Then
-    Assert.that(result).isInRange(timestampMS_1jan2025, timestampMS_1jan2026)
+    Assert.that(result).isInRange(timestampMS_1jan2025, timestampMS_1jan2028)
     return ""
 end function
 

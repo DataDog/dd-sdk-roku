@@ -22,7 +22,10 @@ function TestSuite__Datadog() as object
 
     this.addTest("WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal)
     this.addTest("WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal)
-    this.addTest("WhenInitialize_ThenUploaderIsSetInGlobal", DatadogTest__WhenInitialize_ThenUploaderIsSetInGlobal) 
+    this.addTest("WhenInitialize_ThenUploaderIsSetInGlobal", DatadogTest__WhenInitialize_ThenUploaderIsSetInGlobal)
+    this.addTest("WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal", DatadogTest__WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal)
+    this.addTest("WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal", DatadogTest__WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal)
+    this.addTest("WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal", DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal)
 
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
@@ -312,6 +315,93 @@ function DatadogTest__WhenInitialize_ThenUploaderIsSetInGlobal() as string
     actualUploader = fakeGlobal.getField("datadogUploader")
 
     Assert.that(actualUploader.clientToken).isEqualTo(randomClientToken)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a valid configuration without ignoredExitEvents
+'  When: initializing the SDK
+'  Then: the default ignored exit events list is set in the global object
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then
+    actualIgnoredExitEvents = fakeGlobal.getField("datadogIgnoredExitEvents")
+    Assert.that(actualIgnoredExitEvents).isNotInvalid()
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_UNKNOWN")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_POWER_MODE")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_IDLE_AUTO_EXIT")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_DIAL_DELETE")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_USER_KILL")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_USER_NAV")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a valid configuration with a custom ignoredExitEvents list
+'  When: initializing the SDK
+'  Then: the custom ignored exit events list is set in the global object
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal() as string
+    ' Given
+    customIgnoredExitEvents = ["EXIT_USER_KILL", "EXIT_USER_NAV", "EXIT_BRIGHTSCRIPT_CRASH"]
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16),
+        ignoredExitEvents: customIgnoredExitEvents
+    }
+
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then
+    actualIgnoredExitEvents = fakeGlobal.getField("datadogIgnoredExitEvents")
+    Assert.that(actualIgnoredExitEvents).isNotInvalid()
+    Assert.that(actualIgnoredExitEvents).hasSize(3)
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_USER_KILL")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_USER_NAV")
+    Assert.that(actualIgnoredExitEvents).contains("EXIT_BRIGHTSCRIPT_CRASH")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a valid configuration with ignoredExitEvents set to an empty array
+'  When: initializing the SDK
+'  Then: the empty list is stored as-is in the global object
+'         (every exit status will be reported as a crash)
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16),
+        ignoredExitEvents: []
+    }
+
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then
+    actualIgnoredExitEvents = fakeGlobal.getField("datadogIgnoredExitEvents")
+    Assert.that(actualIgnoredExitEvents).isNotInvalid()
+    Assert.that(actualIgnoredExitEvents).hasSize(0)
     return ""
 end function
 

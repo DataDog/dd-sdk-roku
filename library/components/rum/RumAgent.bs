@@ -18,8 +18,27 @@ import "pkg:/source/internalLogger.bs"
 sub init()
     ddLogThread("RumAgent.init()")
     m.port = createObject("roMessagePort")
+    m.top.observeFieldScoped("startView", m.port)
+    m.top.observeFieldScoped("stopView", m.port)
+    m.top.observeFieldScoped("addAction", m.port)
+    m.top.observeFieldScoped("addError", m.port)
+    m.top.observeFieldScoped("addResource", m.port)
+    m.top.observeFieldScoped("addConfigTelemetry", m.port)
+    m.top.observeFieldScoped("addErrorTelemetry", m.port)
+    m.top.observeFieldScoped("addDebugTelemetry", m.port)
+    m.top.observeFieldScoped("startOperation", m.port)
+    m.top.observeFieldScoped("succeedOperation", m.port)
+    m.top.observeFieldScoped("failOperation", m.port)
+    m.top.observeFieldScoped("areFieldsSet", m.port)
+
+    'Observe nodes injected by the test
+    m.top.observeFieldScoped("uploader", m.port)
+    m.top.observeFieldScoped("writer", m.port)
+    m.top.observeFieldScoped("rumScope", m.port)
+    m.top.observeFieldScoped("telemetryScope", m.port)
     m.top.functionName = "rumAgentLoop"
     m.top.control = "RUN"
+
 end sub
 
 ' ----------------------------------------------------------------
@@ -27,14 +46,47 @@ end sub
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
     ddLogThread("RumAgent.rumAgentLoop()")
-    ensureSetup()
-    sendCrash(m.top.lastExitOrTerminationReason)
-    addConfigTelemetry(m.top.configuration)
     while(true)
-        msg = wait(m.top.keepAliveDelayMs, m.port)
-        m.top.rumScope@.handleEvent(keepAliveEvent(), m.top.writer)
+        msg = wait(0, m.port)
         msgType = type(msg)
-        if (msgType <> "Invalid")
+        if(msgType = "roSGNodeEvent")
+            fieldName = msg.getField()
+            if(fieldName = "startView")
+                __onStartView(msg.getData())
+            else if(fieldName = "stopView")
+                __onStopView(msg.getData())
+            else if(fieldName = "addAction")
+                __onAddAction(msg.getData())
+            else if(fieldName = "addError")
+                __onAddError(msg.getData())
+            else if(fieldName = "addResource")
+                __onAddResource(msg.getData())
+            else if(fieldName = "addConfigTelemetry")
+                __onAddConfigTelemetry(msg.getData())
+            else if(fieldName = "addErrorTelemetry")
+                __onAddErrorTelemetry(msg.getData())
+            else if(fieldName = "addDebugTelemetry")
+                __onAddDebugTelemetry(msg.getData())
+            else if(fieldName = "startOperation")
+                __onStartOperation(msg.getData())
+            else if(fieldName = "succeedOperation")
+                __onSucceedOperation(msg.getData())
+            else if(fieldName = "failOperation")
+                __onFailOperation(msg.getData())
+            else if(fieldName = "uploader")
+                m.uploader = msg.getData()
+            else if(fieldName = "writer")
+                m.writer = msg.getData()
+            else if(fieldName = "rumScope")
+                m.rumScope = msg.getData()
+            else if(fieldName = "telemetryScope")
+                m.telemetryScope = msg.getData()
+            else if(fieldName = "areFieldsSet")
+                if(msg.getData())
+                    updateFields()
+                end if
+            end if
+        else 
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
         end if
     end while
@@ -47,10 +99,19 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub startView(name as string, url as string, context = {} as object)
-    ddLogThread("RumAgent.startView()")
+    m.top.startView = startViewEvent(name, url, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles startView field change event
+' @param event (object) the startView event data
+' ----------------------------------------------------------------
+sub __onStartView(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(startViewEvent(name, url, context), m.top.writer)
-    m.top.rumScope@.handleEvent(keepAliveEvent(), m.top.writer)
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+        m.rumScope@.handleEvent(keepAliveEvent(), m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -60,9 +121,18 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub stopView(name as string, url as string, context = {} as object)
-    ddLogThread("RumAgent.stopView()")
+    m.top.stopView = stopViewEvent(name, url, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles stopView field change event
+' @param event (object) the stopView event data
+' ----------------------------------------------------------------
+sub __onStopView(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(stopViewEvent(name, url, context), m.top.writer)
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -71,9 +141,18 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addAction(action as object, context = {} as object)
-    ddLogThread("RumAgent.addAction()")
+    m.top.addAction = addActionEvent(action, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addAction field change event
+' @param event (object) the addAction event data
+' ----------------------------------------------------------------
+sub __onAddAction(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(addActionEvent(action, context), m.top.writer)
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -82,9 +161,18 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addError(exception as object, context = {} as object)
-    ddLogThread("RumAgent.addError()")
+    m.top.addError = addErrorEvent(exception, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addError field change event
+' @param event (object) the addError event data
+' ----------------------------------------------------------------
+sub __onAddError(event as object)
     ensureSetup()
-    m.top.rumScope@.handleEvent(addErrorEvent(exception, context), m.top.writer)
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -93,21 +181,29 @@ end sub
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' ----------------------------------------------------------------
 sub addResource(resource as object, context = {} as object)
-    ddLogThread("RumAgent.addResource()")
-    ensureSetup()
-    m.top.rumScope@.handleEvent(addResourceEvent(resource, context), m.top.writer)
+    m.top.addResource = addResourceEvent(resource, context)
 end sub
 
 ' ----------------------------------------------------------------
-' Sends a crash report from a previous view
-' @param lastExitOrTerminationReason (object) the lastExitOrTerminationReason parameter
-' from the channel's RunUserInterface
+' Private: Handles addResource field change event
+' @param event (object) the addResource event data
+' ----------------------------------------------------------------
+sub __onAddResource(event as object)
+    ensureSetup()
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles sendCrash field change event
+' @param lastExitOrTerminationReason (string) the last exit or termination reason
 ' ----------------------------------------------------------------
 sub sendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
-    crashReporter.writer = m.top.writer
-    if (m.top.osVersionMajor.toInt() >= 13)
+    crashReporter.writer = m.writer
+    if (m.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
         lastExitInfo = appManager.GetLastExitInfo()
         exitCode = lastExitInfo.exit_code
@@ -126,9 +222,16 @@ end sub
 ' @param configuration (object) the configuration information
 ' ----------------------------------------------------------------
 sub addConfigTelemetry(configuration as object)
-    ddLogThread("RumAgent.addConfigTelemetry()")
+    m.top.addConfigTelemetry = addTelemetryConfigEvent(configuration)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addConfigTelemetry field change event
+' @param event (object) the addConfigTelemetry event data
+' ----------------------------------------------------------------
+sub __onAddConfigTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(addTelemetryConfigEvent(configuration), m.top.writer)
+    m.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -136,9 +239,16 @@ end sub
 ' @param exception (object) the caught exception object
 ' ----------------------------------------------------------------
 sub addErrorTelemetry(exception as object)
-    ddLogThread("RumAgent.addErrorTelemetry()")
+    m.top.addErrorTelemetry = addTelemetryErrorEvent(exception)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addErrorTelemetry field change event
+' @param event (object) the addErrorTelemetry event data
+' ----------------------------------------------------------------
+sub __onAddErrorTelemetry(event as object)
     ensureSetup()
-    m.top.telemetryScope@.handleEvent(addTelemetryErrorEvent(exception), m.top.writer)
+    m.telemetryScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -146,10 +256,150 @@ end sub
 ' @param message (string) the message to send
 ' ----------------------------------------------------------------
 sub addDebugTelemetry(message as string)
-    ddLogThread("RumAgent.addDebugTelemetry()")
-    ensureSetup()
-    m.top.telemetryScope@.handleEvent(addTelemetryDebugEvent(message), m.top.writer)
+    m.top.addDebugTelemetry = addTelemetryDebugEvent(message)
 end sub
+
+' ----------------------------------------------------------------
+' Private: Handles addDebugTelemetry field change event
+' @param event (object) the addDebugTelemetry event data
+' ----------------------------------------------------------------
+sub __onAddDebugTelemetry(event as object)
+    ensureSetup()
+    m.telemetryScope@.handleEvent(event, m.writer)
+end sub
+
+' ----------------------------------------------------------------
+' Starts a feature operation
+' @param name (string) the operation name (e.g.: "login", "checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel
+'     operations, or invalid for unkeyed operations
+' @param context (object) an assocarray of custom attributes to add to the event
+' ----------------------------------------------------------------
+sub startOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
+    if (not __isValidOperationName(name))
+        ddLogError("RumAgent: startOperation called with blank name, ignoring")
+        return
+    end if
+    if (not __isValidOperationKey(operationKey))
+        ddLogError("RumAgent: startOperation called with blank operationKey, ignoring")
+        return
+    end if
+    m.top.startOperation = startFeatureOperationEvent(name, operationKey, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles startOperation field change event
+' @param event (object) the startOperation event data
+' ----------------------------------------------------------------
+sub __onStartOperation(event as object)
+    ensureSetup()
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Succeeds a feature operation
+' @param name (string) the operation name (e.g.: "login", "checkout")
+' @param operationKey (dynamic) the operation key for distinguishing parallel
+'     operations, or invalid for unkeyed operations
+' @param context (object) an assocarray of custom attributes to add to the event
+' ----------------------------------------------------------------
+sub succeedOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
+    if (not __isValidOperationName(name))
+        ddLogError("RumAgent: succeedOperation called with blank name, ignoring")
+        return
+    end if
+    if (not __isValidOperationKey(operationKey))
+        ddLogError("RumAgent: succeedOperation called with blank operationKey, ignoring")
+        return
+    end if
+    m.top.succeedOperation = succeedFeatureOperationEvent(name, operationKey, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles succeedOperation field change event
+' @param event (object) the succeedOperation event data
+' ----------------------------------------------------------------
+sub __onSucceedOperation(event as object)
+    ensureSetup()
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Fails a feature operation
+' @param name (string) the operation name (e.g.: "login", "checkout")
+' @param failureReason (string) the failure reason (use "error", "abandoned", or "other")
+' @param operationKey (dynamic) the operation key for distinguishing parallel
+'     operations, or invalid for unkeyed operations
+' @param context (object) an assocarray of custom attributes to add to the event
+' ----------------------------------------------------------------
+sub failOperation(name as string, failureReason as string, operationKey = invalid as dynamic, context = {} as object)
+    if (not __isValidOperationName(name))
+        ddLogError("RumAgent: failOperation called with blank name, ignoring")
+        return
+    end if
+    if (not __isValidOperationKey(operationKey))
+        ddLogError("RumAgent: failOperation called with blank operationKey, ignoring")
+        return
+    end if
+    if (not __isValidFailureReason(failureReason))
+        ddLogError("RumAgent: failOperation called with invalid failureReason '" + failureReason + "', ignoring")
+        return
+    end if
+    m.top.failOperation = failFeatureOperationEvent(name, operationKey, failureReason, context)
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles failOperation field change event
+' @param event (object) the failOperation event data
+' ----------------------------------------------------------------
+sub __onFailOperation(event as object)
+    ensureSetup()
+    if(m.rumScope <> invalid)
+        m.rumScope@.handleEvent(event, m.writer)
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Returns true if the operation name is valid (non-blank after trimming)
+' @param name (string) the operation name to validate
+' @return (boolean) whether the name is valid
+' ----------------------------------------------------------------
+function __isValidOperationName(name as string) as boolean
+    return name.Trim().Len() > 0
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the operationKey is valid:
+'   - invalid is VALID (means unkeyed operation)
+'   - non-empty string after trimming is VALID
+'   - empty or whitespace-only string is INVALID
+'   - non-string, non-invalid values are INVALID
+' @param operationKey (dynamic) the operation key to validate
+' @return (boolean) whether the key is valid
+' ----------------------------------------------------------------
+function __isValidOperationKey(operationKey as dynamic) as boolean
+    if (operationKey = invalid)
+        return true
+    end if
+    if (type(operationKey) = "roString" or type(operationKey) = "String")
+        return operationKey.Trim().Len() > 0
+    end if
+    ' Non-string, non-invalid values are invalid
+    return false
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the failureReason is a known FailureReason value
+' @param failureReason (string) the failure reason to validate
+' @return (boolean) whether the failure reason is valid
+' ----------------------------------------------------------------
+function __isValidFailureReason(reason as string) as boolean
+    return (reason = FailureReason.error or reason = FailureReason.abandoned or reason = FailureReason.other)
+end function
 
 ' ----------------------------------------------------------------
 ' Ensure all dependencies are present (from DI or generated)
@@ -166,31 +416,30 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureRumScope()
-    if (m.top.rumScope = invalid)
-        fields = m.top.getFields()
-        applicationId = fields.applicationId
+    if (m.rumScope = invalid and m.areFieldsSet = true)
         m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        ddLogWarning("RumViewScope.instanceId:" + m.instanceId)
-        m.global.addFields({ datadogRumContext: {} })
-        datadogRumContext = m.global.datadogRumContext
-        datadogRumContext.applicationId = applicationId
-        datadogRumContext.instanceId = m.instanceId
-        m.global.setField("datadogRumContext", datadogRumContext)
+        ddLogWarning("RumAgent.instanceId:" + m.instanceId)
+        m.global.addFields({
+            datadogRumContext: {
+                applicationId: m.applicationId,
+                instanceId: m.instanceId
+            }
+        })
 
         ddLogVerbose("Creating RumApplicationScope")
 
-        rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        rumScope.setFields({
-            applicationId: applicationId,
-            service: fields.service,
-            version: fields.version,
-            deviceName: fields.deviceName,
-            deviceModel: fields.deviceModel,
-            osVersion: fields.osVersion,
-            osVersionMajor: fields.osVersionMajor,
-            sessionSampleRate: fields.sessionSampleRate
+        m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
+        m.rumScope.setFields({
+            applicationId: m.applicationId,
+            service: m.service,
+            version: m.version,
+            deviceName: m.deviceName,
+            deviceModel: m.deviceModel,
+            osVersion: m.osVersion,
+            osVersionMajor: m.osVersionMajor,
+            sessionSampleRate: m.sessionSampleRate
         })
-        m.top.rumScope = rumScope
+        m.top.rumScope = m.rumScope
     end if
 end sub
 
@@ -199,9 +448,10 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureTelemetryScope()
-    if (m.top.telemetryScope = invalid)
+    if (m.telemetryScope = invalid)
         ddLogVerbose("Creating RumTelemetryScope")
-        m.top.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+        m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+        m.top.telemetryScope = m.telemetryScope
     end if
 end sub
 
@@ -210,25 +460,26 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureUploader()
-    uploader = m.top.uploader
-    if (uploader = invalid)
+    if (m.uploader = invalid)
         ddLogVerbose("Creating MultiTrackUploaderTask")
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        m.uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        m.top.uploader = m.uploader
     end if
-
     trackId = "rum_" + m.top.threadInfo().node.address
-    tracks = uploader.tracks ?? {}
+    tracks = m.uploader.tracks ?? {}
     tracks[trackId] = {
         url: getIntakeUrl(m.top.site, TrackType.rum),
         trackType: TrackType.rum,
         payloadPrefix: "",
         payloadPostfix: "",
         contentType: "text/plain;charset=UTF-8",
-        queryParams: { ddsource: agentSource(), ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.top.env }
+        queryParams: { ddsource: agentSource(), ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.env }
     }
-    uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    m.top.uploader = uploader
+    m.uploader.setFields({
+        tracks: tracks,
+        clientToken: m.clientToken
+    })
+    
 end sub
 
 ' ----------------------------------------------------------------
@@ -236,13 +487,46 @@ end sub
 ' or instantiate one.
 ' ----------------------------------------------------------------
 sub ensureWriter()
-    writer = m.top.writer
-    if (writer = invalid)
+    if (m.writer = invalid)
         ddLogVerbose("Creating WriterTask")
-        writer = CreateObject("roSGNode", "WriterTask")
+        m.writer = CreateObject("roSGNode", "WriterTask")
+        m.top.writer = m.writer
+    end if
+    m.writer.setFields({
+        trackType: TrackType.rum,
+        payloadSeparator: chr(10)
+    })
+end sub
+
+
+sub updateFields()
+    fields = m.top.getFields()
+    m.applicationId = fields.applicationId
+    m.service = fields.service
+    m.version = fields.version
+    m.deviceName = fields.deviceName
+    m.deviceModel = fields.deviceModel
+    m.osVersion = fields.osVersion
+    m.osVersionMajor = fields.osVersionMajor
+    m.sessionSampleRate = fields.sessionSampleRate
+    m.clientToken = fields.clientToken
+    m.env = fields.env
+    m.site = fields.site
+    m.areFieldsSet = fields.areFieldsSet
+
+    ' lastExitOrTerminationReason should be set only once at startup and it triggers sendCrash.
+    if(m.lastExitOrTerminationReason = invalid or m.lastExitOrTerminationReason = "")
+        m.lastExitOrTerminationReason = fields.lastExitOrTerminationReason
+        if(m.lastExitOrTerminationReason <> invalid and m.lastExitOrTerminationReason <> "")
+            sendCrash(m.lastExitOrTerminationReason)
+        end if
     end if
 
-    writer.trackType = TrackType.rum
-    writer.payloadSeparator = chr(10)
-    m.top.writer = writer
+    ' configuration should be set only once at startup and it triggers addConfigTelemetry.
+    if (m.configuration = invalid or  m.configuration.Count() = 0)
+        m.configuration = fields.configuration
+        if(m.configuration <> invalid and m.configuration.Count() > 0)
+            addConfigTelemetry(m.configuration)
+        end if
+    end if
 end sub

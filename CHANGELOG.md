@@ -1,4 +1,15 @@
-# Next release: 1.4.0
+# Next release: 1.5.0
+
+# 1.4.0 / 2026-03-16
+* [FEATURE] Add RUM Operations tracking (start, stop, update, cancel operations with custom attributes). See [#133](https://github.com/DataDog/dd-sdk-roku/pull/133)
+* [FEATURE] Add `ignoredExitEvents` in configuration. See [#126](https://github.com/DataDog/dd-sdk-roku/pull/126)
+* [BUGFIX] Fix crash in `RumViewScope`. See [#116](https://github.com/DataDog/dd-sdk-roku/pull/116)
+* [IMPROVEMENT] Reduce rendezvous events in `RumAgent`. See [#121](https://github.com/DataDog/dd-sdk-roku/pull/121)
+* [IMPROVEMENT] Refactor `RumAgent` to avoid race condition. See [#115](https://github.com/DataDog/dd-sdk-roku/pull/115)
+* [MAINTENANCE] Add GitHub publish action. See [#110](https://github.com/DataDog/dd-sdk-roku/pull/110)
+* [MAINTENANCE] Migrate off legacy CI runners. See [#111](https://github.com/DataDog/dd-sdk-roku/pull/111)
+* [MAINTENANCE] Centralize versions for devDependencies in `package.json`. See [#134](https://github.com/DataDog/dd-sdk-roku/pull/134)
+* [MAINTENANCE] Improve contributing guide and dev environment setup. See [#124](https://github.com/DataDog/dd-sdk-roku/pull/124)
 
 # 1.3.1 / 2025-09-08
 * [BUGFIX] Add missing BrighterScript `Callfunc` Operator to fix crash. See [#106](https://github.com/DataDog/dd-sdk-roku/pull/106)

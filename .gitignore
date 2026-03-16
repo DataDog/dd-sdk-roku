@@ -1,5 +1,6 @@
 # Roku
 out
+sca-cmd
 
 # ROPM
 roku_modules
@@ -9,14 +10,26 @@ node_modules
 package-lock.json
 .npmrc
 
+# Java
+.java-version
+
+# JetBrains
+.idea
+
 # Visual Studio Code
 .vscode
 
 # Windsurf
 .windsurf
 
+# Claude
+.claude
+
 # Mac OS
 .DS_Store
 
 # Sample App
 sample/credentials.json
+
+# Local environment variables
+.env
