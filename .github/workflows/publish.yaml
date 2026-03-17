@@ -3,16 +3,17 @@ on:
   release:
     types: [created]
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
     steps:
     # Use full-length commit SHA of GitHub actions V4
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
     - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
       with:
-        node-version: '18.x'
-    - run: npm config set _authToken=$NPM_PUBLISH_TOKEN
-      env:
-        NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+        node-version: '24'
+        registry-url: 'https://registry.npmjs.org'
     - run: npm install
-    - run: npm publish
+    - run: npm publish --provenance --access public
