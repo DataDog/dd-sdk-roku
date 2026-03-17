@@ -84,7 +84,9 @@ tools/repo/release.sh <version>
 This script:
 - Updates `library/source/datadogSdk.bs` (hardcoded `sdkVersion()`)
 - Updates `package.json` in root, `library/`, `test/`, `sample/`
+- Removes old `datadogroku-*.zip` files
 - Packages the release into `datadogroku-<version>.zip`
+- Stages `CHANGELOG.md` (must be edited before running the script)
 - Creates a signed commit with all the above changes
 
 ### Step 4: Push and open PR
@@ -105,15 +107,18 @@ After the PR is merged, pull the release branch to get the merge commit, then ta
 ```bash
 git checkout release/<version>
 git pull origin release/<version>
-git tag <version>
+git tag -a <version> -m "<version>"
 git push --tags
 ```
 
 ### Step 6: Create GitHub Release
 
-Generate the release notes body from the CHANGELOG entries for this version. Include the setup instructions template:
+Generate the release notes body from the CHANGELOG entries for this version, using the following template:
 
 ```
+## What's Changed
+<changelog entries>
+
 ## ROPM Setup
 If your project is set up to use ROPM, you can use the following command to install the Datadog dependency:
 
@@ -126,42 +131,58 @@ and unzipping it in your project's root folder.
 Make sure you have a roku_modules/datadogroku subfolder in both the components and source folders of your project.
 ```
 
-Then create the release:
+Then create the release and upload the zip as an asset:
 
 ```bash
-gh release create <version> --title "<version>" --notes "<changelog entries + setup instructions>"
+gh release create <version> --title "<version>" --notes "<release notes>"
+gh release upload <version> datadogroku-<version>.zip
 ```
 
 This automatically triggers the npm publish workflow (`.github/workflows/publish.yaml`).
 
 ### Step 7: Verify npm publish
 
-After the GitHub release is created, tell the user:
+After the GitHub release is created, the GitHub Action will automatically publish to npm. Monitor the action at:
+https://github.com/DataDog/dd-sdk-roku/actions/workflows/publish.yaml
 
-> The GitHub Action will automatically publish to npm. You can monitor the action at:
-> https://github.com/DataDog/dd-sdk-roku/actions/workflows/publish.yml
->
-> Once complete, verify the package is available:
-> https://www.npmjs.com/package/datadog-roku
+If the GitHub Action fails, the user can publish manually:
+
+```bash
+git checkout <version>
+npm login
+npm publish
+```
+
+Once published (either automatically or manually), verify:
+
+```bash
+npm view datadog-roku@<version> version
+```
+
+And confirm the package page is accessible at: `https://www.npmjs.com/package/datadog-roku/v/<version>`
 
 ### Step 8: Merge to main and develop
 
 Never push directly to `main` or `develop`. Both merges must go through PRs.
 
-Merge release branch into main via a PR:
+Merge release branch into main via a PR. Fetch and rebase onto main first to ensure the branch is up to date:
 
 ```bash
+git fetch origin main
 git checkout -b merge/release-<version>-to-main release/<version>
+git rebase origin/main
 git push -u origin merge/release-<version>-to-main
 gh pr create --base main --head merge/release-<version>-to-main --title "Merge release <version> to main" --body ""
 ```
 
 **GATE: Wait for user to confirm the PR has been merged.**
 
-Merge release branch into develop via a PR:
+Merge release branch into develop via a PR. Fetch and rebase onto develop first to ensure the branch is up to date:
 
 ```bash
+git fetch origin develop
 git checkout -b merge/release-<version>-to-develop release/<version>
+git rebase origin/develop
 git push -u origin merge/release-<version>-to-develop
 gh pr create --base develop --head merge/release-<version>-to-develop --title "Merge release <version> to develop" --body ""
 ```
@@ -175,10 +196,10 @@ At the end, print a summary of what was done:
 - [ ] Release branch created
 - [ ] CHANGELOG updated with release date and next version header
 - [ ] Version bumped in all files
-- [ ] Release packaged (zip)
+- [ ] Release packaged (zip), old zips removed
 - [ ] Prepare-release PR merged into release branch
 - [ ] Tag created and pushed
-- [ ] GitHub release created (triggers npm publish)
-- [ ] npm publish verified
+- [ ] GitHub release created (with zip asset)
+- [ ] npm publish verified (`npm view` and npmjs.com page)
 - [ ] Release branch merged to main (via PR)
 - [ ] Release branch merged to develop (via PR)
