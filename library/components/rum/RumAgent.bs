@@ -348,8 +348,16 @@ end sub
 ' ----------------------------------------------------------------
 sub startOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
     if (not __isValidOperationName(name))
+        ' Backend rejects blank/empty names with its own non-empty
+        ' precondition; drop client-side to match.
         ddLogError("RumAgent: startOperation called with blank name, ignoring")
         return
+    end if
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit: the backend is the source of truth on the
+        ' character-set policy. Dropping client-side would force a customer
+        ' SDK bump if the rule is ever relaxed.
+        ddLogWarning("RumAgent: startOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
     end if
     if (not __isValidOperationKey(operationKey))
         ddLogError("RumAgent: startOperation called with blank operationKey, ignoring")
@@ -378,6 +386,10 @@ sub succeedOperation(name as string, operationKey = invalid as dynamic, context 
         ddLogError("RumAgent: succeedOperation called with blank name, ignoring")
         return
     end if
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: succeedOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
     if (not __isValidOperationKey(operationKey))
         ddLogError("RumAgent: succeedOperation called with blank operationKey, ignoring")
         return
@@ -405,6 +417,10 @@ sub failOperation(name as string, failureReason as string, operationKey = invali
     if (not __isValidOperationName(name))
         ddLogError("RumAgent: failOperation called with blank name, ignoring")
         return
+    end if
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: failOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
     end if
     if (not __isValidOperationKey(operationKey))
         ddLogError("RumAgent: failOperation called with blank operationKey, ignoring")
@@ -479,6 +495,19 @@ function __isValidOperationName(name as dynamic) as boolean
         return false
     end if
     return name.Trim().Len() > 0
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the operation name matches the backend's server-side
+' `[\w.@$-]*` validation regex. operation_key is a separate parameter
+' and is not subject to this rule. The `*` quantifier means an empty
+' string also matches.
+' @param name (string) the operation name to validate
+' @return (boolean) whether the name matches the backend pattern
+' ----------------------------------------------------------------
+function __operationNameMatchesBackendPattern(name as string) as boolean
+    regex = CreateObject("roRegex", "^[\w.@$-]*$", "")
+    return regex.IsMatch(name)
 end function
 
 ' ----------------------------------------------------------------
