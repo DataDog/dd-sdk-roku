@@ -152,6 +152,7 @@ function RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
 
     ' Then
     Assert.that(context.sessionId).isEqualTo(m.global.datadogRumContext.sessionId)
+    Assert.that(m.global.datadogRumContext.anonymousId).isNotEmpty()
     return ""
 end function
 
@@ -176,6 +177,7 @@ function RumSessionScopeTest__WhenRenewSessionWithInvalidRumContext_ThenDoesNotC
     Assert.that(context.sessionId).isNotEmpty()
     Assert.that(m.global.datadogRumContext).isNotInvalid()
     Assert.that(m.global.datadogRumContext.sessionId).isEqualTo(context.sessionId)
+    Assert.that(m.global.datadogRumContext.anonymousId).isNotEmpty()
     return ""
 end function
 

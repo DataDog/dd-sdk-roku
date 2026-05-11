@@ -14,6 +14,8 @@ function TestSuite__LogsAgent() as object
     this.addTest("WhenLogOkWithCustomAttributes_ThenWriteLog", LogsAgentTest__WhenLogOkWithCustomAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogOkWithGlobalAttributes_ThenWriteLog", LogsAgentTest__WhenLogOkWithGlobalAttributes_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogOkWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithAnonymousIdInRumContext_ThenWriteLogWithUserAnonymousId", LogsAgentTest__WhenLogOkWithAnonymousIdInRumContext_ThenWriteLogWithUserAnonymousId, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithExistingUserAnonymousId_ThenPreserveUserAnonymousId", LogsAgentTest__WhenLogOkWithExistingUserAnonymousId_ThenPreserveUserAnonymousId, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogOkWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogOkWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
 
     this.addTest("WhenLogDebug_ThenWriteLog", LogsAgentTest__WhenLogDebug_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
@@ -331,6 +333,61 @@ function LogsAgentTest__WhenLogOkWithUserInfo_ThenWriteLog() as string
     Assert.that(logEvent.logger.version).isEqualTo(datadogroku_sdkVersion())
     Assert.that(logEvent.logger.thread_name).isEqualTo("TestRunner")
     Assert.that(logEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a LogsAgent with user info and rum anonymous id
+'  When: call the log ok
+'  Then: writes a log with usr.anonymous_id
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithAnonymousIdInRumContext_ThenWriteLogWithUserAnonymousId() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
+    fakeRumContext = {
+        anonymousId: IG_GetString(32),
+        actionId: m.fakeRumContext.actionId,
+        applicationId: m.fakeRumContext.applicationId,
+        sessionId: m.fakeRumContext.sessionId,
+        viewId: m.fakeRumContext.viewId
+    }
+    m.global.setField("datadogRumContext", fakeRumContext)
+
+    ' When
+    m.testedNode@.logOk(fakeMessage, {})
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    Assert.that(logEvent.usr.id).isEqualTo(m.fakeGlobalUserInfo.id)
+    Assert.that(logEvent.usr.anonymous_id).isEqualTo(fakeRumContext.anonymousId)
+    Assert.that(m.global.datadogUserInfo.anonymous_id).isInvalid()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a LogsAgent with user and rum anonymous ids
+'  When: call the log ok
+'  Then: preserves user-provided anonymous_id
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithExistingUserAnonymousId_ThenPreserveUserAnonymousId() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeUserAnonymousId = IG_GetString(32)
+    m.fakeGlobalUserInfo.anonymous_id = fakeUserAnonymousId
+    m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
+    m.global.setField("datadogRumContext", {
+        anonymousId: IG_GetString(32)
+    })
+
+    ' When
+    m.testedNode@.logOk(fakeMessage, {})
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    Assert.that(logEvent.usr.anonymous_id).isEqualTo(fakeUserAnonymousId)
     return ""
 end function
 

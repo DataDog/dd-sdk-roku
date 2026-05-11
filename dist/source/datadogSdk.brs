@@ -23,6 +23,8 @@
 '           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
 '           - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
 '  - traceContextInjection (string) defines whether the trace context should be injected into all requests or only sampled ones.
+'  - trackAnonymousUser (boolean, optional) when `true` (default), enriches `usr` payloads with `anonymous_id`
+'     derived from the session context when not explicitly set by the user.
 '  - ignoredExitEvents (array, optional) an array of exit status strings to ignore when detecting crashes.
 '     Any exit status NOT in this list will be reported as a crash. Defaults to:
 '     ["EXIT_UNKNOWN", "EXIT_POWER_MODE", "EXIT_IDLE_AUTO_EXIT", "EXIT_DIAL_DELETE", "EXIT_USER_KILL", "EXIT_USER_NAV"]
@@ -174,6 +176,14 @@ sub initialize(configuration as object, global as object)
                     end if
                 end function)(configuration)
         }
+        datadogTrackAnonymousUser: (function(configuration)
+                __bsConsequent = configuration.trackAnonymousUser
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return true
+                end if
+            end function)(configuration)
         datadogIgnoredExitEvents: (function(configuration)
                 __bsConsequent = configuration.ignoredExitEvents
                 if __bsConsequent <> invalid then
@@ -256,6 +266,47 @@ end function
 ' ----------------------------------------------------------------
 function channelVersion() as string
     return CreateObject("roAppInfo").GetVersion()
+end function
+
+' ----------------------------------------------------------------
+' Returns user info enriched with an anonymous id when applicable.
+' Mirrors browser SDK behavior: don't override user-provided `anonymous_id`.
+' @param global (object) the global node available from scenegraph nodes
+' @return (object) user info object for event payloads
+' ----------------------------------------------------------------
+function getDatadogUserInfo(global as object) as object
+    userInfo = (function(global)
+            __bsConsequent = global.datadogUserInfo
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(global)
+    trackAnonymousUser = global.datadogTrackAnonymousUser
+    if (trackAnonymousUser = invalid)
+        trackAnonymousUser = true
+    end if
+    if (not trackAnonymousUser)
+        return userInfo
+    end if
+    if (userInfo.anonymous_id <> invalid and userInfo.anonymous_id <> "")
+        return userInfo
+    end if
+    rumContext = global.datadogRumContext
+    if (rumContext = invalid)
+        return userInfo
+    end if
+    anonymousId = rumContext.anonymousId
+    if (anonymousId = invalid or anonymousId = "")
+        return userInfo
+    end if
+    enrichedUserInfo = {}
+    for each key in userInfo
+        enrichedUserInfo[key] = userInfo[key]
+    end for
+    enrichedUserInfo.anonymous_id = anonymousId
+    return enrichedUserInfo
 end function
 
 ' ----------------------------------------------------------------

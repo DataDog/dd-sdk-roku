@@ -131,7 +131,7 @@ sub sendLog(status as object, message as string, attributes as object)
         message: message
         status: status
         service: m.top.service
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         device: {
             type: "tv"
             name: m.top.deviceName

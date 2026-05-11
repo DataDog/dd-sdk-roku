@@ -211,7 +211,7 @@ sub sendError(message as string, errorType as string, backtrace as dynamic, cont
         }
         source: agentSource()
         type: "error"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: rumContext.applicationVersion
         view: {
             id: m.viewId
@@ -313,7 +313,7 @@ sub sendCustomAction(target as string, context as object, writer as object)
         }
         source: agentSource()
         type: "action"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: rumContext.applicationVersion
         view: {
             id: m.viewId
@@ -400,7 +400,7 @@ sub sendResource(resource as object, context as object, writer as object)
         }
         source: agentSource()
         type: "resource"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: rumContext.applicationVersion
         view: {
             id: m.viewId
@@ -493,7 +493,7 @@ sub sendResourceError(status as string, url as dynamic, method as dynamic, conte
         }
         source: agentSource()
         type: "error"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: rumContext.applicationVersion
         view: {
             id: m.viewId
@@ -547,7 +547,7 @@ sub sendViewUpdate(context as object, writer as object)
         }
         source: agentSource()
         type: "view"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: rumContext.applicationVersion
         view: {
             id: m.viewId

@@ -26,6 +26,9 @@ function TestSuite__Datadog() as object
     this.addTest("WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal", DatadogTest__WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal)
     this.addTest("WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal", DatadogTest__WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal)
     this.addTest("WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal", DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal)
+    this.addTest("WhenGetDatadogUserInfo_ThenIncludesAnonymousIdFromRumContext", DatadogTest__WhenGetDatadogUserInfo_ThenIncludesAnonymousIdFromRumContext)
+    this.addTest("WhenGetDatadogUserInfo_WithExistingAnonymousId_ThenKeepUserValue", DatadogTest__WhenGetDatadogUserInfo_WithExistingAnonymousId_ThenKeepUserValue)
+    this.addTest("WhenGetDatadogUserInfo_WithTrackAnonymousUserDisabled_ThenDoNotEnrich", DatadogTest__WhenGetDatadogUserInfo_WithTrackAnonymousUserDisabled_ThenDoNotEnrich)
 
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
@@ -196,6 +199,71 @@ function DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint() as string
 
     ' Then
     Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: global user info without anonymous_id and a rum anonymousId
+'  When: retrieving Datadog user info for payloads
+'  Then: enrich with anonymous_id
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_ThenIncludesAnonymousIdFromRumContext() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+    fakeGlobal = {
+        datadogUserInfo: { id: IG_GetString(16) },
+        datadogRumContext: { anonymousId: fakeAnonymousId },
+        datadogTrackAnonymousUser: true
+    }
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(fakeGlobal)
+
+    ' Then
+    Assert.that(userInfo.id).isEqualTo(fakeGlobal.datadogUserInfo.id)
+    Assert.that(userInfo.anonymous_id).isEqualTo(fakeAnonymousId)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: global user info with explicit anonymous_id and rum anonymousId
+'  When: retrieving Datadog user info for payloads
+'  Then: keeps explicit user value
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_WithExistingAnonymousId_ThenKeepUserValue() as string
+    ' Given
+    fakeGlobal = {
+        datadogUserInfo: { id: IG_GetString(16), anonymous_id: "user-defined-anon" },
+        datadogRumContext: { anonymousId: IG_GetString(32) },
+        datadogTrackAnonymousUser: true
+    }
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(fakeGlobal)
+
+    ' Then
+    Assert.that(userInfo.anonymous_id).isEqualTo("user-defined-anon")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: anonymous tracking disabled
+'  When: retrieving Datadog user info for payloads
+'  Then: does not add anonymous_id
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_WithTrackAnonymousUserDisabled_ThenDoNotEnrich() as string
+    ' Given
+    fakeGlobal = {
+        datadogUserInfo: { id: IG_GetString(16) },
+        datadogRumContext: { anonymousId: IG_GetString(32) },
+        datadogTrackAnonymousUser: false
+    }
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(fakeGlobal)
+
+    ' Then
+    Assert.that(userInfo.anonymous_id).isInvalid()
     return ""
 end function
 
@@ -404,4 +472,3 @@ function DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsS
     Assert.that(actualIgnoredExitEvents).hasSize(0)
     return ""
 end function
-

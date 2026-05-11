@@ -149,7 +149,7 @@ sub sendAction(writer as object)
         }
         source: agentSource()
         type: "action"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: context.applicationVersion
         view: {
             id: context.viewId

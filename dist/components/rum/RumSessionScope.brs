@@ -139,6 +139,10 @@ sub renewSession(timestamp& as longinteger)
     else
         m.sessionState = "not_tracked"
     end if
+    trackAnonymousUser = m.global.datadogTrackAnonymousUser
+    if (trackAnonymousUser = invalid)
+        trackAnonymousUser = true
+    end if
     datadogRumContext = (function(m)
             __bsConsequent = m.global.datadogRumContext
             if __bsConsequent <> invalid then
@@ -148,6 +152,9 @@ sub renewSession(timestamp& as longinteger)
             end if
         end function)(m)
     datadogRumContext.sessionId = m.sessionId
+    if (trackAnonymousUser and (datadogRumContext.anonymousId = invalid or datadogRumContext.anonymousId = ""))
+        datadogRumContext.anonymousId = CreateObject("roDeviceInfo").GetRandomUUID()
+    end if
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub
 
@@ -243,7 +250,7 @@ sub sendVitalEvent(event as object, stepType as string, writer as object)
         }
         source: agentSource()
         type: "vital"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global)
         version: rumContext.applicationVersion
         view: {
             id: viewId
