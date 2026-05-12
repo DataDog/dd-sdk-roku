@@ -11,6 +11,8 @@ function TestSuite__RumSessionScope() as object
     this.Name = "RumSessionScope"
 
     this.addTest("WhenInit_ThenUpdateGlobalRumContext", RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
+    this.addTest("WhenRenewSession_WithEmptyRegistry_ThenGenerateAndPersist", RumSessionScopeTest__WhenRenewSession_WithEmptyRegistry_ThenGenerateAndPersist, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenRenewSession_WithRegistryValue_ThenReuseIt", RumSessionScopeTest__WhenRenewSession_WithRegistryValue_ThenReuseIt, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash", RumSessionScopeTest__WhenRenewSessionWithInvalidRumContext_ThenDoesNotCrash, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenGetContext_ThenReturnsContext", RumSessionScopeTest__WhenGetContext_ThenReturnsContext, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenCreateViewScope", RumSessionScopeTest__WhenHandleStartViewEvent_ThenCreateViewScope, RumSessionScopeTest__SetUp, RumSessionScopeTest__TearDown)
@@ -139,6 +141,11 @@ sub RumSessionScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("mockParentScope")
     m.testSuite.Delete("testedScope")
+    section = CreateObject("roRegistrySection", "datadog")
+    if (section <> invalid and section.Exists("anonymous_id"))
+        section.Delete("anonymous_id")
+        section.Flush()
+    end if
 end sub
 
 '----------------------------------------------------------------
@@ -153,6 +160,49 @@ function RumSessionScopeTest__WhenInit_ThenUpdateGlobalRumContext() as string
     ' Then
     Assert.that(context.sessionId).isEqualTo(m.global.datadogRumContext.sessionId)
     Assert.that(m.global.datadogRumContext.anonymousId).isNotEmpty()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: an empty registry section
+'  When: renewing session for the first time
+'  Then: generates a new anonymous id and persists it to the registry
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenRenewSession_WithEmptyRegistry_ThenGenerateAndPersist() as string
+    ' Given: empty registry (TearDown cleared it, but ensure for safety)
+    section = CreateObject("roRegistrySection", "datadog")
+    if (section.Exists("anonymous_id"))
+        section.Delete("anonymous_id")
+        section.Flush()
+    end if
+
+    ' When
+    m.testedScope@.handleEvent({ mock: "event", eventType: "resetSession" }, { mock: "writer" })
+
+    ' Then
+    Assert.that(m.global.datadogRumContext.anonymousId).isNotEmpty()
+    persistedSection = CreateObject("roRegistrySection", "datadog")
+    Assert.that(persistedSection.Read("anonymous_id")).isEqualTo(m.global.datadogRumContext.anonymousId)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a value pre-existing in the registry from a prior channel launch
+'  When: renewing session
+'  Then: reuses the persisted anonymous id rather than generating a new one
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenRenewSession_WithRegistryValue_ThenReuseIt() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+    section = CreateObject("roRegistrySection", "datadog")
+    section.Write("anonymous_id", fakeAnonymousId)
+    section.Flush()
+
+    ' When
+    m.testedScope@.handleEvent({ mock: "event", eventType: "resetSession" }, { mock: "writer" })
+
+    ' Then
+    Assert.that(m.global.datadogRumContext.anonymousId).isEqualTo(fakeAnonymousId)
     return ""
 end function
 

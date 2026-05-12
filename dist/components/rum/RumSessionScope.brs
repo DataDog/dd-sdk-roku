@@ -2,6 +2,7 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 'import "pkg:/source/datadogSdk.bs"
+'import "pkg:/source/identityStorage.bs"
 'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/rum/rumHelper.bs"
@@ -153,7 +154,13 @@ sub renewSession(timestamp& as longinteger)
         end function)(m)
     datadogRumContext.sessionId = m.sessionId
     if (trackAnonymousUser and (datadogRumContext.anonymousId = invalid or datadogRumContext.anonymousId = ""))
-        datadogRumContext.anonymousId = CreateObject("roDeviceInfo").GetRandomUUID()
+        persistedAnonymousId = readDatadogAnonymousId()
+        if (persistedAnonymousId <> "")
+            datadogRumContext.anonymousId = persistedAnonymousId
+        else
+            datadogRumContext.anonymousId = CreateObject("roDeviceInfo").GetRandomUUID()
+            writeDatadogAnonymousId(datadogRumContext.anonymousId)
+        end if
     end if
     m.global.setField("datadogRumContext", datadogRumContext)
 end sub

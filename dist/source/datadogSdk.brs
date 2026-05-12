@@ -24,7 +24,8 @@
 '           - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
 '  - traceContextInjection (string) defines whether the trace context should be injected into all requests or only sampled ones.
 '  - trackAnonymousUser (boolean, optional) when `true` (default), enriches `usr` payloads with `anonymous_id`
-'     derived from the session context when not explicitly set by the user.
+'     derived from the session context when not explicitly set by the user. The id is persisted in the Roku
+'     registry (section `"datadog"`, key `"anonymous_id"`) so it survives channel relaunches.
 '  - ignoredExitEvents (array, optional) an array of exit status strings to ignore when detecting crashes.
 '     Any exit status NOT in this list will be reported as a crash. Defaults to:
 '     ["EXIT_UNKNOWN", "EXIT_POWER_MODE", "EXIT_IDLE_AUTO_EXIT", "EXIT_DIAL_DELETE", "EXIT_USER_KILL", "EXIT_USER_NAV"]
