@@ -27,7 +27,7 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleStopViewEventTwice_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStopUnknownView_ThenDoNothing", RumViewScopeTest__WhenStopUnknownView_ThenDoNothing, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
-    this.addTest("WhenHanldeViewUpdate_ThenKeepLastKnownViewEvent", RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleViewUpdate_ThenKeepLastKnownViewEvent", RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent", RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     this.addTest("WhenHandleAddErrorEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleAddErrorEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -103,6 +103,9 @@ sub RumViewScopeTest__SetUp()
     m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
     m.testSuite.global.setField("datadogRumContext", { instanceId: m.testSuite.fakeInstanceId })
 
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
+
     ' Tested Task
     m.testSuite.startTimestamp& = datadogroku_getTimestamp()
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumViewScope")
@@ -117,6 +120,7 @@ sub RumViewScopeTest__TearDown()
     m.testSuite.Delete("mockParentScope")
     m.testSuite.Delete("mockActionScope")
     m.testSuite.Delete("testedScope")
+    createObject("roFileSystem").Delete(datadogroku_trackFolderPath("rum"))
 end sub
 
 '----------------------------------------------------------------

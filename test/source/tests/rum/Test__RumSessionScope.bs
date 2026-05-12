@@ -71,6 +71,9 @@ sub RumSessionScopeTest__SetUp()
     ' Fake data
     m.testSuite.global.addFields({ datadogRumContext: {}, datadogContext: {}, datadogUserInfo: {} })
 
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
+
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
@@ -86,6 +89,9 @@ sub RumSessionScopeTest__SetUpNoSession()
 
     ' Fake data
     m.testSuite.global.addFields({ datadogRumContext: {} })
+
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
 
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
@@ -123,6 +129,9 @@ sub RumSessionScopeTest__SetUpWithView()
     ' Global fields (required by SDK infrastructure)
     m.testSuite.global.addFields({ datadogRumContext: {}, datadogContext: {}, datadogUserInfo: {} })
 
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
+
     ' Create and initialize session scope
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
@@ -139,6 +148,7 @@ sub RumSessionScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("mockParentScope")
     m.testSuite.Delete("testedScope")
+    createObject("roFileSystem").Delete(datadogroku_trackFolderPath("rum"))
 end sub
 
 '----------------------------------------------------------------
@@ -1125,9 +1135,9 @@ function RumSessionScopeTest__WhenCrossViewOperation_ThenEachEventCarriesCorrect
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    Assert.that(updates).hasSize(existingCount + 2)
+    Assert.that(updates).hasSize(existingCount + 3)
     startVitalEvent = ParseJson(updates[existingCount])
-    stopVitalEvent = ParseJson(updates[existingCount + 1])
+    stopVitalEvent = ParseJson(updates[existingCount + 2])
     Assert.that(startVitalEvent).isNotInvalid()
     Assert.that(stopVitalEvent).isNotInvalid()
     Assert.that(startVitalEvent.view.url).isEqualTo(m.fakeViewUrl)
