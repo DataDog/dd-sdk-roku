@@ -2,6 +2,8 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
+import "pkg:/source/identityStorage.bs"
+
 ' ----------------------------------------------------------------
 ' Initializes the SDK
 ' @param configuration (object) an Associative Array with the following fields
@@ -110,13 +112,18 @@ sub initialize(configuration as object, global as object)
         ddLogWarning("configuration.ignoredExitEvents is empty; all exit statuses will be reported as crashes.")
     end if
 
+    trackAnonymousUser = configuration.trackAnonymousUser ?? true
+    if (not trackAnonymousUser)
+        clearDatadogAnonymousId()
+    end if
+
     global.addFields({
         datadogTraceAgent: {
             traceSampleRate: configuration.traceSampleRate ?? 100,
             tracingHeaderTypes: configuration.tracingHeaderTypes ?? {},
             traceContextInjection: configuration.traceContextInjection ?? TraceContextInjection.Sampled
         },
-        datadogTrackAnonymousUser: configuration.trackAnonymousUser ?? true,
+        datadogTrackAnonymousUser: trackAnonymousUser,
         datadogIgnoredExitEvents: configuration.ignoredExitEvents ?? [
             "EXIT_UNKNOWN",
             "EXIT_POWER_MODE",

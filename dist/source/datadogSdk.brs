@@ -1,6 +1,7 @@
 ' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
+'import "pkg:/source/identityStorage.bs"
 
 ' ----------------------------------------------------------------
 ' Initializes the SDK
@@ -150,6 +151,17 @@ sub initialize(configuration as object, global as object)
     if (configuration.ignoredExitEvents <> invalid and configuration.ignoredExitEvents.count() = 0)
         ddLogWarning("configuration.ignoredExitEvents is empty; all exit statuses will be reported as crashes.")
     end if
+    trackAnonymousUser = (function(configuration)
+            __bsConsequent = configuration.trackAnonymousUser
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return true
+            end if
+        end function)(configuration)
+    if (not trackAnonymousUser)
+        clearDatadogAnonymousId()
+    end if
     global.addFields({
         datadogTraceAgent: {
             traceSampleRate: (function(configuration)
@@ -177,14 +189,7 @@ sub initialize(configuration as object, global as object)
                     end if
                 end function)(configuration)
         }
-        datadogTrackAnonymousUser: (function(configuration)
-                __bsConsequent = configuration.trackAnonymousUser
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return true
-                end if
-            end function)(configuration)
+        datadogTrackAnonymousUser: trackAnonymousUser
         datadogIgnoredExitEvents: (function(configuration)
                 __bsConsequent = configuration.ignoredExitEvents
                 if __bsConsequent <> invalid then

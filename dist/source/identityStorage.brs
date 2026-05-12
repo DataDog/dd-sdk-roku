@@ -33,3 +33,17 @@ sub writeDatadogAnonymousId(anonymousId as string)
     section.Write("anonymous_id", anonymousId)
     section.Flush()
 end sub
+
+' ----------------------------------------------------------------
+' Removes any persisted Datadog anonymous id from the Roku registry.
+' Called when anonymous user tracking is disabled, so the identifier
+' does not outlive the integrator's consent state.
+' ----------------------------------------------------------------
+sub clearDatadogAnonymousId()
+    section = CreateObject("roRegistrySection", "datadog")
+    if (section = invalid or not section.Exists("anonymous_id"))
+        return
+    end if
+    section.Delete("anonymous_id")
+    section.Flush()
+end sub
