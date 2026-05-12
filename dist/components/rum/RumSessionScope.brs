@@ -133,8 +133,8 @@ sub renewSession(timestamp& as longinteger)
     m.sessionId = CreateObject("roDeviceInfo").GetRandomUUID()
     m.sessionStartMs = timestamp&
     m.activeOperations = {}
-    rndSession = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
-    if (rndSession < m.top.sessionSampleRate)
+    rndSession = Rnd(100) ' Rnd(n) returns a number between 1 and n (both inclusive)
+    if (rndSession <= m.top.sessionSampleRate)
         m.sessionState = "tracked"
     else
         m.sessionState = "not_tracked"
