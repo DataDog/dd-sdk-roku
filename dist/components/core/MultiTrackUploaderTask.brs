@@ -27,11 +27,33 @@ sub uploaderLoop()
     ' Uploader's dependencies
     m.fileSystem = CreateObject("roFileSystem")
     m.deviceInfo = CreateObject("roDeviceInfo")
+    ' Cache static interface fields locally to avoid per-iteration rendezvous.
+    m.waitPeriodMs = m.top.waitPeriodMs
+    m.clientToken = m.top.clientToken
+    ' Observe `tracks` so we refresh the local cache when agents (re)register a track.
+    ' Observer must be registered before the initial read to avoid losing a concurrent update.
+    m.port = createObject("roMessagePort")
+    m.top.observeFieldScoped("tracks", m.port)
+    m.tracks = m.top.tracks
     while (true)
         ddLogVerbose("Multi Track Uploader loop sync")
         uploadAvailableFiles()
-        ddLogVerbose("Nothing else to do, waiting for " + m.top.waitPeriodMs.toStr() + "ms")
-        sleep(m.top.waitPeriodMs)
+        ddLogVerbose("Nothing else to do, waiting for " + m.waitPeriodMs.toStr() + "ms")
+        drainPortMessages(wait(m.waitPeriodMs, m.port))
+    end while
+end sub
+
+' ----------------------------------------------------------------
+' Drain any queued port messages and refresh local caches accordingly.
+' @param msg (dynamic) the first message returned by wait(), or invalid on timeout
+' ----------------------------------------------------------------
+sub drainPortMessages(msg as dynamic)
+    while (msg <> invalid)
+        if (type(msg) = "roSGNodeEvent" and msg.getField() = "tracks")
+            m.tracks = msg.getData()
+            ddLogVerbose("MultiTrackUploaderTask: tracks updated")
+        end if
+        msg = m.port.GetMessage()
     end while
 end sub
 
@@ -39,7 +61,7 @@ end sub
 ' Looks for all uploadable files, and upload them one by one
 ' ----------------------------------------------------------------
 sub uploadAvailableFiles()
-    tracks = m.top.tracks
+    tracks = m.tracks
     if (tracks <> invalid and GetInterface(tracks, "ifAssociativeArray") <> invalid)
         for each track in tracks
             ddLogVerbose("Checking files to upload for track " + track)
@@ -132,7 +154,7 @@ function uploadFile(path as string, trackInfo as object, requestId as string) as
     url = getUploadUrl(trackInfo)
     headers = {}
     headers["Content-Type"] = trackInfo.contentType
-    headers["DD-API-KEY"] = m.top.clientToken
+    headers["DD-API-KEY"] = m.clientToken
     headers["DD-EVP-ORIGIN"] = agentSource()
     headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
     headers["DD-REQUEST-ID"] = requestId

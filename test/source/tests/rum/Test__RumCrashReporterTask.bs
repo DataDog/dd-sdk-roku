@@ -69,6 +69,7 @@ end sub
 sub RumCrashReporterTaskTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("testedTask")
+    createObject("roFileSystem").Delete(datadogroku_trackFolderPath("rum"))
 end sub
 
 '----------------------------------------------------------------
