@@ -20,6 +20,7 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer = CreateObject("roUrlTransfer")
         m.global = global
         m.datadogRumAgent = global.datadogRumAgent
+        m.datadogUserInfo = global.datadogUserInfo
         m.traceSampleRate = global.datadogTraceAgent.traceSampleRate
         m.tracingHeaderTypes = global.datadogTraceAgent.tracingHeaderTypes
         m.traceContextInjection = global.datadogTraceAgent.traceContextInjection
@@ -675,7 +676,7 @@ function __DdUrlTransfer_builder()
             hexSpanId = padLeft(m.spanId, 16, "0")
             traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
             m.AddHeader("traceparent", traceparent)
-            usrId = m.global.datadogUserInfo.id
+            usrId = m.datadogUserInfo.id
             if (usrId <> invalid)
                 usrIdByteArray = CreateObject("roByteArray")
                 usrIdByteArray.FromAsciiString(usrId)
