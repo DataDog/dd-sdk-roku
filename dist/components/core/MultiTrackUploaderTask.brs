@@ -16,7 +16,7 @@
 ' ----------------------------------------------------------------
 sub init()
     m.top.functionName = "uploaderLoop"
-    m.top.control = "RUN"
+    ' Callers must set fields, then set control to "RUN"
 end sub
 
 ' ----------------------------------------------------------------

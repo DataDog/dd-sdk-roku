@@ -483,6 +483,7 @@ sub ensureUploader()
         tracks: tracks
         clientToken: m.clientToken
     })
+    m.uploader.control = "RUN"
 end sub
 
 ' ----------------------------------------------------------------

@@ -208,6 +208,7 @@ sub ensureUploader()
     }
     uploader.tracks = tracks
     uploader.clientToken = m.top.clientToken
+    uploader.control = "RUN"
     m.top.uploader = uploader
 end sub
 
