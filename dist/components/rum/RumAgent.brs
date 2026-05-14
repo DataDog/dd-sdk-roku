@@ -91,7 +91,7 @@ sub setup()
     m.configuration = fields.configuration
     ' 2. Create internal scopes
     m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-    ddLogWarning("RumAgent.instanceId:" + m.instanceId)
+    ddLogVerbose("RumAgent.instanceId:" + m.instanceId)
     m.global.addFields({
         datadogRumContext: {
             applicationId: m.applicationId
