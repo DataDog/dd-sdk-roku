@@ -68,7 +68,6 @@ sub initialize(configuration as object, global as object)
         rumAgent.setFields({
             site: configuration.site,
             env: configuration.env ?? "",
-            clientToken: configuration.clientToken,
             applicationId: configuration.applicationId,
             service: service,
             version: version,
@@ -79,9 +78,9 @@ sub initialize(configuration as object, global as object)
             deviceModel: deviceModel,
             osVersion: deviceOsVersionFull,
             osVersionMajor: deviceOsVersion.major,
-            configuration: configuration,
-            areFieldsSet: true
+            configuration: configuration
         })
+        rumAgent.control = "RUN"
         global.addFields({ datadogRumAgent: rumAgent })
     end if
 

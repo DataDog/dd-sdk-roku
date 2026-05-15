@@ -94,7 +94,6 @@ sub initialize(configuration as object, global as object)
                         return ""
                     end if
                 end function)(configuration)
-            clientToken: configuration.clientToken
             applicationId: configuration.applicationId
             service: service
             version: version
@@ -113,8 +112,8 @@ sub initialize(configuration as object, global as object)
             osVersion: deviceOsVersionFull
             osVersionMajor: deviceOsVersion.major
             configuration: configuration
-            areFieldsSet: true
         })
+        rumAgent.control = "RUN"
         global.addFields({
             datadogRumAgent: rumAgent
         })

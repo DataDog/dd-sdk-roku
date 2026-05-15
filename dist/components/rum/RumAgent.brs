@@ -7,7 +7,7 @@
 'import "pkg:/source/internalLogger.bs"
 ' *****************************************************************
 ' * RumAgent: a background component listening for internal events
-' *     to write relevant RUM Event to Datadog.
+' *     to write relevant RUM Events to Datadog.
 ' *****************************************************************
 
 ' ----------------------------------------------------------------
@@ -27,14 +27,7 @@ sub init()
     m.top.observeFieldScoped("startOperation", m.port)
     m.top.observeFieldScoped("succeedOperation", m.port)
     m.top.observeFieldScoped("failOperation", m.port)
-    m.top.observeFieldScoped("areFieldsSet", m.port)
-    'Observe nodes injected by the test
-    m.top.observeFieldScoped("uploader", m.port)
-    m.top.observeFieldScoped("writer", m.port)
-    m.top.observeFieldScoped("rumScope", m.port)
-    m.top.observeFieldScoped("telemetryScope", m.port)
     m.top.functionName = "rumAgentLoop"
-    m.top.control = "RUN"
 end sub
 
 ' ----------------------------------------------------------------
@@ -42,6 +35,7 @@ end sub
 ' ----------------------------------------------------------------
 sub rumAgentLoop()
     ddLogThread("RumAgent.rumAgentLoop()")
+    setup()
     while (true)
         msg = wait(0, m.port)
         msgType = type(msg)
@@ -69,23 +63,102 @@ sub rumAgentLoop()
                 __onSucceedOperation(msg.getData())
             else if (fieldName = "failOperation")
                 __onFailOperation(msg.getData())
-            else if (fieldName = "uploader")
-                m.uploader = msg.getData()
-            else if (fieldName = "writer")
-                m.writer = msg.getData()
-            else if (fieldName = "rumScope")
-                m.rumScope = msg.getData()
-            else if (fieldName = "telemetryScope")
-                m.telemetryScope = msg.getData()
-            else if (fieldName = "areFieldsSet")
-                if (msg.getData())
-                    updateFields()
-                end if
             end if
         else
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
         end if
     end while
+end sub
+
+sub setup()
+    ' 1. Cache injected dependencies
+    fields = m.top.getFields()
+    m.uploader = fields.uploader
+    m.writer = fields.writer 'allow tests to inject a mock
+    m.rumScope = fields.rumScope 'allow tests to inject a mock
+    m.telemetryScope = fields.telemetryScope 'allow tests to inject a mock
+    m.applicationId = fields.applicationId
+    m.service = fields.service
+    m.version = fields.version
+    m.deviceName = fields.deviceName
+    m.deviceModel = fields.deviceModel
+    m.osVersion = fields.osVersion
+    m.osVersionMajor = fields.osVersionMajor
+    m.sessionSampleRate = fields.sessionSampleRate
+    m.env = fields.env
+    m.site = fields.site
+    m.lastExitOrTerminationReason = fields.lastExitOrTerminationReason
+    m.configuration = fields.configuration
+    ' 2. Create internal scopes
+    m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
+    ddLogWarning("RumAgent.instanceId:" + m.instanceId)
+    m.global.addFields({
+        datadogRumContext: {
+            applicationId: m.applicationId
+            instanceId: m.instanceId
+        }
+    })
+    if (m.rumScope = invalid) 'skipped in tests (mock pre-injected)
+        ddLogVerbose("Creating RumApplicationScope")
+        m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
+        m.rumScope.setFields({
+            applicationId: m.applicationId
+            service: m.service
+            version: m.version
+            deviceName: m.deviceName
+            deviceModel: m.deviceModel
+            osVersion: m.osVersion
+            osVersionMajor: m.osVersionMajor
+            sessionSampleRate: m.sessionSampleRate
+        })
+        m.top.rumScope = m.rumScope
+    end if
+    if (m.telemetryScope = invalid) 'skipped in tests (mock pre-injected)
+        ddLogVerbose("Creating RumTelemetryScope")
+        m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
+        m.top.telemetryScope = m.telemetryScope
+    end if
+    ' 3. Register our track on the shared uploader
+    trackId = "rum_" + m.top.threadInfo().node.address
+    tracks = (function(m)
+            __bsConsequent = m.uploader.tracks
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(m)
+    tracks[trackId] = {
+        url: getIntakeUrl(m.site, "rum")
+        trackType: "rum"
+        payloadPrefix: ""
+        payloadPostfix: ""
+        contentType: "text/plain;charset=UTF-8"
+        queryParams: {
+            ddsource: agentSource()
+            ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.env
+        }
+    }
+    m.uploader.setFields({
+        tracks: tracks
+    })
+    ' 4. Configure writer
+    if (m.writer = invalid) 'skipped in tests (mock pre-injected)
+        ddLogVerbose("Creating WriterTask")
+        m.writer = CreateObject("roSGNode", "WriterTask")
+        m.top.writer = m.writer
+    end if
+    m.writer.setFields({
+        trackType: "rum"
+        payloadSeparator: chr(10)
+    })
+    ' 5. One-time launch-side effects
+    if (m.lastExitOrTerminationReason <> invalid and m.lastExitOrTerminationReason <> "")
+        sendCrash(m.lastExitOrTerminationReason)
+    end if
+    if (m.configuration <> invalid and m.configuration.Count() > 0)
+        addConfigTelemetry(m.configuration)
+    end if
 end sub
 
 ' ----------------------------------------------------------------
@@ -103,11 +176,8 @@ end sub
 ' @param event (object) the startView event data
 ' ----------------------------------------------------------------
 sub __onStartView(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-        m.rumScope.callfunc("handleEvent", keepAliveEvent(), m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
+    m.rumScope.callfunc("handleEvent", keepAliveEvent(), m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -125,10 +195,7 @@ end sub
 ' @param event (object) the stopView event data
 ' ----------------------------------------------------------------
 sub __onStopView(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -145,10 +212,7 @@ end sub
 ' @param event (object) the addAction event data
 ' ----------------------------------------------------------------
 sub __onAddAction(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -165,10 +229,7 @@ end sub
 ' @param event (object) the addError event data
 ' ----------------------------------------------------------------
 sub __onAddError(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -185,10 +246,7 @@ end sub
 ' @param event (object) the addResource event data
 ' ----------------------------------------------------------------
 sub __onAddResource(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -196,7 +254,6 @@ end sub
 ' @param lastExitOrTerminationReason (string) the last exit or termination reason
 ' ----------------------------------------------------------------
 sub sendCrash(lastExitOrTerminationReason as string)
-    ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
     if (m.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
@@ -229,7 +286,6 @@ end sub
 ' @param event (object) the addConfigTelemetry event data
 ' ----------------------------------------------------------------
 sub __onAddConfigTelemetry(event as object)
-    ensureSetup()
     m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
@@ -246,7 +302,6 @@ end sub
 ' @param event (object) the addErrorTelemetry event data
 ' ----------------------------------------------------------------
 sub __onAddErrorTelemetry(event as object)
-    ensureSetup()
     m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
@@ -263,7 +318,6 @@ end sub
 ' @param event (object) the addDebugTelemetry event data
 ' ----------------------------------------------------------------
 sub __onAddDebugTelemetry(event as object)
-    ensureSetup()
     m.telemetryScope.callfunc("handleEvent", event, m.writer)
 end sub
 
@@ -291,10 +345,7 @@ end sub
 ' @param event (object) the startOperation event data
 ' ----------------------------------------------------------------
 sub __onStartOperation(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -321,10 +372,7 @@ end sub
 ' @param event (object) the succeedOperation event data
 ' ----------------------------------------------------------------
 sub __onSucceedOperation(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -356,10 +404,7 @@ end sub
 ' @param event (object) the failOperation event data
 ' ----------------------------------------------------------------
 sub __onFailOperation(event as object)
-    ensureSetup()
-    if (m.rumScope <> invalid)
-        m.rumScope.callfunc("handleEvent", event, m.writer)
-    end if
+    m.rumScope.callfunc("handleEvent", event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -399,139 +444,3 @@ end function
 function __isValidFailureReason(reason as string) as boolean
     return (reason = "error" or reason = "abandoned" or reason = "other")
 end function
-
-' ----------------------------------------------------------------
-' Ensure all dependencies are present (from DI or generated)
-' ----------------------------------------------------------------
-sub ensureSetup()
-    ensureRumScope()
-    ensureTelemetryScope()
-    ensureUploader()
-    ensureWriter()
-end sub
-
-' ----------------------------------------------------------------
-' Sets the root RUM scope node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureRumScope()
-    if (m.rumScope = invalid and m.areFieldsSet = true)
-        m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        ddLogWarning("RumAgent.instanceId:" + m.instanceId)
-        m.global.addFields({
-            datadogRumContext: {
-                applicationId: m.applicationId
-                instanceId: m.instanceId
-            }
-        })
-        ddLogVerbose("Creating RumApplicationScope")
-        m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
-        m.rumScope.setFields({
-            applicationId: m.applicationId
-            service: m.service
-            version: m.version
-            deviceName: m.deviceName
-            deviceModel: m.deviceModel
-            osVersion: m.osVersion
-            osVersionMajor: m.osVersionMajor
-            sessionSampleRate: m.sessionSampleRate
-        })
-        m.top.rumScope = m.rumScope
-    end if
-end sub
-
-' ----------------------------------------------------------------
-' Sets the telemetry scope node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureTelemetryScope()
-    if (m.telemetryScope = invalid)
-        ddLogVerbose("Creating RumTelemetryScope")
-        m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
-        m.top.telemetryScope = m.telemetryScope
-    end if
-end sub
-
-' ----------------------------------------------------------------
-' Sets the uploader node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureUploader()
-    if (m.uploader = invalid)
-        ddLogVerbose("Creating MultiTrackUploaderTask")
-        m.uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
-        m.top.uploader = m.uploader
-    end if
-    trackId = "rum_" + m.top.threadInfo().node.address
-    tracks = (function(m)
-            __bsConsequent = m.uploader.tracks
-            if __bsConsequent <> invalid then
-                return __bsConsequent
-            else
-                return {}
-            end if
-        end function)(m)
-    tracks[trackId] = {
-        url: getIntakeUrl(m.site, "rum")
-        trackType: "rum"
-        payloadPrefix: ""
-        payloadPostfix: ""
-        contentType: "text/plain;charset=UTF-8"
-        queryParams: {
-            ddsource: agentSource()
-            ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.env
-        }
-    }
-    m.uploader.setFields({
-        tracks: tracks
-        clientToken: m.clientToken
-    })
-    m.uploader.control = "RUN"
-end sub
-
-' ----------------------------------------------------------------
-' Sets the writer node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureWriter()
-    if (m.writer = invalid)
-        ddLogVerbose("Creating WriterTask")
-        m.writer = CreateObject("roSGNode", "WriterTask")
-        m.top.writer = m.writer
-    end if
-    m.writer.setFields({
-        trackType: "rum"
-        payloadSeparator: chr(10)
-    })
-end sub
-
-sub updateFields()
-    fields = m.top.getFields()
-    m.uploader = fields.uploader
-    m.applicationId = fields.applicationId
-    m.service = fields.service
-    m.version = fields.version
-    m.deviceName = fields.deviceName
-    m.deviceModel = fields.deviceModel
-    m.osVersion = fields.osVersion
-    m.osVersionMajor = fields.osVersionMajor
-    m.sessionSampleRate = fields.sessionSampleRate
-    m.clientToken = fields.clientToken
-    m.env = fields.env
-    m.site = fields.site
-    m.areFieldsSet = fields.areFieldsSet
-    ' lastExitOrTerminationReason should be set only once at startup and it triggers sendCrash.
-    if (m.lastExitOrTerminationReason = invalid or m.lastExitOrTerminationReason = "")
-        m.lastExitOrTerminationReason = fields.lastExitOrTerminationReason
-        if (m.lastExitOrTerminationReason <> invalid and m.lastExitOrTerminationReason <> "")
-            sendCrash(m.lastExitOrTerminationReason)
-        end if
-    end if
-    ' configuration should be set only once at startup and it triggers addConfigTelemetry.
-    if (m.configuration = invalid or m.configuration.Count() = 0)
-        m.configuration = fields.configuration
-        if (m.configuration <> invalid and m.configuration.Count() > 0)
-            addConfigTelemetry(m.configuration)
-        end if
-    end if
-end sub
