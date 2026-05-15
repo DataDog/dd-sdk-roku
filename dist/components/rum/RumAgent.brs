@@ -198,18 +198,21 @@ end sub
 sub sendCrash(lastExitOrTerminationReason as string)
     ensureSetup()
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
-    crashReporter.writer = m.writer
     if (m.osVersionMajor.toInt() >= 13)
         appManager = createObject("roAppManager")
         lastExitInfo = appManager.GetLastExitInfo()
-        exitCode = lastExitInfo.exit_code
-        crashReporter.lastExitOrTerminationReason = lastExitInfo.exit_code
-        crashReporter.lastExitConsoleLog = lastExitInfo.console_log
+        exitReason = lastExitInfo.exit_code
+        consoleLog = lastExitInfo.console_log
     else
-        crashReporter.lastExitOrTerminationReason = lastExitOrTerminationReason
-        crashReporter.lastExitConsoleLog = ""
+        exitReason = lastExitOrTerminationReason
+        consoleLog = ""
     end if
-    crashReporter.instanceId = m.instanceId
+    crashReporter.setFields({
+        writer: m.writer
+        lastExitOrTerminationReason: exitReason
+        lastExitConsoleLog: consoleLog
+        instanceId: m.instanceId
+    })
     crashReporter.control = "RUN"
 end sub
 
@@ -469,7 +472,7 @@ sub ensureUploader()
             end if
         end function)(m)
     tracks[trackId] = {
-        url: getIntakeUrl(m.top.site, "rum")
+        url: getIntakeUrl(m.site, "rum")
         trackType: "rum"
         payloadPrefix: ""
         payloadPostfix: ""

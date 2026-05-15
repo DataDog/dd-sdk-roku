@@ -98,7 +98,7 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.fakeDeviceName = IG_GetString(16)
     m.testSuite.fakeOsVersion = IG_GetString(16)
     m.testSuite.fakeOsVersionMajor = IG_GetString(16)
-    m.testSuite.fakeSite = IG_GetString(10) + "." + IG_GetString(3)
+    m.testSuite.fakeSite = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
     m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
@@ -469,8 +469,7 @@ function RumAgentTest__WhenHandlingEvent_ThenInitDependencies() as string
     m.testedNode.uploader = invalid
     m.testedNode.writer = invalid
     m.testedNode.rumScope = invalid
-    site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
-    m.testedNode.site = site
+    site = m.fakeSite
     expectedUrl = datadogroku_getIntakeUrl(site, "rum")
     expectedTrackName = "rum_" + m.testedNode.threadInfo().node.address
 
