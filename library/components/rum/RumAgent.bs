@@ -502,6 +502,7 @@ end sub
 
 sub updateFields()
     fields = m.top.getFields()
+    m.uploader = fields.uploader
     m.applicationId = fields.applicationId
     m.service = fields.service
     m.version = fields.version
