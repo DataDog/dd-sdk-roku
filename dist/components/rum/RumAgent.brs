@@ -486,6 +486,7 @@ sub ensureUploader()
         tracks: tracks
         clientToken: m.clientToken
     })
+    m.uploader.control = "RUN"
 end sub
 
 ' ----------------------------------------------------------------
@@ -506,6 +507,7 @@ end sub
 
 sub updateFields()
     fields = m.top.getFields()
+    m.uploader = fields.uploader
     m.applicationId = fields.applicationId
     m.service = fields.service
     m.version = fields.version

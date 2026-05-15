@@ -73,6 +73,7 @@ sub initialize(configuration as object, global as object)
         ddLogInfo("No uploader, creating one")
         datadogUploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
         datadogUploader.clientToken = configuration.clientToken
+        datadogUploader.control = "RUN"
         global.addFields({
             datadogUploader: datadogUploader
         })

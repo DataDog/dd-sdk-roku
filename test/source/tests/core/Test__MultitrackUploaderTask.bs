@@ -30,6 +30,10 @@ function TestSuite__MultiTrackUploaderTask() as object
     this.addTest("WhenInit_IgnoreLastEventFile", MultiTrackUploaderTaskTest__WhenInit_IgnoreLastEventFile, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadFilesFromMultipleTracks", MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
 
+    ' Regression for issue #154: the task must not auto-start in init(); it would race with
+    ' callers assigning clientToken, causing the loop to cache an empty token and emit 403s.
+    this.addTest("WhenInit_WithoutControlRun_ThenDoesNotUpload", MultiTrackUploaderTaskTest__WhenInit_WithoutControlRun_ThenDoesNotUpload)
+
     this.testUploader = __testUploader
 
     return this
@@ -67,6 +71,7 @@ sub MultiTrackUploaderTaskTest__SetUp()
         queryParams: m.testSuite.fakeQueryParams
     }
     m.testSuite.testedTask.tracks = tracks
+    m.testSuite.testedTask.control = "RUN"
 end sub
 
 sub MultiTrackUploaderTaskTest__TearDown()
@@ -361,3 +366,52 @@ function __buildExpectedHeaders(clientToken as string, contentType as string) as
     headers["DD-EVP-ORIGIN-VERSION"] = datadogroku_sdkVersion()
     return headers
 end function
+
+'----------------------------------------------------------------
+' Regression for issue #154.
+' Given: a MultiTrackUploaderTask created and configured with an uploadable file
+'  When: control is never set to "RUN"
+'  Then: the uploader loop does not run, and no upload is attempted
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenInit_WithoutControlRun_ThenDoesNotUpload() as string
+    ' Given
+    mockNetworkClient = CreateObject("roSGNode", "MockNetworkClient")
+    fakeTrackType = IG_GetString(10)
+    fakeUrl = "https://" + IG_GetString(10) + "." + IG_GetString(3) + "/" + IG_GetString(10)
+    fakeClientToken = "pub" + IG_GetString(32)
+
+    task = CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask")
+    task.clientToken = fakeClientToken
+    task.waitPeriodMs = 10
+    task.networkClient = mockNetworkClient
+    tracks = {}
+    tracks[IG_GetString(8)] = {
+        trackType: fakeTrackType,
+        url: fakeUrl,
+        payloadPrefix: "",
+        payloadPostfix: "",
+        contentType: IG_GetString(16),
+        queryParams: {}
+    }
+    task.tracks = tracks
+
+    folderPath = datadogroku_trackFolderPath(fakeTrackType)
+    filePath = folderPath + "/" + IG_GetInteger(65536).toStr()
+    datadogroku_mkDirs(folderPath)
+    WriteAsciiFile(filePath, IG_GetString(128))
+    mockNetworkClient@.stubCall("postFromFile", {}, 202)
+
+    ' When
+    sleep(75)
+
+    ' Then
+    result = mockNetworkClient@.assertNoInteractions()
+    Assert.that(filePath).exists()
+
+    ' Cleanup
+    task.control = "STOP"
+    DeleteFile(filePath)
+
+    return result
+end function
+
