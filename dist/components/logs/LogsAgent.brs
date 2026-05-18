@@ -186,6 +186,7 @@ sub ensureUploader()
     uploader = m.top.uploader
     if (m.top.uploader = invalid)
         uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        uploader.clientToken = m.top.clientToken
     end if
     trackId = "logs_" + m.top.threadInfo().node.address
     tracks = (function(uploader)
@@ -207,8 +208,9 @@ sub ensureUploader()
         }
     }
     uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    uploader.control = "RUN"
+    if (uploader.control <> "RUN")
+        uploader.control = "RUN"
+    end if
     m.top.uploader = uploader
 end sub
 

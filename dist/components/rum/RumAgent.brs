@@ -486,7 +486,9 @@ sub ensureUploader()
         tracks: tracks
         clientToken: m.clientToken
     })
-    m.uploader.control = "RUN"
+    if (m.uploader.control <> "RUN")
+        m.uploader.control = "RUN"
+    end if
 end sub
 
 ' ----------------------------------------------------------------
