@@ -181,7 +181,12 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendVitalEvent(event as object, stepType as string, writer as object)
-    timestamp& = getTimestamp()
+    ' Use the timestamp given as it is more accurate to when the operation started.
+    if (event.timestamp <> invalid)
+        timestamp& = event.timestamp
+    else
+        timestamp& = getTimestamp()
+    end if
     rumContext = getRumContext(invalid)
     ' Get view context if available
     if (m.top.activeView <> invalid)
