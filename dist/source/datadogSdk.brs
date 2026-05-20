@@ -131,7 +131,6 @@ sub initialize(configuration as object, global as object)
                         return ""
                     end if
                 end function)(configuration)
-            clientToken: configuration.clientToken
             service: service
             version: version
             uploader: datadogUploader

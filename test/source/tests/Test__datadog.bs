@@ -280,7 +280,6 @@ function DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal() a
     actualLogsAgent = fakeGlobal.getField("datadogLogsAgent")
 
     Assert.that(actualLogsAgent.site).isEqualTo(randomSite)
-    Assert.that(actualLogsAgent.clientToken).isEqualTo(randomClientToken)
     Assert.that(actualLogsAgent.service).isEqualTo(randomService)
     Assert.that(actualLogsAgent.env).isEqualTo(randomEnv)
     return ""

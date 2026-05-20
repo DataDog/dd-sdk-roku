@@ -6,8 +6,8 @@
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/logs/logStatus.bs"
 ' *****************************************************************
-' * RumAgent: a background component listening for internal events
-' *     to write relevant RUM Event to Datadog.
+' * LogsAgent: a component exposing logging APIs that write
+' *     Log Events to Datadog.
 ' *****************************************************************
 
 ' ----------------------------------------------------------------
@@ -124,24 +124,24 @@ end sub
 ' ----------------------------------------------------------------
 sub sendLog(status as object, message as string, attributes as object)
     timestamp& = getTimestamp()
-    ensureSetup()
+    setupIfNeeded()
     logEvent = {
         date: timestamp&
-        ddtags: "env:" + m.top.env + ",version:" + m.top.version
+        ddtags: "env:" + m.env + ",version:" + m.version
         message: message
         status: status
-        service: m.top.service
+        service: m.service
         usr: m.global.datadogUserInfo
         device: {
             type: "tv"
-            name: m.top.deviceName
-            model: m.top.deviceModel
+            name: m.deviceName
+            model: m.deviceModel
             brand: "Roku"
         }
         os: {
             name: "Roku"
-            version: m.top.osVersion
-            version_major: m.top.osVersionMajor
+            version: m.osVersion
+            version_major: m.osVersionMajor
         }
         logger: {
             thread_name: m.top.threadInfo().currentThread.name
@@ -167,37 +167,47 @@ sub sendLog(status as object, message as string, attributes as object)
             id: rumContext.actionId
         }
     end if
-    m.top.writer.writeEvent = FormatJson(logEvent)
+    m.writer.writeEvent = FormatJson(logEvent)
 end sub
 
-' ----------------------------------------------------------------
-' Ensure all dependencies are present (from DI or generated)
-' ----------------------------------------------------------------
-sub ensureSetup()
-    ensureUploader()
-    ensureWriter()
-end sub
-
-' ----------------------------------------------------------------
-' Sets the uploader node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureUploader()
-    uploader = m.top.uploader
-    if (m.top.uploader = invalid)
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+sub setupIfNeeded()
+    if (m.isConfigured = true)
+        return
     end if
+    ' 1. Cache injected dependencies
+    fields = m.top.getFields()
+    m.uploader = fields.uploader
+    m.writer = fields.writer 'allow tests to inject a mock
+    m.service = fields.service
+    m.version = fields.version
+    m.env = fields.env
+    m.deviceName = fields.deviceName
+    m.deviceModel = fields.deviceModel
+    m.osVersion = fields.osVersion
+    m.osVersionMajor = fields.osVersionMajor
+    m.site = fields.site
+    ' 2. Configure writer
+    if (m.writer = invalid) 'skipped in tests (mock pre-injected)
+        ddLogVerbose("Creating WriterTask")
+        m.writer = CreateObject("roSGNode", "WriterTask")
+        m.top.writer = m.writer
+    end if
+    m.writer.setFields({
+        trackType: "logs"
+        payloadSeparator: ","
+    })
+    ' 3. Register our track on the shared uploader
     trackId = "logs_" + m.top.threadInfo().node.address
-    tracks = (function(uploader)
-            __bsConsequent = uploader.tracks
+    tracks = (function(m)
+            __bsConsequent = m.uploader.tracks
             if __bsConsequent <> invalid then
                 return __bsConsequent
             else
                 return {}
             end if
-        end function)(uploader)
+        end function)(m)
     tracks[trackId] = {
-        url: getIntakeUrl(m.top.site, "logs")
+        url: getIntakeUrl(m.site, "logs")
         trackType: "logs"
         payloadPrefix: "["
         payloadPostfix: "]"
@@ -206,23 +216,8 @@ sub ensureUploader()
             ddsource: agentSource()
         }
     }
-    uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    uploader.control = "RUN"
-    m.top.uploader = uploader
-end sub
-
-' ----------------------------------------------------------------
-' Sets the writer node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureWriter()
-    writer = m.top.writer
-    if (writer = invalid)
-        ddLogVerbose("Creating WriterTask")
-        writer = CreateObject("roSGNode", "WriterTask")
-    end if
-    writer.trackType = "logs"
-    writer.payloadSeparator = ","
-    m.top.writer = writer
+    m.uploader.setFields({
+        tracks: tracks
+    })
+    m.isConfigured = true
 end sub

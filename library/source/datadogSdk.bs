@@ -91,7 +91,6 @@ sub initialize(configuration as object, global as object)
         agent.setFields({
             site: configuration.site,
             env: configuration.env ?? "",
-            clientToken: configuration.clientToken,
             service: service,
             version: version,
             uploader: datadogUploader,
