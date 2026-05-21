@@ -205,11 +205,11 @@ end function
 '  Then: the configuration is properly set in the global object
 '----------------------------------------------------------------
 function DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal() as string
-    
+
     ' Given
     randomClientToken = IG_GetString(16)
     randomAppId = IG_GetString(16)
-    randomSite = "us1" 
+    randomSite = "us1"
     randomEnv = IG_GetString(16)
     randomSessionRate = IG_GetInteger()
     randomService = IG_GetString(16)
@@ -217,7 +217,7 @@ function DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal() as
     randomTraceRate = IG_GetInteger()
     randomHost = IG_GetString(16)
     randomHeader = IG_GetString(16)
-    
+
     configuration = {
         clientToken: randomClientToken,
         applicationId: randomAppId,
@@ -243,7 +243,6 @@ function DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal() as
 
     Assert.that(actualDatadogRumAgent.site).isEqualTo(randomSite)
     Assert.that(actualDatadogRumAgent.env).isEqualTo(randomEnv)
-    Assert.that(actualDatadogRumAgent.clientToken).isEqualTo(randomClientToken)
     Assert.that(actualDatadogRumAgent.applicationId).isEqualTo(randomAppId)
     Assert.that(actualDatadogRumAgent.service).isEqualTo(randomService)
     Assert.that(actualDatadogRumAgent.version).isEqualTo(randomVersion)

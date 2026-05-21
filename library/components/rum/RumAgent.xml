@@ -14,7 +14,6 @@ Copyright 2022-Today Datadog, Inc.
     <interface>
         <field id="site" type="string" value="us1" />
         <field id="env" type="string" value="" />
-        <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="version" type="string" />
@@ -26,7 +25,6 @@ Copyright 2022-Today Datadog, Inc.
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value=""/>
         <field id="configuration" type="assocarray" value="{}"/>
-        <field id="areFieldsSet" type="boolean" value="false"/>
 
         <field id="startView" type="assocarray" />
         <field id="stopView" type="assocarray" />
@@ -54,7 +52,6 @@ Copyright 2022-Today Datadog, Inc.
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
-        <function name="sendCrash" />
 
         <!-- Internal telemetry -->
         <function name="addConfigTelemetry" />
