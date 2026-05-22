@@ -18,14 +18,15 @@ end sub
 ' @returns (object) the current context
 ' ----------------------------------------------------------------
 function getRumContext(_ph as dynamic) as object
+    setupIfNeeded()
     return {
-        applicationId: m.top.applicationId
-        service: m.top.service
-        applicationVersion: m.top.version
-        deviceName: m.top.deviceName
-        deviceModel: m.top.deviceModel
-        osVersion: m.top.osVersion
-        osVersionMajor: m.top.osVersionMajor
+        applicationId: m.applicationId
+        service: m.service
+        applicationVersion: m.version
+        deviceName: m.deviceName
+        deviceModel: m.deviceModel
+        osVersion: m.osVersion
+        osVersionMajor: m.osVersionMajor
     }
 end function
 
@@ -35,8 +36,8 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    ensureSessionScope()
-    m.top.sessionScope.callfunc("handleEvent", event, writer)
+    setupIfNeeded()
+    m.sessionScope.callfunc("handleEvent", event, writer)
 end sub
 
 ' ----------------------------------------------------------------
@@ -49,14 +50,29 @@ function isActive(_ph as dynamic) as boolean
     return invalid
 end function
 
-' ----------------------------------------------------------------
-' Sets the internal session scope from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureSessionScope()
-    if (m.top.sessionScope = invalid)
-        m.top.sessionScope = CreateObject("roSGNode", "RumSessionScope")
-        m.top.sessionScope.parentScope = m.top
-        m.top.sessionScope.sessionSampleRate = m.top.sessionSampleRate
+sub setupIfNeeded()
+    if (m.isConfigured = true)
+        return
     end if
+    ' 1. Cache injected fields
+    fields = m.top.getFields()
+    m.applicationId = fields.applicationId
+    m.service = fields.service
+    m.version = fields.version
+    m.deviceName = fields.deviceName
+    m.deviceModel = fields.deviceModel
+    m.osVersion = fields.osVersion
+    m.osVersionMajor = fields.osVersionMajor
+    m.sessionSampleRate = fields.sessionSampleRate
+    m.sessionScope = fields.sessionScope 'allow tests to inject a mock
+    ' 2. Create session scope (skipped in tests if a mock was pre-injected)
+    if (m.sessionScope = invalid)
+        m.sessionScope = CreateObject("roSGNode", "RumSessionScope")
+        m.sessionScope.setFields({
+            parentScope: m.top
+            sessionSampleRate: m.sessionSampleRate
+        })
+        m.top.sessionScope = m.sessionScope
+    end if
+    m.isConfigured = true
 end sub
