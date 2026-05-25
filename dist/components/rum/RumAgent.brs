@@ -153,9 +153,16 @@ sub setup()
         payloadSeparator: chr(10)
     })
     ' 5. One-time launch-side effects
-    if (m.lastExitOrTerminationReason <> invalid and m.lastExitOrTerminationReason <> "")
-        sendCrash(m.lastExitOrTerminationReason)
-    end if
+    ' On RokuOS 13+, sendCrash reads the exit code from roAppManager.GetLastExitInfo()
+    ' regardless of the launch-options value, so it must always be invoked.
+    sendCrash((function(m)
+            __bsConsequent = m.lastExitOrTerminationReason
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return ""
+            end if
+        end function)(m))
     if (m.configuration <> invalid and m.configuration.Count() > 0)
         addConfigTelemetry(m.configuration)
     end if
@@ -255,14 +262,14 @@ end sub
 ' ----------------------------------------------------------------
 sub sendCrash(lastExitOrTerminationReason as string)
     crashReporter = CreateObject("roSGNode", "RumCrashReporterTask")
+    exitReason = lastExitOrTerminationReason
+    consoleLog = ""
     if (m.osVersionMajor.toInt() >= 13)
-        appManager = createObject("roAppManager")
-        lastExitInfo = appManager.GetLastExitInfo()
-        exitReason = lastExitInfo.exit_code
-        consoleLog = lastExitInfo.console_log
-    else
-        exitReason = lastExitOrTerminationReason
-        consoleLog = ""
+        lastExitInfo = createObject("roAppManager").GetLastExitInfo()
+        if (lastExitInfo <> invalid)
+            exitReason = lastExitInfo.exit_code
+            consoleLog = lastExitInfo.console_log
+        end if
     end if
     crashReporter.setFields({
         writer: m.writer
