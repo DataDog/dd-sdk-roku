@@ -181,7 +181,15 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendVitalEvent(event as object, stepType as string, writer as object)
-    timestamp& = getTimestamp()
+    ' Prefer the call-site timestamp; sendVitalEvent runs after a cross-thread rendezvous.
+    timestamp& = (function(event, getTimestamp)
+            __bsConsequent = event.timestamp
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return getTimestamp()
+            end if
+        end function)(event, getTimestamp)
     rumContext = getRumContext(invalid)
     ' Get view context if available
     if (m.top.activeView <> invalid)
