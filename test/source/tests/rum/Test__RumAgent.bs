@@ -440,7 +440,9 @@ function RumAgentTest__WhenStartOperation_ThenDelegateToRumScope() as string
     fakeKey = IG_GetString(32)
 
     ' When
+    timestampBefore& = datadogroku_getTimestamp()
     m.testedNode@.startOperation(fakeName, fakeKey)
+    timestampAfter& = datadogroku_getTimestamp()
     sleep(30)
 
     ' Then
@@ -450,6 +452,7 @@ function RumAgentTest__WhenStartOperation_ThenDelegateToRumScope() as string
     Assert.that(capturedEvent.name).isEqualTo(fakeName)
     Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
     Assert.that(capturedEvent.vitalId).isNotEmpty()
+    Assert.that(capturedEvent.timestamp).isInRange(timestampBefore&, timestampAfter& + 5)
     Assert.that(capturedEvent.context).isEqualTo({})
     Assert.that(calls[0].writer).hasSubtype("MockWriterTask")
     return ""
@@ -496,7 +499,9 @@ function RumAgentTest__WhenSucceedOperation_ThenDelegateToRumScope() as string
     fakeKey = IG_GetString(32)
 
     ' When
+    timestampBefore& = datadogroku_getTimestamp()
     m.testedNode@.succeedOperation(fakeName, fakeKey)
+    timestampAfter& = datadogroku_getTimestamp()
     sleep(30)
 
     ' Then
@@ -507,6 +512,7 @@ function RumAgentTest__WhenSucceedOperation_ThenDelegateToRumScope() as string
     Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
     Assert.that(capturedEvent.vitalId).isNotEmpty()
     Assert.that(capturedEvent.failureReason).isEqualTo(invalid)
+    Assert.that(capturedEvent.timestamp).isInRange(timestampBefore&, timestampAfter& + 5)
     Assert.that(capturedEvent.context).isEqualTo({})
     Assert.that(calls[0].writer).hasSubtype("MockWriterTask")
     return ""
@@ -554,7 +560,9 @@ function RumAgentTest__WhenFailOperation_ThenDelegateToRumScope() as string
     fakeKey = IG_GetString(32)
 
     ' When
+    timestampBefore& = datadogroku_getTimestamp()
     m.testedNode@.failOperation(fakeName, "error", fakeKey)
+    timestampAfter& = datadogroku_getTimestamp()
     sleep(30)
 
     ' Then
@@ -565,6 +573,7 @@ function RumAgentTest__WhenFailOperation_ThenDelegateToRumScope() as string
     Assert.that(capturedEvent.operationKey).isEqualTo(fakeKey)
     Assert.that(capturedEvent.vitalId).isNotEmpty()
     Assert.that(capturedEvent.failureReason).isEqualTo("error")
+    Assert.that(capturedEvent.timestamp).isInRange(timestampBefore&, timestampAfter& + 5)
     Assert.that(capturedEvent.context).isEqualTo({})
     Assert.that(calls[0].writer).hasSubtype("MockWriterTask")
     return ""
