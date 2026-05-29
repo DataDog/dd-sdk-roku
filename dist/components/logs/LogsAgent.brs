@@ -131,7 +131,7 @@ sub sendLog(status as object, message as string, attributes as object)
         message: message
         status: status
         service: m.service
-        usr: m.global.datadogUserInfo
+        usr: m.userInfo
         device: {
             type: "tv"
             name: m.deviceName
@@ -151,12 +151,12 @@ sub sendLog(status as object, message as string, attributes as object)
     for each key in attributes
         logEvent[key] = attributes[key]
     end for
-    if (m.global.datadogContext <> invalid)
-        for each key in m.global.datadogContext
-            logEvent[key] = m.global.datadogContext[key]
+    if (m.ddContext <> invalid)
+        for each key in m.ddContext
+            logEvent[key] = m.ddContext[key]
         end for
     end if
-    rumContext = m.global.datadogRumContext
+    rumContext = m.rumContext
     if (rumContext <> invalid)
         logEvent["application_id"] = rumContext.applicationId
         logEvent["session_id"] = rumContext.sessionId
@@ -219,5 +219,24 @@ sub setupIfNeeded()
     m.uploader.setFields({
         tracks: tracks
     })
+    ' 4. Cache the global context locally, kept in sync via observers
+    m.global.observeFieldScoped("datadogUserInfo", "onUserInfoChanged")
+    m.global.observeFieldScoped("datadogContext", "onContextChanged")
+    m.global.observeFieldScoped("datadogRumContext", "onRumContextChanged")
+    m.userInfo = m.global.datadogUserInfo
+    m.ddContext = m.global.datadogContext
+    m.rumContext = m.global.datadogRumContext
     m.isConfigured = true
+end sub
+
+sub onUserInfoChanged(event as object)
+    m.userInfo = event.getData()
+end sub
+
+sub onContextChanged(event as object)
+    m.ddContext = event.getData()
+end sub
+
+sub onRumContextChanged(event as object)
+    m.rumContext = event.getData()
 end sub
