@@ -83,6 +83,13 @@ sub initialize(configuration as object, global as object)
         return
     else if (global.datadogRumAgent = invalid)
         ddLogInfo("No RUM agent, creating one")
+        ' Create the RUM context synchronously so any early log can observe it
+        ' before the RumAgent task fills in the rest.
+        global.addFields({
+            datadogRumContext: {
+                applicationId: configuration.applicationId
+            }
+        })
         rumAgent = CreateObject("roSGNode", "RumAgent")
         rumAgent.setFields({
             site: configuration.site

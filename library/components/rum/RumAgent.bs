@@ -98,11 +98,9 @@ sub setup()
     ' 2. Create internal scopes
     m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
     ddLogVerbose("RumAgent.instanceId:" + m.instanceId)
-    m.global.addFields({
-        datadogRumContext: {
-            applicationId: m.applicationId,
-            instanceId: m.instanceId
-        }
+    m.global.setField("datadogRumContext", {
+        applicationId: m.applicationId,
+        instanceId: m.instanceId
     })
 
     if (m.rumScope = invalid) 'skipped in tests (mock pre-injected)
