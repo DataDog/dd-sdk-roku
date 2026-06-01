@@ -260,9 +260,7 @@ function DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal() a
     randomSite = "us1" 
     randomEnv = IG_GetString(16)
     randomService = IG_GetString(16)
-    randomOsVersion = IG_GetString(8)
-    randomOsVersionMajor = IG_GetInteger()
-    
+
     configuration = {
         clientToken: randomClientToken,
         applicationId: randomAppId,

@@ -148,13 +148,9 @@ sub sendLog(status as object, message as string, attributes as object)
             version: sdkVersion()
         }
     }
-    for each key in attributes
-        logEvent[key] = attributes[key]
-    end for
+    logEvent.append(attributes)
     if (m.ddContext <> invalid)
-        for each key in m.ddContext
-            logEvent[key] = m.ddContext[key]
-        end for
+        logEvent.append(m.ddContext)
     end if
     rumContext = m.rumContext
     if (rumContext <> invalid)

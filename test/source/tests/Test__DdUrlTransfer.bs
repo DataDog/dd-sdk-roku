@@ -335,7 +335,6 @@ end function
 function DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId() as string
 
     fakeSessionId = IG_GetString(32)
-    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
     fakeGlobal = createFakeGlobal(fakeSessionId)
     fakeHeaderType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
@@ -351,7 +350,6 @@ function DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteOnlySessionId() a
     
     fakeSessionId = IG_GetString(32)
     fake3rdBaggage = IG_GetString(32)
-    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
     fakeGlobal = createFakeGlobal(fakeSessionId)
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
     ddUrlTransfer.addHeader("baggage", "session.id=" + fakeSessionId)

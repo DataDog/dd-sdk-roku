@@ -12,7 +12,6 @@
 ' ----------------------------------------------------------------
 sub init()
     ddLogThread("RumCrashReporterTask.init()")
-    m.port = createObject("roMessagePort")
     m.top.functionName = "sendCrashReport"
 end sub
 

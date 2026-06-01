@@ -25,7 +25,6 @@ end sub
 sub uploaderLoop()
     ddLogThread("MultiTrackUploaderTask.uploaderLoop()")
     ' Uploader's dependencies
-    m.fileSystem = CreateObject("roFileSystem")
     m.deviceInfo = CreateObject("roDeviceInfo")
     ' Cache static interface fields locally to avoid per-iteration rendezvous.
     m.waitPeriodMs = m.top.waitPeriodMs
