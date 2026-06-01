@@ -15,6 +15,11 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsInvalid)
     this.addTest("WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid)
     this.addTest("WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid", DdUrlTransferTest__WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid)
+    this.addTest("WhenGetTracedHeaderTypesWithHeaderArray_ThenReturnsAllHeaderTypes", DdUrlTransferTest__WhenGetTracedHeaderTypesWithHeaderArray_ThenReturnsAllHeaderTypes)
+    this.addTest("WhenGetTracedHeaderTypesWithDuplicates_ThenDeduplicates", DdUrlTransferTest__WhenGetTracedHeaderTypesWithDuplicates_ThenDeduplicates)
+    this.addTest("WhenGetTracedHeaderTypesWithMultipleMatchingHosts_ThenMergesHeaderTypes", DdUrlTransferTest__WhenGetTracedHeaderTypesWithMultipleMatchingHosts_ThenMergesHeaderTypes)
+    this.addTest("WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllSharingTraceContext", DdUrlTransferTest__WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllSharingTraceContext)
+    this.addTest("WhenSampledOutAllWithMultipleHeaderTypes_ThenInjectsAllSampledOutHeaders", DdUrlTransferTest__WhenSampledOutAllWithMultipleHeaderTypes_ThenInjectsAllSampledOutHeaders)
 
     this.addTest("WhenPadLeftWithEmptyString_ThenReturnPaddedString", DdUrlTransferTest__WhenPadLeftWithEmptyString_ThenReturnPaddedString)
     this.addTest("WhenPadLeftWithExactSizeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithExactSizeString_ThenReturnOriginalString)
@@ -65,10 +70,11 @@ function DdUrlTransferTest__WhenGetTracedHeaderType_ThenReturnsHeaderType() as s
     url = "https://" + validHost.host + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_getTracedHeaderType(url, validHosts)
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
 
     ' Then
-    Assert.that(result).isEqualTo(validHost.header)
+    Assert.that(result).hasSize(1)
+    Assert.that(result[0]).isEqualTo(validHost.header)
     return ""
 end function
 
@@ -86,10 +92,11 @@ function DdUrlTransferTest__WhenGetTracedHeaderTypeWithSingleHost_ThenReturnsHea
     url = "https://" + validHost + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_getTracedHeaderType(url, validHosts)
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
 
     ' Then
-    Assert.that(result).isEqualTo(headerType)
+    Assert.that(result).hasSize(1)
+    Assert.that(result[0]).isEqualTo(headerType)
     return ""
 end function
 
@@ -107,10 +114,10 @@ function DdUrlTransferTest__WhenGetTracedHeaderTypeWithUnknownHost_ThenReturnsIn
     url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_getTracedHeaderType(url, validHosts)
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
 
     ' Then
-    Assert.that(result).isInvalid()
+    Assert.that(result).hasSize(0)
     return ""
 end function
 
@@ -125,10 +132,10 @@ function DdUrlTransferTest__WhenGetTracedHeaderTypeWithNoHost_ThenReturnsInvalid
     url = "https://" + IG_GetString(8) + "." + IG_GetString(2) + "/" + IG_GetString(16)
 
     ' When
-    result = datadogroku_getTracedHeaderType(url, validHosts)
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
 
     ' Then
-    Assert.that(result).isInvalid()
+    Assert.that(result).hasSize(0)
     return ""
 end function
 
@@ -146,10 +153,82 @@ function DdUrlTransferTest__WhenGetTracedHeaderTypeWithNonUrl_ThenReturnsInvalid
     url = IG_GetString(64)
 
     ' When
-    result = datadogroku_getTracedHeaderType(url, validHosts)
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
 
     ' Then
-    Assert.that(result).isInvalid()
+    Assert.that(result).hasSize(0)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a host configured with an array of header types
+'  When: call getTracedHeaderTypes with a url for that host
+'  Then: returns every configured header type
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGetTracedHeaderTypesWithHeaderArray_ThenReturnsAllHeaderTypes() as string
+    ' Given
+    validHost = IG_GetString(12) + "." + IG_GetString(3)
+    validHosts = [
+        { host: validHost, header: ["datadog", "tracecontext", "b3", "b3multi"] }
+    ]
+    url = "https://" + validHost + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
+
+    ' Then
+    Assert.that(result).hasSize(4)
+    Assert.that(result[0]).isEqualTo("datadog")
+    Assert.that(result[1]).isEqualTo("tracecontext")
+    Assert.that(result[2]).isEqualTo("b3")
+    Assert.that(result[3]).isEqualTo("b3multi")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a host configured with duplicate header types
+'  When: call getTracedHeaderTypes with a url for that host
+'  Then: returns each header type only once
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGetTracedHeaderTypesWithDuplicates_ThenDeduplicates() as string
+    ' Given
+    validHost = IG_GetString(12) + "." + IG_GetString(3)
+    validHosts = [
+        { host: validHost, header: ["datadog", "datadog", "tracecontext"] }
+    ]
+    url = "https://" + validHost + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
+
+    ' Then
+    Assert.that(result).hasSize(2)
+    Assert.that(result[0]).isEqualTo("datadog")
+    Assert.that(result[1]).isEqualTo("tracecontext")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: the same host configured across several entries (string + array)
+'  When: call getTracedHeaderTypes with a url for that host
+'  Then: returns the merged, deduplicated list of header types
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenGetTracedHeaderTypesWithMultipleMatchingHosts_ThenMergesHeaderTypes() as string
+    ' Given
+    validHost = IG_GetString(12) + "." + IG_GetString(3)
+    validHosts = [
+        { host: validHost, header: "datadog" },
+        { host: validHost, header: ["tracecontext", "datadog"] }
+    ]
+    url = "https://" + validHost + "/" + IG_GetString(16)
+
+    ' When
+    result = datadogroku_getTracedHeaderTypes(url, validHosts)
+
+    ' Then
+    Assert.that(result).hasSize(2)
+    Assert.that(result[0]).isEqualTo("datadog")
+    Assert.that(result[1]).isEqualTo("tracecontext")
     return ""
 end function
 
@@ -350,7 +429,7 @@ function DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId() a
     fakeGlobal = createFakeGlobal(fakeSessionId)
     fakeHeaderType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
-    ddUrlTransfer._addSampledInHeaders(fakeHeaderType, fakeSessionId)
+    ddUrlTransfer._addSampledInHeaders([fakeHeaderType])
     resultList = ddUrlTransfer.GetHeader("baggage")
     Assert.that(resultList).hasSize(1)
     Assert.that(resultList[0]).isEqualTo("session.id="+fakeSessionId)
@@ -521,6 +600,59 @@ function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHav
     ddUrlTransfer._traceRequest()
     result = ddUrlTransfer.GetHeader("x-datadog-sampling-priority")
     Assert.that(result).hasSize(0)
+    return ""
+end function
+
+function DdUrlTransferTest__WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllSharingTraceContext() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ddUrlTransfer._addSampledInHeaders(["datadog", "tracecontext", "b3", "b3multi"])
+
+    ' the baggage session id is only added once, regardless of the number of header types
+    Assert.that(ddUrlTransfer.GetHeader("baggage")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("baggage")[0]).isEqualTo("session.id=" + fakeSessionId)
+
+    ' datadog headers
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-trace-id")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-parent-id")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-sampling-priority")[0]).isEqualTo("1")
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-origin")[0]).isEqualTo("rum")
+
+    ' tracecontext headers
+    Assert.that(ddUrlTransfer.GetHeader("traceparent")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("tracestate")).hasSize(1)
+
+    ' b3 single + b3 multi headers
+    Assert.that(ddUrlTransfer.GetHeader("b3")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-SpanId")).hasSize(1)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-Sampled")[0]).isEqualTo("1")
+
+    ' every format shares the same trace and span ids
+    Assert.that(ddUrlTransfer.traceId).matches("^[0-9a-f]+$", "i")
+    Assert.that(ddUrlTransfer.spanId).matches("^[0-9]+$")
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")[0]).isEqualTo(ddUrlTransfer.traceId)
+    Assert.that(ddUrlTransfer.GetHeader("traceparent")[0]).hasSubstring(ddUrlTransfer.traceId)
+    Assert.that(ddUrlTransfer.GetHeader("b3")[0]).hasSubstring(ddUrlTransfer.traceId)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-parent-id")[0]).isEqualTo(ddUrlTransfer.spanId)
+    return ""
+end function
+
+function DdUrlTransferTest__WhenSampledOutAllWithMultipleHeaderTypes_ThenInjectsAllSampledOutHeaders() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ddUrlTransfer._addSampledOutHeaders(["datadog", "tracecontext", "b3", "b3multi"])
+
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-sampling-priority")[0]).isEqualTo("0")
+    Assert.that(ddUrlTransfer.GetHeader("b3")[0]).isEqualTo("0")
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-Sampled")[0]).isEqualTo("0")
+    Assert.that(ddUrlTransfer.GetHeader("traceparent")).hasSize(1)
+    Assert.that(ddUrlTransfer.traceId).isInvalid()
+    Assert.that(ddUrlTransfer.spanId).isInvalid()
     return ""
 end function
 
