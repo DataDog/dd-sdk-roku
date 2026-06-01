@@ -34,6 +34,18 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenSampledIn_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledIn_ThenHaveSampleInHeaders)
     this.addTest("WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders)
     this.addTest("WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders)
+
+    this.addTest("WhenParseUuidLastSegment_WithValidUuid_ThenReturnsLast48Bits", DdUrlTransferTest__WhenParseUuidLastSegment_WithValidUuid_ThenReturnsLast48Bits)
+    this.addTest("WhenParseUuidLastSegment_WithInvalidUuid_ThenReturnsZero", DdUrlTransferTest__WhenParseUuidLastSegment_WithInvalidUuid_ThenReturnsZero)
+    this.addTest("WhenDeterministicSampledIn_WithRate0_ThenReturnFalse", DdUrlTransferTest__WhenDeterministicSampledIn_WithRate0_ThenReturnFalse)
+    this.addTest("WhenDeterministicSampledIn_WithRate100_ThenReturnTrue", DdUrlTransferTest__WhenDeterministicSampledIn_WithRate100_ThenReturnTrue)
+    this.addTest("WhenDeterministicSampledIn_WithHardcodedFixtures_ThenConsistentWithBackend", DdUrlTransferTest__WhenDeterministicSampledIn_WithHardcodedFixtures_ThenConsistentWithBackend)
+    this.addTest("WhenIsSampledIn_WithRate100_ThenTrue", DdUrlTransferTest__WhenIsSampledIn_WithRate100_ThenTrue)
+    this.addTest("WhenIsSampledIn_WithRate0_ThenFalse", DdUrlTransferTest__WhenIsSampledIn_WithRate0_ThenFalse)
+    this.addTest("WhenIsSampledIn_WithSameSessionId_ThenConsistentDecision", DdUrlTransferTest__WhenIsSampledIn_WithSameSessionId_ThenConsistentDecision)
+    this.addTest("WhenIsSampledIn_WithNoSession_ThenFallsBackToRandom", DdUrlTransferTest__WhenIsSampledIn_WithNoSession_ThenFallsBackToRandom)
+    this.addTest("WhenIsSampledIn_WithNoSessionAndRate100_ThenTrue", DdUrlTransferTest__WhenIsSampledIn_WithNoSessionAndRate100_ThenTrue)
+    this.addTest("WhenIsSampledIn_WithNoSessionAndRate0_ThenFalse", DdUrlTransferTest__WhenIsSampledIn_WithNoSessionAndRate0_ThenFalse)
     return this
 end function
 
@@ -338,7 +350,7 @@ function DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId() a
     fakeGlobal = createFakeGlobal(fakeSessionId)
     fakeHeaderType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
-    ddUrlTransfer._addSampledInHeaders(fakeHeaderType)
+    ddUrlTransfer._addSampledInHeaders(fakeHeaderType, fakeSessionId)
     resultList = ddUrlTransfer.GetHeader("baggage")
     Assert.that(resultList).hasSize(1)
     Assert.that(resultList[0]).isEqualTo("session.id="+fakeSessionId)
@@ -513,7 +525,7 @@ function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHav
 end function
 
 function createFakeGlobal(fakeSessionId as string) as object
-    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent")
     fakeSampleRate = IG_GetDouble()
     fakeId = IG_GetString(8)
     fakeName = IG_GetString(16)
@@ -531,5 +543,205 @@ function createFakeGlobal(fakeSessionId as string) as object
     }
     return fakeGlobal
 
+end function
+
+'----------------------------------------------------------------
+' Given: a valid UUID string
+'  When: _parseUuidLastSegment is called
+'  Then: returns the last segment as a LongInteger (48-bit value)
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenParseUuidLastSegment_WithValidUuid_ThenReturnsLast48Bits() as string
+    fakeGlobal = createFakeGlobal(IG_GetString(16))
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ' Last segment "000000000001" = 1
+    result& = ddUrlTransfer._parseUuidLastSegment("00000000-0000-4000-8000-000000000001")
+    Assert.that(result&).isEqualTo(1&)
+
+    ' Last segment "0000deadbeef" = 0xdeadbeef = 3735928559
+    result2& = ddUrlTransfer._parseUuidLastSegment("00000000-0000-4000-8000-0000deadbeef")
+    Assert.that(result2&).isEqualTo(3735928559&)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a string with fewer than 5 UUID segments
+'  When: _parseUuidLastSegment is called
+'  Then: returns 0
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenParseUuidLastSegment_WithInvalidUuid_ThenReturnsZero() as string
+    fakeGlobal = createFakeGlobal(IG_GetString(16))
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    result& = ddUrlTransfer._parseUuidLastSegment("not-a-valid")
+    Assert.that(result&).isEqualTo(0&)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: sampleRate = 0
+'  When: _isDeterministicSampledIn is called with any seed
+'  Then: always returns false
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenDeterministicSampledIn_WithRate0_ThenReturnFalse() as string
+    fakeGlobal = createFakeGlobal(IG_GetString(16))
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    fakeSeed& = IG_GetInteger()
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(fakeSeed&, 0)).isEqualTo(false)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: sampleRate = 100
+'  When: _isDeterministicSampledIn is called with any seed
+'  Then: always returns true
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenDeterministicSampledIn_WithRate100_ThenReturnTrue() as string
+    fakeGlobal = createFakeGlobal(IG_GetString(16))
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    fakeSeed& = IG_GetInteger()
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(fakeSeed&, 100)).isEqualTo(true)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: hardcoded seed/rate pairs derived from Android DeterministicSamplerTest fixtures
+'  When: _isDeterministicSampledIn is called
+'  Then: results are consistent with Android and backend Knuth sampling
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenDeterministicSampledIn_WithHardcodedFixtures_ThenConsistentWithBackend() as string
+    fakeGlobal = createFakeGlobal(IG_GetString(16))
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ' Seeds are taken from Android's DeterministicSamplerTest hardcoded fixtures.
+    ' Rates are integers (wider intervals) around the same mathematical boundaries.
+    ' Android uses float rates (e.g. 55.9f/56.0f); Roku uses the nearest integers.
+
+    ' Seed boundary at ~55.95%: 55% → false, 56% → true
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(4815162342&, 55.0)).isEqualTo(false)
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(4815162342&, 56.0)).isEqualTo(true)
+
+    ' Seed boundary at ~90.55%: 90% → false, 91% → true
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(1415926535897932384&, 90.0)).isEqualTo(false)
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(1415926535897932384&, 91.0)).isEqualTo(true)
+
+    ' Seed boundary at ~7.45%: 7% → false, 8% → true
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(718281828459045235&, 7.0)).isEqualTo(false)
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(718281828459045235&, 8.0)).isEqualTo(true)
+
+    ' Seed boundary at ~32.15%: 32% → false, 33% → true
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(41421356237309504&, 32.0)).isEqualTo(false)
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(41421356237309504&, 33.0)).isEqualTo(true)
+
+    ' Seed boundary at ~68.25%: 68% → false, 69% → true
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(6180339887498948482&, 68.0)).isEqualTo(false)
+    Assert.that(ddUrlTransfer._isDeterministicSampledIn(6180339887498948482&, 69.0)).isEqualTo(true)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: traceSampleRate = 100 and a session ID
+'  When: _isSampledIn is called
+'  Then: returns true
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsSampledIn_WithRate100_ThenTrue() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetTraceSampleRate(100)
+
+    Assert.that(ddUrlTransfer._isSampledIn(fakeSessionId)).isEqualTo(true)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: traceSampleRate = 0 and a session ID
+'  When: _isSampledIn is called
+'  Then: returns false
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsSampledIn_WithRate0_ThenFalse() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetTraceSampleRate(0)
+
+    Assert.that(ddUrlTransfer._isSampledIn(fakeSessionId)).isEqualTo(false)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: two independent DdUrlTransfer instances sharing the same session ID
+'  When: _isSampledIn is called on each
+'  Then: both return the same deterministic decision
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsSampledIn_WithSameSessionId_ThenConsistentDecision() as string
+    fakeSessionId = IG_GetString(8) + "-" + IG_GetString(4) + "-" + IG_GetString(4) + "-" + IG_GetString(4) + "-" + IG_GetString(12)
+
+    fakeGlobal1 = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer1 = datadogroku_DdUrlTransfer(fakeGlobal1)
+    ddUrlTransfer1.SetTraceSampleRate(50)
+
+    fakeGlobal2 = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer2 = datadogroku_DdUrlTransfer(fakeGlobal2)
+    ddUrlTransfer2.SetTraceSampleRate(50)
+
+    Assert.that(ddUrlTransfer2._isSampledIn(fakeSessionId)).isEqualTo(ddUrlTransfer1._isSampledIn(fakeSessionId))
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: no active session (empty sessionId)
+'  When: _isSampledIn is called
+'  Then: falls back to random — returns a boolean without crashing
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsSampledIn_WithNoSession_ThenFallsBackToRandom() as string
+    fakeGlobal = createFakeGlobal("")
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetTraceSampleRate(50)
+
+    result = ddUrlTransfer._isSampledIn("")
+    Assert.that(result).isNotInvalid()
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: no active session and traceSampleRate = 100
+'  When: _isSampledIn is called
+'  Then: returns true (short-circuits before random fallback)
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsSampledIn_WithNoSessionAndRate100_ThenTrue() as string
+    fakeGlobal = createFakeGlobal("")
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetTraceSampleRate(100)
+
+    Assert.that(ddUrlTransfer._isSampledIn("")).isEqualTo(true)
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: no active session and traceSampleRate = 0
+'  When: _isSampledIn is called
+'  Then: returns false (short-circuits before random fallback)
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenIsSampledIn_WithNoSessionAndRate0_ThenFalse() as string
+    fakeGlobal = createFakeGlobal("")
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+    ddUrlTransfer.SetTraceSampleRate(0)
+
+    Assert.that(ddUrlTransfer._isSampledIn("")).isEqualTo(false)
+
+    return ""
 end function
 

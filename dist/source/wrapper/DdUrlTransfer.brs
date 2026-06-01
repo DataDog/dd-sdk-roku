@@ -615,14 +615,14 @@ function __DdUrlTransfer_builder()
     ' headers
     ' ----------------------------------------------------------------
     instance._traceRequest = sub()
-        rndTrace = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
-        isSampledIn = rndTrace < m.traceSampleRate
+        sessionId = m.global.datadogRumContext?.sessionId
+        isSampledIn = m._isSampledIn(sessionId)
         headerType = getTracedHeaderType(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
         if (headerType <> invalid)
             ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + headerType)
             if (isSampledIn)
                 ddLogInfo("Request trace is sampled in")
-                m._addSampledInHeaders(headerType)
+                m._addSampledInHeaders(headerType, sessionId)
             else if (m.traceContextInjection = "all")
                 ddLogInfo("Request trace is sampled out")
                 m._addSampledOutHeaders(headerType)
@@ -638,13 +638,87 @@ function __DdUrlTransfer_builder()
         m._applyHeaders()
     end sub
     ' ----------------------------------------------------------------
+    ' (Internal) decides if the current trace is sampled in.
+    ' Uses session ID (deterministic) when available, random fallback otherwise.
+    ' ----------------------------------------------------------------
+    instance._isSampledIn = function(sessionId as dynamic) as boolean
+        if (m.traceSampleRate >= 100)
+            return true
+        end if
+        if (m.traceSampleRate <= 0)
+            return false
+        end if
+        if (sessionId <> invalid and sessionId.len() > 0)
+            seed& = m._parseUuidLastSegment(sessionId)
+            return m._isDeterministicSampledIn(seed&, m.traceSampleRate)
+        end if
+        ' Fallback: no session — use random (same as legacy behavior)
+        return Rnd(100) <= m.traceSampleRate
+    end function
+    ' ----------------------------------------------------------------
+    ' (Internal) extracts the last segment of a UUID as a LongInteger seed.
+    ' UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (last segment = 12 hex chars = 48 bits)
+    ' Assumes last segment is exactly 12 hex chars (standard UUID v4 format).
+    ' ----------------------------------------------------------------
+    instance._parseUuidLastSegment = function(uuid as string) as longinteger
+        parts = uuid.split("-")
+        if (parts.count() < 5)
+            return 0&
+        end if
+        seg = parts[4] ' 12 hex chars
+        highBits& = val(Left(seg, 6), 16) ' upper 24 bits
+        lowBits& = val(Right(seg, 6), 16) ' lower 24 bits
+        return highBits& * 16777216& + lowBits& ' 16^6 = 0x1000000
+    end function
+    ' ----------------------------------------------------------------
+    ' (Internal) Knuth multiplicative hash — matches Android DeterministicSampler
+    ' / iOS DeterministicSampler.
+    ' Returns true if seed hashes into the sampled bucket for the given sampleRate (0-100).
+    ' ----------------------------------------------------------------
+    instance._isDeterministicSampledIn = function(seed& as longinteger, sampleRate as double) as boolean
+        ' Knuth multiplicative hash — matches Android DeterministicSampler / iOS DeterministicSampler.
+        ' KNUTH = 1111111111111111111 split into 16-bit chunks to avoid BrightScript's
+        ' LongInteger * LongInteger overflow: large products use double arithmetic
+        ' instead of wrapping at 64 bits, producing wrong results.
+        ' Each partial product s_i * k_j <= 65535^2 < 2^32 — no overflow.
+        k0& = 29127& ' bits  0-15 of 1111111111111111111
+        k1& = 11204& ' bits 16-31
+        k2& = 30123& ' bits 32-47
+        k3& = 3947& ' bits 48-63
+        s0& = seed& AND 65535&
+        s1& = (seed& >> 16&) AND 65535&
+        s2& = (seed& >> 32&) AND 65535&
+        s3& = (seed& >> 48&) AND 65535&
+        c0& = s0& * k0&
+        c1& = s0& * k1& + s1& * k0&
+        c2& = s0& * k2& + s1& * k1& + s2& * k0&
+        c3& = s0& * k3& + s1& * k2& + s2& * k1& + s3& * k0&
+        carry& = c0& >> 16&
+        r0& = c0& AND 65535&
+        sum1& = c1& + carry&
+        r1& = sum1& AND 65535&
+        carry& = sum1& >> 16&
+        sum2& = c2& + carry&
+        r2& = sum2& AND 65535&
+        carry& = sum2& >> 16&
+        r3& = (c3& + carry&) AND 65535&
+        ' Build the unsigned 64-bit hash as a double directly from the 16-bit digits.
+        ' All inputs are non-negative, so no sign correction is needed.
+        hashDouble# = CDbl(r3&) * 281474976710656.0 + CDbl(r2&) * 4294967296.0 + CDbl(r1&) * 65536.0 + CDbl(r0&)
+        MAX_UINT64# = 1.8446744073709552e+19 ' 2^64
+        threshold# = MAX_UINT64# * sampleRate / 100.0#
+        return hashDouble# < threshold#
+    end function
+    ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
     ' matching the given type
     ' @param headerType (string) the header type to use
     ' ----------------------------------------------------------------
-    instance._addSampledInHeaders = sub(headerType as object)
+    instance._addSampledInHeaders = sub(headerType as object, sessionId as dynamic)
         m._deleteTracingHeaders()
-        m.AddHeader("baggage", "session.id=" + m.global.datadogRumContext.sessionId)
+        if (sessionId <> invalid and sessionId.len() > 0)
+            m.AddHeader("baggage", "session.id=" + sessionId)
+        end if
         if (headerType = "datadog")
             ' Datadog uses a complex system for compatibility purposes
             ddId = generateUniqueIdDd()
