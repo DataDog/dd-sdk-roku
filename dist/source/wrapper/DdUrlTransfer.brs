@@ -619,7 +619,7 @@ function __DdUrlTransfer_builder()
     instance._traceRequest = sub()
         sessionId = m.global.datadogRumContext?.sessionId
         isSampledIn = m._isSampledIn(sessionId)
-        headerTypes = getTracedHeaderType(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
+        headerTypes = getTracedHeaderTypes(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
         if (headerTypes.count() > 0)
             ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + FormatJson(headerTypes))
             if (isSampledIn)
