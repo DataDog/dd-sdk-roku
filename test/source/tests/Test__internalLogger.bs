@@ -1,0 +1,48 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return A configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__InternalLogger() as object
+    this = BaseTestSuite()
+    this.Name = "InternalLogger"
+
+    this.addTest("WhenDecToHex_ThenConvertsToHexString", InternalLoggerTest__WhenDecToHex_ThenConvertsToHexString)
+
+    return this
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function InternalLoggerTest__WhenDecToHex_ThenConvertsToHexString() as string
+    ' Given
+    hardcoded = [
+        { dec: 0, hex: "0" },
+        { dec: 9, hex: "9" },
+        { dec: 10, hex: "A" },
+        { dec: 11, hex: "B" },
+        { dec: 15, hex: "F" },
+        { dec: 16, hex: "10" },
+        { dec: 255, hex: "FF" },
+        { dec: 256, hex: "100" },
+        { dec: 210000275, hex: "C845993" },
+        { dec: 210000280, hex: "C845998" },
+        { dec: 210000285, hex: "C84599D" },
+        ' max signed 32-bit integer
+        { dec: 2147483647, hex: "7FFFFFFF" },
+    ]
+
+    for each testcase in hardcoded
+        ' When
+        result = datadogroku_decToHex(testcase.dec)
+
+        ' Then
+        Assert.that(result).isEqualTo(testcase.hex, "Failed to convert " + testcase.dec.toStr() + " to hex " + testcase.hex + " (was " + result + ")")
+    end for
+
+    return ""
+end function
