@@ -378,7 +378,7 @@ function DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId() a
     fakeGlobal = createFakeGlobal(fakeSessionId)
     fakeHeaderType = IG_GetOneOf(["b3", "datadog", "b3multi", "tracecontext"])
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
-    ddUrlTransfer._addSampledInHeaders([fakeHeaderType])
+    ddUrlTransfer._addSampledInHeaders([fakeHeaderType], fakeSessionId)
     resultList = ddUrlTransfer.GetHeader("baggage")
     Assert.that(resultList).hasSize(1)
     Assert.that(resultList[0]).isEqualTo("session.id="+fakeSessionId)
@@ -661,7 +661,7 @@ function DdUrlTransferTest__WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllS
     fakeGlobal = createFakeGlobal(fakeSessionId)
     ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
 
-    ddUrlTransfer._addSampledInHeaders(["datadog", "tracecontext", "b3", "b3multi"])
+    ddUrlTransfer._addSampledInHeaders(["datadog", "tracecontext", "b3", "b3multi"], fakeSessionId)
 
     ' the baggage session id is only added once, regardless of the number of header types
     Assert.that(ddUrlTransfer.GetHeader("baggage")).hasSize(1)
