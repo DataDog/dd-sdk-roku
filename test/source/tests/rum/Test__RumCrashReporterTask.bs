@@ -69,6 +69,7 @@ end sub
 sub RumCrashReporterTaskTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("testedTask")
+    createObject("roFileSystem").Delete(datadogroku_trackFolderPath("rum"))
 end sub
 
 '----------------------------------------------------------------
@@ -149,6 +150,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
     Assert.that(errorEvent.error.stack).isEqualTo("")
     Assert.that(errorEvent.error.is_crash).isEqualTo(true)
     Assert.that(errorEvent.error.type).isEqualTo(fakeExitStatus)
+    Assert.that(errorEvent.context).isEqualTo(fakePreviousViewEvent.context)
 
     viewEvent = ParseJson(updates[1])
     Assert.that(viewEvent).isNotInvalid()
@@ -256,6 +258,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
     Assert.that(errorEvent.error.stack).isEqualTo(fakeConsoleLog)
     Assert.that(errorEvent.error.is_crash).isEqualTo(true)
     Assert.that(errorEvent.error.type).isEqualTo(fakeExitStatus)
+    Assert.that(errorEvent.context).isEqualTo(fakePreviousViewEvent.context)
 
     viewEvent = ParseJson(updates[1])
     Assert.that(viewEvent).isNotInvalid()
@@ -335,6 +338,7 @@ function RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEven
     Assert.that(errorEvent).isNotInvalid()
     Assert.that(errorEvent.error.type).isEqualTo(fakeUnknownExitStatus)
     Assert.that(errorEvent.error.is_crash).isEqualTo(true)
+    Assert.that(errorEvent.context).isEqualTo(fakePreviousViewEvent.context)
 
     Assert.that(lastViewFilePath).doesNotExist()
     return ""

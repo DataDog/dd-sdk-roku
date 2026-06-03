@@ -1,4 +1,21 @@
-# Next release: 1.5.0
+# Next release: 1.6.0
+
+# 1.5.0 / 2026-06-03
+* [FEATURE] Support trace sampling based on Session Id. See [#169](https://github.com/DataDog/dd-sdk-roku/pull/169)
+* [BUGFIX] Fix race condition where `MultiTrackUploaderTask` could be created multiple times. See [#156](https://github.com/DataDog/dd-sdk-roku/pull/156)
+* [BUGFIX] Fix `sendCrash` gate in `RumAgent`. See [#165](https://github.com/DataDog/dd-sdk-roku/pull/165)
+* [BUGFIX] Fix `decToHex` function. See [#167](https://github.com/DataDog/dd-sdk-roku/pull/167)
+* [IMPROVEMENT] Cache fields in `MultiTrackUploaderTask` to reduce rendezvous. See [#146](https://github.com/DataDog/dd-sdk-roku/pull/146)
+* [IMPROVEMENT] Snapshot `datadogRumContext` in `sendLog` for atomic reads. See [#149](https://github.com/DataDog/dd-sdk-roku/pull/149)
+* [IMPROVEMENT] Cache `site` and batch `sendCrash` writes in `RumAgent`. See [#150](https://github.com/DataDog/dd-sdk-roku/pull/150)
+* [IMPROVEMENT] Cache `lastExitConsoleLog` and `datadogContext` in `RumCrashReporterTask`. See [#153](https://github.com/DataDog/dd-sdk-roku/pull/153)
+* [IMPROVEMENT] Refactor `RumAgent` setup. See [#161](https://github.com/DataDog/dd-sdk-roku/pull/161)
+* [IMPROVEMENT] Refactor `LogsAgent` setup. See [#162](https://github.com/DataDog/dd-sdk-roku/pull/162)
+* [IMPROVEMENT] Refactor `RumApplicationScope`. See [#163](https://github.com/DataDog/dd-sdk-roku/pull/163)
+* [IMPROVEMENT] Set operation timestamp at event creation. See [#164](https://github.com/DataDog/dd-sdk-roku/pull/164)
+* [IMPROVEMENT] Cache global fields in `LogsAgent`. See [#166](https://github.com/DataDog/dd-sdk-roku/pull/166)
+* [MAINTENANCE] Migrate npm publish to trusted publishing (OIDC). See [#142](https://github.com/DataDog/dd-sdk-roku/pull/142)
+* [MAINTENANCE] Cleanup code and lint warnings. See [#168](https://github.com/DataDog/dd-sdk-roku/pull/168)
 
 # 1.4.0 / 2026-03-16
 * [FEATURE] Add RUM Operations tracking (start, stop, update, cancel operations with custom attributes). See [#133](https://github.com/DataDog/dd-sdk-roku/pull/133)

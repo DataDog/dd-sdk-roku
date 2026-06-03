@@ -288,16 +288,22 @@ class BaseAssert
     function isEmpty(msg = "" as string) as BaseAssert
         if (TF_Utils__IsArray(m.actual) or TF_Utils__IsAssociativeArray(m.actual))
             if (m.actual.count() <> 0)
+                if (msg = "")
+                    msg = "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (found " + TF_Utils__AsString(m.actual.count()) + " items)"
+                end if
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (found " + TF_Utils__AsString(m.actual.count()) + " items)"
+                    message: msg
                 }
             end if
         else if (TF_Utils__IsString(m.actual))
             if (m.actual.Len() <> 0)
+                if (msg = "")
+                    msg = "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (string was '" + m.actual + "')"
+                end if
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to be empty but was not (string was '" + m.actual + "')"
+                    message: msg
                 }
             end if
         else
@@ -317,16 +323,22 @@ class BaseAssert
     function isNotEmpty(msg = "" as string) as BaseAssert
         if (TF_Utils__IsArray(m.actual) or TF_Utils__IsAssociativeArray(m.actual))
             if (m.actual.count() = 0)
+                if (msg = "")
+                    msg = "Expected " + TF_Utils__AsString(m.actual) + " not to be empty"
+                end if
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " not to be empty"
+                    message: msg
                 }
             end if
         else if (TF_Utils__IsString(m.actual))
             if (m.actual.Len() = 0)
+                if (msg = "")
+                    msg = "Expected " + TF_Utils__AsString(m.actual) + " not to be empty"
+                end if
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " not to be empty"
+                    message: msg
                 }
             end if
         else
@@ -354,16 +366,22 @@ class BaseAssert
 
         if (TF_Utils__IsArray(m.actual) or TF_Utils__IsAssociativeArray(m.actual))
             if (m.actual.count() <> expected)
+                if (msg = "")
+                    msg = "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.count().toStr()
+                end if
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.count().toStr()
+                    message: msg
                 }
             end if
         else if (TF_Utils__IsString(m.actual))
             if (m.actual.Len() <> expected)
+                if (msg = "")
+                    msg = "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.Len().toStr()
+                end if
                 throw {
                     number: m.errorCode,
-                    message: "Expected " + TF_Utils__AsString(m.actual) + " to have size " + TF_Utils__AsString(expected) + " but was " + m.actual.Len().toStr()
+                    message: msg
                 }
             end if
         else
@@ -403,9 +421,12 @@ class BaseAssert
             end if
         end for
 
+        if (msg = "")
+            msg = "Expected " + m.actual + " to have substring " + expected
+        end if
         throw {
             number: m.errorCode,
-            message: "Expected " + m.actual + " to have substring " + expected
+            message: msg
         }
     end function
 
@@ -430,9 +451,12 @@ class BaseAssert
 
         regex = CreateObject("roRegex", expected, flags)
         if (not regex.IsMatch(m.actual))
+            if (msg = "")
+                msg = "Expected " + m.actual + " to match regex /" + expected + "/"
+            end if
             throw {
                 number: m.errorCode,
-                message: "Expected " + m.actual + " to match regex /" + expected + "/"
+                message: msg
             }
         end if
         return m
@@ -450,9 +474,12 @@ class BaseAssert
                     return m
                 end if
             end for
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to contain " + TF_Utils__AsString(expected)
+            end if
             throw {
                 number: m.errorCode,
-                message: "Expected " + TF_Utils__AsString(m.actual) + " to contain " + TF_Utils__AsString(expected)
+                message: msg
             }
         else if (TF_Utils__IsAssociativeArray(m.actual))
             if (not TF_Utils__IsAssociativeArray(expected))
@@ -466,9 +493,12 @@ class BaseAssert
                 expectedItem = expected[key]
                 item = m.actual[key]
                 if (not m.__areEqual(item, expectedItem))
+                    if (msg = "")
+                        msg = "Expected " + TF_Utils__AsString(m.actual) + chr(10) + "  to have an entry { " + key + ":" + TF_Utils__AsString(expectedItem) + " } but was { " + key + ":" + TF_Utils__AsString(item) + " }"
+                    end if
                     throw {
                         number: m.errorCode,
-                        message: "Expected " + TF_Utils__AsString(m.actual) + chr(10) + "  to have an entry { " + key + ":" + TF_Utils__AsString(expectedItem) + " } but was { " + key + ":" + TF_Utils__AsString(item) + " }"
+                        message: msg
                     }
                 end if
             end for
@@ -501,9 +531,12 @@ class BaseAssert
                     return m
                 end if
             end for
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to contain key " + TF_Utils__AsString(expected)
+            end if
             throw {
                 number: m.errorCode,
-                message: "Expected " + TF_Utils__AsString(m.actual) + " to contain key " + TF_Utils__AsString(expected)
+                message: msg
             }
         end if
 
@@ -535,9 +568,12 @@ class BaseAssert
 
         subtype = m.actual.subType()
         if (subtype <> expected)
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to have subtype " + expected + " but was " + subtype
+            end if
             throw {
                 number: m.errorCode,
-                message: "Expected " + TF_Utils__AsString(m.actual) + " to have subtype " + expected + " but was " + subtype
+                message: msg
             }
         end if
 
@@ -558,9 +594,12 @@ class BaseAssert
         end if
 
         if (not CreateObject("roFileSystem").Exists(m.actual))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to be a file on disk, but was not"
+            end if
             throw {
                 number: m.errorCode,
-                message: "Expected " + TF_Utils__AsString(m.actual) + " to be a file on disk, but was not"
+                message: msg
             }
         end if
 
@@ -581,9 +620,12 @@ class BaseAssert
         end if
 
         if (CreateObject("roFileSystem").Exists(m.actual))
+            if (msg = "")
+                msg = "Expected " + TF_Utils__AsString(m.actual) + " to not be a file on disk, but was"
+            end if
             throw {
                 number: m.errorCode,
-                message: "Expected " + TF_Utils__AsString(m.actual) + " to not be a file on disk, but was"
+                message: msg
             }
         end if
 

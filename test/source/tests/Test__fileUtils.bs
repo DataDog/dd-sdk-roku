@@ -15,11 +15,6 @@ function TestSuite__FileUtils() as object
     this.addTest("WhenMkDirs_ThenCreateParentDirs", FileUtilsTest__WhenMkDirs_ThenCreateParentDirs)
     this.addTest("WhenMkDirsInvalidPath_ThenDoNothing", FileUtilsTest__WhenMkDirsInvalidPath_ThenDoNothing)
 
-    this.addTest("WhenMkParentDirs_ThenCreateDir", FileUtilsTest__WhenMkParentDirs_ThenCreateDir)
-    this.addTest("WhenMkParentDirsExisting_ThenDoNothing", FileUtilsTest__WhenMkParentDirsExisting_ThenDoNothing)
-    this.addTest("WhenMkParentDirs_ThenCreateParentDirs", FileUtilsTest__WhenMkParentDirs_ThenCreateParentDirs)
-    this.addTest("WhenMkParentDirsInvalidPath_ThenDoNothing", FileUtilsTest__WhenMkParentDirsInvalidPath_ThenDoNothing)
-
     this.addTest("WhenTrackFolderPath_ThenComputePath", FileUtilsTest__WhenTrackFolderPath_ThenComputePath)
 
     this.addTest("WhenAppendAsciiFile_ThenAppendsToExistingFile", FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToExistingFile)
@@ -104,90 +99,6 @@ function FileUtilsTest__WhenMkDirsInvalidPath_ThenDoNothing() as string
     ' Then
     Assert.that(result).isFalse("Expected result to be false")
     Assert.that(path).doesNotExist()
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Checks that mkParentDirs creates the required directory
-'----------------------------------------------------------------
-function FileUtilsTest__WhenMkParentDirs_ThenCreateDir() as string
-    ' Given
-    path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
-    filePath = path + "/" + IG_GetString(16)
-    Assume.that(filePath).doesNotExist()
-
-    ' When
-    result = datadogroku_mkParentDirs(filePath)
-
-    ' Then
-    Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(path).exists()
-    Assert.that(filePath).doesNotExist()
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Checks that mkparentdirs does nothing if folder already exists
-'----------------------------------------------------------------
-function FileUtilsTest__WhenMkParentDirsExisting_ThenDoNothing() as string
-    ' Given
-    path = IG_GetOneOf(["cachefs", "tmp"]) + ":/" + IG_GetString(16)
-    filePath = path + "/" + IG_GetString(16)
-    Assume.that(path).doesNotExist()
-
-    ' When
-    result = datadogroku_mkParentDirs(filePath)
-    result2 = datadogroku_mkparentdirs(filePath)
-
-    ' Then
-    Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(result2).isTrue("Expected result2 to be true")
-    Assert.that(path).exists()
-    Assert.that(filePath).doesNotExist()
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Checks that mkParentDirs creates all intermediate directories
-'----------------------------------------------------------------
-function FileUtilsTest__WhenMkParentDirs_ThenCreateParentDirs() as string
-    ' Given
-    folderNames = IG_GetArray(["string", "string", "string", "string"])
-    path = IG_GetOneOf(["cachefs", "tmp"]) + ":"
-    for each folderName in folderNames
-        path = path + "/" + folderName
-    end for
-    filePath = path + "/" + IG_GetString(16)
-    Assume.that(path).doesNotExist()
-
-    ' When
-    result = datadogroku_mkParentDirs(filePath)
-
-    ' Then
-    Assert.that(result).isTrue("Expected result to be true")
-    Assert.that(path).exists()
-    Assert.that(filePath).doesNotExist()
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Checks that mkParentDirs fails silently when an invalid path is provided
-' cf: https://developer.roku.com/en-gb/docs/developer-program/getting-started/architecture/file-system.md
-'----------------------------------------------------------------
-function FileUtilsTest__WhenMkParentDirsInvalidPath_ThenDoNothing() as string
-    ' Given
-    invalidChar = IG_GetOneOf(["<", ">", """", ":", "|", "?", "*"])
-    path = IG_GetOneOf(["foo", "bar"]) + ":/" + IG_GetString(8) + invalidChar + IG_GetString(8)
-    filePath = path + "/" + IG_GetString(16)
-    Assume.that(path).doesNotExist()
-
-    ' When
-    result = datadogroku_mkParentDirs(filePath)
-
-    ' Then
-    Assert.that(result).isFalse("Expected result to be false")
-    Assert.that(path).doesNotExist()
-    Assert.that(filePath).doesNotExist()
     return ""
 end function
 

@@ -73,6 +73,7 @@ sub initialize(configuration as object, global as object)
         ddLogInfo("No uploader, creating one")
         datadogUploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
         datadogUploader.clientToken = configuration.clientToken
+        datadogUploader.control = "RUN"
         global.addFields({
             datadogUploader: datadogUploader
         })
@@ -82,6 +83,13 @@ sub initialize(configuration as object, global as object)
         return
     else if (global.datadogRumAgent = invalid)
         ddLogInfo("No RUM agent, creating one")
+        ' Create the RUM context synchronously so any early log can observe it
+        ' before the RumAgent task fills in the rest.
+        global.addFields({
+            datadogRumContext: {
+                applicationId: configuration.applicationId
+            }
+        })
         rumAgent = CreateObject("roSGNode", "RumAgent")
         rumAgent.setFields({
             site: configuration.site
@@ -93,7 +101,6 @@ sub initialize(configuration as object, global as object)
                         return ""
                     end if
                 end function)(configuration)
-            clientToken: configuration.clientToken
             applicationId: configuration.applicationId
             service: service
             version: version
@@ -112,8 +119,8 @@ sub initialize(configuration as object, global as object)
             osVersion: deviceOsVersionFull
             osVersionMajor: deviceOsVersion.major
             configuration: configuration
-            areFieldsSet: true
         })
+        rumAgent.control = "RUN"
         global.addFields({
             datadogRumAgent: rumAgent
         })
@@ -131,7 +138,6 @@ sub initialize(configuration as object, global as object)
                         return ""
                     end if
                 end function)(configuration)
-            clientToken: configuration.clientToken
             service: service
             version: version
             uploader: datadogUploader
@@ -220,7 +226,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.4.0"
+    return "1.5.0"
 end function
 
 ' ----------------------------------------------------------------

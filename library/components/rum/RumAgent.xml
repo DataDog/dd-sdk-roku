@@ -14,7 +14,6 @@ Copyright 2022-Today Datadog, Inc.
     <interface>
         <field id="site" type="string" value="us1" />
         <field id="env" type="string" value="" />
-        <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="version" type="string" />
@@ -42,6 +41,20 @@ Copyright 2022-Today Datadog, Inc.
         <field id="succeedOperation" type="assocarray" />
         <field id="failOperation" type="assocarray" />
 
+        <field id="startView" type="assocarray" />
+        <field id="stopView" type="assocarray" />
+        <field id="addAction" type="assocarray" />
+        <field id="addError" type="assocarray" />
+        <field id="addResource" type="assocarray" />
+        <field id="addConfigTelemetry" type="assocarray" />
+        <field id="addErrorTelemetry" type="assocarray" />
+        <field id="addDebugTelemetry" type="assocarray" />
+
+        <!-- Operation monitoring events -->
+        <field id="startOperation" type="assocarray" />
+        <field id="succeedOperation" type="assocarray" />
+        <field id="failOperation" type="assocarray" />
+
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
@@ -54,7 +67,6 @@ Copyright 2022-Today Datadog, Inc.
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
-        <function name="sendCrash" />
 
         <!-- Internal telemetry -->
         <function name="addConfigTelemetry" />
