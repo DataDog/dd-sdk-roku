@@ -107,7 +107,7 @@ After the PR is merged, pull the release branch to get the merge commit, then ta
 ```bash
 git checkout release/<version>
 git pull origin release/<version>
-git tag -a <version> -m "<version>"
+git tag <version>
 git push --tags
 ```
 
