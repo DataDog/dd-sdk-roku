@@ -1,6 +1,6 @@
 {
   "name": "datadog-roku",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Datadog SDK for Roku",
   "keywords": [
     "ropm",
@@ -15,7 +15,8 @@
   "author": "Datadog (https://github.com/DataDog)",
   "contributors": [
     "Xavier F. Gouchet <xavier.gouchet@datadoghq.com>",
-    "Yi LU <yi.lu@datadoghq.com>"
+    "Yi LU <yi.lu@datadoghq.com>",
+    "Francisco Veiga <francisco.veiga@datadoghq.com>"
   ],
   "homepage": "https://github.com/DataDog/dd-sdk-roku#readme",
   "repository": {
