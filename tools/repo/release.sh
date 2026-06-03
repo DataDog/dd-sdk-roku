@@ -37,7 +37,7 @@ cd $rootdir
 npm --no-git-tag-version version $1
 
 echo "---- Removing old release zip archives"
-find . -maxdepth 1 -name "datadogroku-*.zip" ! -name "datadogroku-$1.zip" -delete
+git rm --ignore-unmatch datadogroku-*.zip 2>/dev/null || true
 
 echo "---- Creating a commit for version $1"
 git add **/*.brs **/*.bs **/package.json package.json CHANGELOG.md
