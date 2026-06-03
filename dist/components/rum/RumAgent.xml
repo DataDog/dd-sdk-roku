@@ -14,6 +14,18 @@
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value="" />
         <field id="configuration" type="assocarray" value="{}" />
+        <field id="areFieldsSet" type="boolean" value="false" />
+        <field id="startView" type="assocarray" />
+        <field id="stopView" type="assocarray" />
+        <field id="addAction" type="assocarray" />
+        <field id="addError" type="assocarray" />
+        <field id="addResource" type="assocarray" />
+        <field id="addConfigTelemetry" type="assocarray" />
+        <field id="addErrorTelemetry" type="assocarray" />
+        <field id="addDebugTelemetry" type="assocarray" />
+        <field id="startOperation" type="assocarray" />
+        <field id="succeedOperation" type="assocarray" />
+        <field id="failOperation" type="assocarray" />
         <field id="startView" type="assocarray" />
         <field id="stopView" type="assocarray" />
         <field id="addAction" type="assocarray" />
