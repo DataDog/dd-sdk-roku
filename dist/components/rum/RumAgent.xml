@@ -3,7 +3,6 @@
     <interface>
         <field id="site" type="string" value="us1" />
         <field id="env" type="string" value="" />
-        <field id="clientToken" type="string" />
         <field id="applicationId" type="string" />
         <field id="service" type="string" />
         <field id="version" type="string" />
@@ -27,6 +26,17 @@
         <field id="startOperation" type="assocarray" />
         <field id="succeedOperation" type="assocarray" />
         <field id="failOperation" type="assocarray" />
+        <field id="startView" type="assocarray" />
+        <field id="stopView" type="assocarray" />
+        <field id="addAction" type="assocarray" />
+        <field id="addError" type="assocarray" />
+        <field id="addResource" type="assocarray" />
+        <field id="addConfigTelemetry" type="assocarray" />
+        <field id="addErrorTelemetry" type="assocarray" />
+        <field id="addDebugTelemetry" type="assocarray" />
+        <field id="startOperation" type="assocarray" />
+        <field id="succeedOperation" type="assocarray" />
+        <field id="failOperation" type="assocarray" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
@@ -36,7 +46,6 @@
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
-        <function name="sendCrash" />
         <function name="addConfigTelemetry" />
         <function name="addErrorTelemetry" />
         <function name="addDebugTelemetry" />
@@ -46,6 +55,7 @@
     </interface>
     <script type="text/brightscript" uri="pkg:/components/rum/RumAgent.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumRawEvents.brs" />
+    <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumHelper.brs" />
     <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
     <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />

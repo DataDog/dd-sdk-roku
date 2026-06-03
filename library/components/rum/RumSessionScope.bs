@@ -118,8 +118,8 @@ sub renewSession(timestamp& as longinteger)
     m.sessionStartMs = timestamp&
     m.activeOperations = {}
 
-    rndSession = (Rnd(101) - 1) ' Rnd(n) returns a number between 1 and n (both inclusive)
-    if (rndSession < m.top.sessionSampleRate)
+    rndSession = Rnd(100) ' Rnd(n) returns a number between 1 and n (both inclusive)
+    if (rndSession <= m.top.sessionSampleRate)
         m.sessionState = RumSessionState.tracked
     else
         m.sessionState = RumSessionState.not_tracked
@@ -162,7 +162,8 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub sendVitalEvent(event as object, stepType as string, writer as object)
-    timestamp& = getTimestamp()
+    ' Prefer the call-site timestamp; sendVitalEvent runs after a cross-thread rendezvous.
+    timestamp& = event.timestamp ?? getTimestamp()
     rumContext = getRumContext(invalid)
 
     ' Get view context if available

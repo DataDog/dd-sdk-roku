@@ -6,8 +6,8 @@
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/logs/logStatus.bs"
 ' *****************************************************************
-' * RumAgent: a background component listening for internal events
-' *     to write relevant RUM Event to Datadog.
+' * LogsAgent: a component exposing logging APIs that write
+' *     Log Events to Datadog.
 ' *****************************************************************
 
 ' ----------------------------------------------------------------
@@ -124,79 +124,86 @@ end sub
 ' ----------------------------------------------------------------
 sub sendLog(status as object, message as string, attributes as object)
     timestamp& = getTimestamp()
-    ensureSetup()
+    setupIfNeeded()
     logEvent = {
         date: timestamp&
-        ddtags: "env:" + m.top.env + ",version:" + m.top.version
+        ddtags: "env:" + m.env + ",version:" + m.version
         message: message
         status: status
-        service: m.top.service
-        usr: m.global.datadogUserInfo
+        service: m.service
+        usr: m.userInfo
         device: {
             type: "tv"
-            name: m.top.deviceName
-            model: m.top.deviceModel
+            name: m.deviceName
+            model: m.deviceModel
             brand: "Roku"
         }
         os: {
             name: "Roku"
-            version: m.top.osVersion
-            version_major: m.top.osVersionMajor
+            version: m.osVersion
+            version_major: m.osVersionMajor
         }
         logger: {
             thread_name: m.top.threadInfo().currentThread.name
             version: sdkVersion()
         }
     }
-    for each key in attributes
-        logEvent[key] = attributes[key]
-    end for
-    if (m.global.datadogContext <> invalid)
-        for each key in m.global.datadogContext
-            logEvent[key] = m.global.datadogContext[key]
-        end for
+    logEvent.append(attributes)
+    if (m.ddContext <> invalid)
+        logEvent.append(m.ddContext)
     end if
-    if (m.global.datadogRumContext <> invalid)
-        logEvent["application_id"] = m.global.datadogRumContext.applicationId
-        logEvent["session_id"] = m.global.datadogRumContext.sessionId
+    rumContext = m.rumContext
+    if (rumContext <> invalid)
+        logEvent["application_id"] = rumContext.applicationId
+        logEvent["session_id"] = rumContext.sessionId
         logEvent["view"] = {
-            id: m.global.datadogRumContext.viewId
+            id: rumContext.viewId
         }
         logEvent["user_action"] = {
-            id: m.global.datadogRumContext.actionId
+            id: rumContext.actionId
         }
     end if
-    m.top.writer.writeEvent = FormatJson(logEvent)
+    m.writer.writeEvent = FormatJson(logEvent)
 end sub
 
-' ----------------------------------------------------------------
-' Ensure all dependencies are present (from DI or generated)
-' ----------------------------------------------------------------
-sub ensureSetup()
-    ensureUploader()
-    ensureWriter()
-end sub
-
-' ----------------------------------------------------------------
-' Sets the uploader node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureUploader()
-    uploader = m.top.uploader
-    if (m.top.uploader = invalid)
-        uploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
+sub setupIfNeeded()
+    if (m.isConfigured = true)
+        return
     end if
+    ' 1. Cache injected dependencies
+    fields = m.top.getFields()
+    m.uploader = fields.uploader
+    m.writer = fields.writer 'allow tests to inject a mock
+    m.service = fields.service
+    m.version = fields.version
+    m.env = fields.env
+    m.deviceName = fields.deviceName
+    m.deviceModel = fields.deviceModel
+    m.osVersion = fields.osVersion
+    m.osVersionMajor = fields.osVersionMajor
+    m.site = fields.site
+    ' 2. Configure writer
+    if (m.writer = invalid) 'skipped in tests (mock pre-injected)
+        ddLogVerbose("Creating WriterTask")
+        m.writer = CreateObject("roSGNode", "WriterTask")
+        m.top.writer = m.writer
+    end if
+    m.writer.setFields({
+        trackType: "logs"
+        payloadSeparator: ","
+    })
+    ' 3. Register our track on the shared uploader
     trackId = "logs_" + m.top.threadInfo().node.address
-    tracks = (function(uploader)
-            __bsConsequent = uploader.tracks
+    tracks = (function(m)
+            __bsConsequent = m.uploader.tracks
             if __bsConsequent <> invalid then
                 return __bsConsequent
             else
                 return {}
             end if
-        end function)(uploader)
+        end function)(m)
     tracks[trackId] = {
-        url: getIntakeUrl(m.top.site, "logs")
+        url: getIntakeUrl(m.site, "logs")
         trackType: "logs"
         payloadPrefix: "["
         payloadPostfix: "]"
@@ -205,22 +212,27 @@ sub ensureUploader()
             ddsource: agentSource()
         }
     }
-    uploader.tracks = tracks
-    uploader.clientToken = m.top.clientToken
-    m.top.uploader = uploader
+    m.uploader.setFields({
+        tracks: tracks
+    })
+    ' 4. Cache the global context locally, kept in sync via observers
+    m.global.observeFieldScoped("datadogUserInfo", "onUserInfoChanged")
+    m.global.observeFieldScoped("datadogContext", "onContextChanged")
+    m.global.observeFieldScoped("datadogRumContext", "onRumContextChanged")
+    m.userInfo = m.global.datadogUserInfo
+    m.ddContext = m.global.datadogContext
+    m.rumContext = m.global.datadogRumContext
+    m.isConfigured = true
 end sub
 
-' ----------------------------------------------------------------
-' Sets the writer node from the top node's field,
-' or instantiate one.
-' ----------------------------------------------------------------
-sub ensureWriter()
-    writer = m.top.writer
-    if (writer = invalid)
-        ddLogVerbose("Creating WriterTask")
-        writer = CreateObject("roSGNode", "WriterTask")
-    end if
-    writer.trackType = "logs"
-    writer.payloadSeparator = ","
-    m.top.writer = writer
+sub onUserInfoChanged(event as object)
+    m.userInfo = event.getData()
+end sub
+
+sub onContextChanged(event as object)
+    m.ddContext = event.getData()
+end sub
+
+sub onRumContextChanged(event as object)
+    m.rumContext = event.getData()
 end sub

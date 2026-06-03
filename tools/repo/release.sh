@@ -1,11 +1,17 @@
 #!/bin/bash
+set -e
 # Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022-Today Datadog, Inc.
 
 # usage: release.sh version
 
-cwd=`pwd` 
+if [ -z "$1" ]; then
+    echo "Error: version argument is required (e.g., release.sh 1.4.0)"
+    exit 1
+fi
+
+cwd=`pwd`
 
 rootdir=`git rev-parse --show-toplevel`
 subdirs=("library" "test" "sample")
@@ -30,9 +36,12 @@ echo "---- Bump version in root dir"
 cd $rootdir
 npm --no-git-tag-version version $1
 
+echo "---- Removing old release zip archives"
+find . -maxdepth 1 -name "datadogroku-*.zip" ! -name "datadogroku-$1.zip" -delete
+
 echo "---- Creating a commit for version $1"
-git add **/*.brs **/*.bs **/package.json package.json
-git add "datadogroku-$1.zip"
+git add **/*.brs **/*.bs **/package.json package.json CHANGELOG.md
+git add datadogroku-*.zip
 git commit -s -m "Bump version to $1"
 
 echo "---- Bumped all versions to $1"

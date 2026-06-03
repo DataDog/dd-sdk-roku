@@ -12,7 +12,6 @@
 ' ----------------------------------------------------------------
 sub init()
     ddLogThread("RumCrashReporterTask.init()")
-    m.port = createObject("roMessagePort")
     m.top.functionName = "sendCrashReport"
 end sub
 
@@ -43,7 +42,9 @@ sub sendCrashReport()
             end if
         end for
     end if
-    if (not keep)
+    if (keep)
+        m.lastExitConsoleLog = m.top.lastExitConsoleLog
+    else
         ddLogInfo("Last exit status " + m.lastExitOrTerminationReason + " is not a crash, ignoring")
     end if
     folderPath = trackFolderPath("rum")
@@ -103,7 +104,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
         application: {
             id: lastViewEvent.application.id
         }
-        context: m.global.datadogContext
+        context: lastViewEvent.context
         date: timestamp&
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
@@ -111,7 +112,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
             message: "Channel stopped unexpectedly"
             source: "source"
             source_type: agentSource()
-            stack: m.top.lastExitConsoleLog
+            stack: m.lastExitConsoleLog
             type: m.lastExitOrTerminationReason
         }
         service: lastViewEvent.service

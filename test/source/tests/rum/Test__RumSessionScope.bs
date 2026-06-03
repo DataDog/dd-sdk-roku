@@ -37,6 +37,7 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenHandleStartVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleStartVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleFailVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleFailVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleVitalEventWithExplicitTimestamp_ThenDateMatchesEventTimestamp", RumSessionScopeTest__WhenHandleVitalEventWithExplicitTimestamp_ThenDateMatchesEventTimestamp, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
 
     ' Developer warning behavioral tests
     this.addTest("WhenDuplicateStartSameNameAndKey_ThenBothEventsEmitted", RumSessionScopeTest__WhenDuplicateStartSameNameAndKey_ThenBothEventsEmitted, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
@@ -71,6 +72,9 @@ sub RumSessionScopeTest__SetUp()
     ' Fake data
     m.testSuite.global.addFields({ datadogRumContext: {}, datadogContext: {}, datadogUserInfo: {} })
 
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
+
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
@@ -86,6 +90,9 @@ sub RumSessionScopeTest__SetUpNoSession()
 
     ' Fake data
     m.testSuite.global.addFields({ datadogRumContext: {} })
+
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
 
     ' Tested Task
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
@@ -123,6 +130,9 @@ sub RumSessionScopeTest__SetUpWithView()
     ' Global fields (required by SDK infrastructure)
     m.testSuite.global.addFields({ datadogRumContext: {}, datadogContext: {}, datadogUserInfo: {} })
 
+    ' Filesystem
+    datadogroku_mkDirs(datadogroku_trackFolderPath("rum"))
+
     ' Create and initialize session scope
     m.testSuite.testedScope = CreateObject("roSGNode", "datadogroku_RumSessionScope")
     m.testSuite.testedScope.parentScope = m.testSuite.mockParentScope
@@ -139,6 +149,7 @@ sub RumSessionScopeTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("mockParentScope")
     m.testSuite.Delete("testedScope")
+    createObject("roFileSystem").Delete(datadogroku_trackFolderPath("rum"))
 end sub
 
 '----------------------------------------------------------------
@@ -841,6 +852,36 @@ function RumSessionScopeTest__WhenHandleFailVitalEvent_ThenWriteCorrectPayload()
 end function
 
 '----------------------------------------------------------------
+' Given: a RumSessionScope with an active view, and a vital event carrying an explicit timestamp
+'  When: handleEvent runs sendVitalEvent
+'  Then: vitalEvent.date is the timestamp from the event, not getTimestamp() at processing time
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleVitalEventWithExplicitTimestamp_ThenDateMatchesEventTimestamp() as string
+    ' Given
+    fakeName = IG_GetString(32)
+    fakeKey = IG_GetString(32)
+    fakeVitalId = CreateObject("roDeviceInfo").GetRandomUUID()
+    ' Pick a timestamp clearly distinguishable from "now" so the assertion can only pass if
+    ' sendVitalEvent honors event.timestamp instead of calling getTimestamp() itself.
+    explicitTimestamp& = datadogroku_getTimestamp() - 5000&
+    fakeEvent = { eventType: "startFeatureOperation", name: fakeName, operationKey: fakeKey, vitalId: fakeVitalId, timestamp: explicitTimestamp&, context: {} }
+
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    vitalEvent = ParseJson(updates[existingCount])
+    Assert.that(vitalEvent).isNotInvalid()
+    Assert.that(vitalEvent.date).isEqualTo(explicitTimestamp&)
+    return ""
+end function
+
+'----------------------------------------------------------------
 ' Given: a RumSessionScope with an active view
 '  When: sending two startFeatureOperation events with same name and same operationKey
 '  Then: both events are written to the writer (warnings don't suppress emission)
@@ -1125,9 +1166,9 @@ function RumSessionScopeTest__WhenCrossViewOperation_ThenEachEventCarriesCorrect
 
     ' Then
     updates = m.mockWriter@.getFieldUpdates("writeEvent")
-    Assert.that(updates).hasSize(existingCount + 2)
+    Assert.that(updates).hasSize(existingCount + 3)
     startVitalEvent = ParseJson(updates[existingCount])
-    stopVitalEvent = ParseJson(updates[existingCount + 1])
+    stopVitalEvent = ParseJson(updates[existingCount + 2])
     Assert.that(startVitalEvent).isNotInvalid()
     Assert.that(stopVitalEvent).isNotInvalid()
     Assert.that(startVitalEvent.view.url).isEqualTo(m.fakeViewUrl)

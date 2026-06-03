@@ -64,7 +64,6 @@ function TestSuite__LogsAgent() as object
     this.addTest("WhenLogEmergencyWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogEmergencyWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
 
-    this.addTest("WhenDoNothing_ThenInitDependencies", LogsAgentTest__WhenDoNothing_ThenInitDependencies, LogsAgentTest__SetUpNoMock, LogsAgentTest__TearDown)
     return this
 end function
 
@@ -2026,45 +2025,5 @@ function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
     Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a LogsAgent
-'  When: initializing
-'  Then: ensure the dependencies are created if not present
-'----------------------------------------------------------------
-function LogsAgentTest__WhenDoNothing_ThenInitDependencies() as string
-    ' Given
-    m.testedNode.uploader = invalid
-    m.testedNode.writer = invalid
-    site = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
-    m.testedNode.site = site
-    expectedUrl = datadogroku_getIntakeUrl(site, "logs")
-    expectedTrackName = "logs_" + m.testedNode.threadInfo().node.address
-
-    ' When
-    m.testedNode@.logEmergency(IG_GetString(32), {})
-    sleep(100)
-
-    ' Then
-    writer = m.testedNode.writer
-    uploader = m.testedNode.uploader
-    Assert.that(writer).isNotInvalid().hasSubtype("datadogroku_WriterTask")
-    Assert.that(writer.trackType).isEqualTo("logs")
-    Assert.that(writer.payloadSeparator).isEqualTo(",")
-    Assert.that(uploader) .isNotInvalid().hasSubtype("datadogroku_MultiTrackUploaderTask")
-    Assert.that(uploader.clientToken).isEqualTo(m.fakeClientToken)
-    uploaderTracks = uploader.tracks
-    Assert.that(uploaderTracks).isNotInvalid().containsKey(expectedTrackName)
-    track = uploaderTracks[expectedTrackName]
-    Assert.that(track).isNotInvalid().contains({
-        url: expectedUrl,
-        trackType: "logs",
-        payloadPrefix: "[",
-        payloadPostfix: "]",
-        contentType: "application/json",
-        queryParams: { ddsource: "roku" }
-    })
     return ""
 end function

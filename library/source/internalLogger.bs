@@ -140,18 +140,7 @@ end function
 ' @return (string) the hexadecimal string
 ' ----------------------------------------------------------------
 function decToHex(number as integer) as string
-    hexTab = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
-    hex = ""
-    while (number > 0)
-        hex = hexTab [number mod 16] + hex
-        number = number / 16
-    end while
-
-    if (hex = "")
-        return "0"
-    else
-        return hex
-    end if
+    return UCase(StrI(number, 16).trim())
 end function
 
 function __isDev() as boolean

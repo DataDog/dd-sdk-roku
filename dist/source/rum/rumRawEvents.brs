@@ -1,6 +1,7 @@
 ' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
+'import "pkg:/source/timeUtils.bs"
 '*****************************************************************
 '* Utilities to generate internal RUM events
 '*****************************************************************
@@ -126,6 +127,7 @@ function startFeatureOperationEvent(name as string, operationKey as dynamic, con
     return {
         eventType: "startFeatureOperation"
         name: name
+        timestamp: getTimestamp()
         operationKey: operationKey
         vitalId: CreateObject("roDeviceInfo").GetRandomUUID()
         context: context
@@ -142,6 +144,7 @@ function succeedFeatureOperationEvent(name as string, operationKey as dynamic, c
     return {
         eventType: "stopFeatureOperation"
         name: name
+        timestamp: getTimestamp()
         operationKey: operationKey
         vitalId: CreateObject("roDeviceInfo").GetRandomUUID()
         context: context
@@ -159,6 +162,7 @@ function failFeatureOperationEvent(name as string, operationKey as dynamic, fail
     return {
         eventType: "stopFeatureOperation"
         name: name
+        timestamp: getTimestamp()
         operationKey: operationKey
         failureReason: failureReason
         vitalId: CreateObject("roDeviceInfo").GetRandomUUID()
