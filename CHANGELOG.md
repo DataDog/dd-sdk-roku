@@ -1,4 +1,5 @@
 # Next release: 1.6.0
+* [BUGFIX] Use the request dispatch time as the RUM resource start date so client resource spans align with upstream APM spans instead of drifting later.
 
 # 1.5.0 / 2026-06-03
 * [FEATURE] Support trace sampling based on Session Id. See [#169](https://github.com/DataDog/dd-sdk-roku/pull/169)

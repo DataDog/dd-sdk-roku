@@ -109,6 +109,10 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        ' Capture the wall-clock dispatch time so the RUM resource start date reflects
+        ' when the request actually started, rather than being back-computed from the
+        ' report time (now - transferTime), which drifts with reporting latency.
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToString()
         if (not result)
@@ -133,6 +137,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "GET"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             bytesDownloaded: bytesDownloaded
@@ -170,6 +175,10 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        ' Capture the wall-clock dispatch time so the RUM resource start date reflects
+        ' when the request actually started, rather than being back-computed from the
+        ' report time (now - transferTime), which drifts with reporting latency.
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToFile(filename)
         if (not result)
@@ -194,6 +203,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "GET"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             bytesDownloaded: bytesDownloaded
@@ -226,6 +236,10 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        ' Capture the wall-clock dispatch time so the RUM resource start date reflects
+        ' when the request actually started, rather than being back-computed from the
+        ' report time (now - transferTime), which drifts with reporting latency.
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromString(request)
         if (not result)
@@ -248,6 +262,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "POST"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             traceId: m.traceId
@@ -280,6 +295,10 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        ' Capture the wall-clock dispatch time so the RUM resource start date reflects
+        ' when the request actually started, rather than being back-computed from the
+        ' report time (now - transferTime), which drifts with reporting latency.
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromFile(filename)
         if (not result)
@@ -302,6 +321,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "POST"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             traceId: m.traceId

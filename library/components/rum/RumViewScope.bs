@@ -323,6 +323,7 @@ end sub
 '  - bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
 '  - traceId (dynamic) the id of the trace forwarded in the request header (as string), or invalid
 '  - spanId (dynamic) the id of the span forwarded in the request header (as string), or invalid
+'  - startTime (dynamic) the wall-clock dispatch time (ms since EPOCH) when the request started, or invalid
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
@@ -335,7 +336,14 @@ sub sendResource(resource as object, context as object, writer as object)
     if (m.top.activeAction <> invalid)
         actionId = m.top.activeAction@.getRumContext().actionId
     end if
-    startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
+    ' Prefer the dispatch time captured when the request started; falling back to
+    ' (now - transferTime) drifts the resource start later by the latency between the
+    ' request completing and this event being serialized.
+    if (resource.startTime <> invalid)
+        startTimestampMs& = resource.startTime
+    else
+        startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
+    end if
 
     resourceEvent = {
         _dd: {
