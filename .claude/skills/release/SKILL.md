@@ -165,26 +165,16 @@ And confirm the package page is accessible at: `https://www.npmjs.com/package/da
 
 Never push directly to `main` or `develop`. Both merges must go through PRs.
 
-Merge release branch into main via a PR. Fetch and rebase onto main first to ensure the branch is up to date:
+Open the PRs directly from `release/<version>` and merge each with a merge commit, so the tagged commit stays reachable from `main` and `develop`.
 
 ```bash
-git fetch origin main
-git checkout -b merge/release-<version>-to-main release/<version>
-git rebase origin/main
-git push -u origin merge/release-<version>-to-main
-gh pr create --base main --head merge/release-<version>-to-main --title "Merge release <version> to main" --body ""
+gh pr create --base main --head release/<version> --title "Merge release <version> to main" --body ""
 ```
 
 **GATE: Wait for user to confirm the PR has been merged.**
 
-Merge release branch into develop via a PR. Fetch and rebase onto develop first to ensure the branch is up to date:
-
 ```bash
-git fetch origin develop
-git checkout -b merge/release-<version>-to-develop release/<version>
-git rebase origin/develop
-git push -u origin merge/release-<version>-to-develop
-gh pr create --base develop --head merge/release-<version>-to-develop --title "Merge release <version> to develop" --body ""
+gh pr create --base develop --head release/<version> --title "Merge release <version> to develop" --body ""
 ```
 
 **GATE: Wait for user to confirm the PR has been merged.**
