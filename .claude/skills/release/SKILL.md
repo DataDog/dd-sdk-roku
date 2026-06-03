@@ -120,14 +120,16 @@ Generate the release notes body from the CHANGELOG entries for this version, usi
 <changelog entries>
 
 ## ROPM Setup
-If your project is set up to use ROPM, you can use the following command to install the Datadog dependency:
 
-```
+If your project is set up to use `ROPM`, you can use the following command to install the Datadog dependency:
+
+```shell
 ropm install datadogroku
 ```
 
 ## Manual Setup
-If your project does not use ROPM, install the library manually by downloading the Roku SDK zip archive,
+
+If your project does not use `ROPM`, install the library manually by downloading the [Roku SDK](https://github.com/DataDog/dd-sdk-roku/releases/download/<version>/datadogroku-<version>.zip) zip archive,
 and unzipping it in your project's root folder.
 
 Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and `source` folders of your project.
