@@ -107,7 +107,7 @@ After the PR is merged, pull the release branch to get the merge commit, then ta
 ```bash
 git checkout release/<version>
 git pull origin release/<version>
-git tag <version>
+git tag -s <version> -m "<version>"
 git push --tags
 ```
 
@@ -122,13 +122,15 @@ Generate the release notes body from the CHANGELOG entries for this version, usi
 ## ROPM Setup
 If your project is set up to use ROPM, you can use the following command to install the Datadog dependency:
 
+```
 ropm install datadogroku
+```
 
 ## Manual Setup
 If your project does not use ROPM, install the library manually by downloading the Roku SDK zip archive,
 and unzipping it in your project's root folder.
 
-Make sure you have a roku_modules/datadogroku subfolder in both the components and source folders of your project.
+Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and `source` folders of your project.
 ```
 
 Then create the release and upload the zip as an asset:
