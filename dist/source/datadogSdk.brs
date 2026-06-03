@@ -226,7 +226,7 @@ end function
 ' TODO generate this from the package.json
 ' ----------------------------------------------------------------
 function sdkVersion() as string
-    return "1.4.0"
+    return "1.5.0"
 end function
 
 ' ----------------------------------------------------------------
