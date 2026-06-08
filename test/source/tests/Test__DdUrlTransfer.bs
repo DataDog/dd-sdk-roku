@@ -20,6 +20,9 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenGetTracedHeaderTypesWithMultipleMatchingHosts_ThenMergesHeaderTypes", DdUrlTransferTest__WhenGetTracedHeaderTypesWithMultipleMatchingHosts_ThenMergesHeaderTypes)
     this.addTest("WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllSharingTraceContext", DdUrlTransferTest__WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllSharingTraceContext)
     this.addTest("WhenSampledOutAllWithMultipleHeaderTypes_ThenInjectsAllSampledOutHeaders", DdUrlTransferTest__WhenSampledOutAllWithMultipleHeaderTypes_ThenInjectsAllSampledOutHeaders)
+    this.addTest("WhenUnknownHeaderType_ThenTraceIdAndSpanIdAreInvalid", DdUrlTransferTest__WhenUnknownHeaderType_ThenTraceIdAndSpanIdAreInvalid)
+    this.addTest("WhenDatadogHeaderUsedTwice_ThenXDatadogTagsNotDuplicated", DdUrlTransferTest__WhenDatadogHeaderUsedTwice_ThenXDatadogTagsNotDuplicated)
+    this.addTest("WhenB3MultiHeaderType_ThenHeadersArePaddedPerSpec", DdUrlTransferTest__WhenB3MultiHeaderType_ThenHeadersArePaddedPerSpec)
 
     this.addTest("WhenPadLeftWithEmptyString_ThenReturnPaddedString", DdUrlTransferTest__WhenPadLeftWithEmptyString_ThenReturnPaddedString)
     this.addTest("WhenPadLeftWithExactSizeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithExactSizeString_ThenReturnOriginalString)
@@ -411,6 +414,7 @@ function DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders() 
     fakeDatadogParentId = IG_GetString(32)
     fakeDatadogSamplingPriority = IG_GetString(32)
     fakeDatadogOrigin = IG_GetString(32)
+    fakeDatadogTags = IG_GetString(32)
     fakeB3 = IG_GetString(32)
     fakeB3TraceId = IG_GetString(32)
     fakeB3SpanId = IG_GetString(32)
@@ -424,6 +428,7 @@ function DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders() 
     ddUrlTransfer.addHeader("x-datadog-parent-id", fakeDatadogParentId)
     ddUrlTransfer.addHeader("x-datadog-sampling-priority", fakeDatadogSamplingPriority)
     ddUrlTransfer.addHeader("x-datadog-origin", fakeDatadogOrigin)
+    ddUrlTransfer.addHeader("x-datadog-tags", fakeDatadogTags)
     ddUrlTransfer.addHeader("b3", fakeB3)
     ddUrlTransfer.addHeader("X-B3-TraceId", fakeB3TraceId)
     ddUrlTransfer.addHeader("X-B3-SpanId", fakeB3SpanId)
@@ -433,26 +438,17 @@ function DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders() 
 
     ddUrlTransfer._deleteTracingHeaders()
 
-    resultDatadogTraceId = ddUrlTransfer.GetHeader("x-datadog-trace-id")
-    resultDatadogParentId = ddUrlTransfer.GetHeader("x-datadog-parent-id")
-    resultDatadogSamplingPriority = ddUrlTransfer.GetHeader("x-datadog-sampling-priority")
-    resultDatadogOrigin = ddUrlTransfer.GetHeader("x-datadog-origin")
-    resultB3 = ddUrlTransfer.GetHeader("b3")
-    resultB3TraceId = ddUrlTransfer.GetHeader("X-B3-TraceId")
-    resultB3SpanId = ddUrlTransfer.GetHeader("X-B3-SpanId")
-    resultB3Sampled= ddUrlTransfer.GetHeader("X-B3-Sampled")
-    resultTraceParent = ddUrlTransfer.GetHeader("traceparent")
-    resultTraceState = ddUrlTransfer.GetHeader("tracestate")
-    Assert.that(resultDatadogTraceId).hasSize(0)
-    Assert.that(resultDatadogParentId).hasSize(0)
-    Assert.that(resultDatadogSamplingPriority).hasSize(0)
-    Assert.that(resultDatadogOrigin).hasSize(0)
-    Assert.that(resultB3).hasSize(0)
-    Assert.that(resultB3TraceId).hasSize(0)
-    Assert.that(resultB3SpanId).hasSize(0)
-    Assert.that(resultB3Sampled).hasSize(0)
-    Assert.that(resultTraceParent).hasSize(0)
-    Assert.that(resultTraceState).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-trace-id")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-parent-id")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-sampling-priority")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-origin")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-tags")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("b3")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-SpanId")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-Sampled")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("traceparent")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("tracestate")).hasSize(0)
     return ""
 
 end function
@@ -686,7 +682,11 @@ function DdUrlTransferTest__WhenSampledInWithMultipleHeaderTypes_ThenInjectsAllS
     ' every format shares the same trace and span ids
     Assert.that(ddUrlTransfer.traceId).matches("^[0-9a-f]+$", "i")
     Assert.that(ddUrlTransfer.spanId).matches("^[0-9]+$")
-    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")[0]).isEqualTo(ddUrlTransfer.traceId)
+    ' X-B3-TraceId must be exactly 32 hex chars (zero-padded per B3 spec) and contain the traceId
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")[0]).matches("^[0-9a-f]{32}$", "i")
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")[0]).hasSubstring(ddUrlTransfer.traceId)
+    ' X-B3-SpanId must be exactly 16 hex chars (zero-padded per B3 spec)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-SpanId")[0]).matches("^[0-9a-f]{16}$", "i")
     Assert.that(ddUrlTransfer.GetHeader("traceparent")[0]).hasSubstring(ddUrlTransfer.traceId)
     Assert.that(ddUrlTransfer.GetHeader("b3")[0]).hasSubstring(ddUrlTransfer.traceId)
     Assert.that(ddUrlTransfer.GetHeader("x-datadog-parent-id")[0]).isEqualTo(ddUrlTransfer.spanId)
@@ -706,6 +706,61 @@ function DdUrlTransferTest__WhenSampledOutAllWithMultipleHeaderTypes_ThenInjects
     Assert.that(ddUrlTransfer.GetHeader("traceparent")).hasSize(1)
     Assert.that(ddUrlTransfer.traceId).isInvalid()
     Assert.that(ddUrlTransfer.spanId).isInvalid()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: _addSampledInHeaders is called with only an unknown header type
+'  When: the request is traced
+'  Then: traceId and spanId remain invalid (no orphaned RUM spans)
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenUnknownHeaderType_ThenTraceIdAndSpanIdAreInvalid() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ddUrlTransfer._addSampledInHeaders(["custom_unknown_type"], fakeSessionId)
+
+    Assert.that(ddUrlTransfer.traceId).isInvalid()
+    Assert.that(ddUrlTransfer.spanId).isInvalid()
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-trace-id")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("b3")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")).hasSize(0)
+    Assert.that(ddUrlTransfer.GetHeader("traceparent")).hasSize(0)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a DdUrlTransfer instance reused for two sequential datadog-format requests
+'  When: _addSampledInHeaders is called twice
+'  Then: x-datadog-tags is not duplicated on the second request
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenDatadogHeaderUsedTwice_ThenXDatadogTagsNotDuplicated() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ddUrlTransfer._addSampledInHeaders(["datadog"], fakeSessionId)
+    ddUrlTransfer._addSampledInHeaders(["datadog"], fakeSessionId)
+
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-tags")).hasSize(1)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: b3multi header type
+'  When: _addSampledInHeaders is called
+'  Then: X-B3-TraceId is exactly 32 hex chars and X-B3-SpanId is exactly 16 hex chars
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenB3MultiHeaderType_ThenHeadersArePaddedPerSpec() as string
+    fakeSessionId = IG_GetString(16)
+    fakeGlobal = createFakeGlobal(fakeSessionId)
+    ddUrlTransfer = datadogroku_DdUrlTransfer(fakeGlobal)
+
+    ddUrlTransfer._addSampledInHeaders(["b3multi"], fakeSessionId)
+
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")[0]).matches("^[0-9a-f]{32}$", "i")
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-SpanId")[0]).matches("^[0-9a-f]{16}$", "i")
     return ""
 end function
 

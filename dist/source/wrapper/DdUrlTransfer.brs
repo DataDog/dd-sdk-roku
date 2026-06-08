@@ -28,7 +28,7 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     ' Sets the traced hosts.
     '
-    ' @param tracingHeaderTypes (array) a array of associative arrays. Each array item must have the following entries:
+    ' @param tracingHeaderTypes (array) an array of associative arrays. Each array item must have the following entries:
     '   - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
     '   - 'header': either a single tracing header type, or an array of tracing header types. When several
     '       types are provided for a host, all of them are injected into the request (sharing the same
@@ -733,8 +733,8 @@ function __DdUrlTransfer_builder()
         end if
         ' A single trace context is shared by every propagation format.
         traceContext = generateTraceContext()
-        m.traceId = traceContext.traceIdFullHex
-        m.spanId = traceContext.spanIdDec
+        m.traceId = invalid
+        m.spanId = invalid
         for each headerType in headerTypes
             m._addSampledInHeadersForType(headerType, traceContext)
         end for
@@ -747,6 +747,8 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     instance._addSampledInHeadersForType = sub(headerType as object, traceContext as object)
         if (headerType = "datadog")
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
             ' Datadog uses a complex system for compatibility purposes
             m.AddHeader("x-datadog-trace-id", traceContext.traceIdLowDec)
             m.AddHeader("x-datadog-tags", "_dd.p.tid=" + traceContext.traceIdHighHex)
@@ -754,15 +756,21 @@ function __DdUrlTransfer_builder()
             m.AddHeader("x-datadog-sampling-priority", "1")
             m.AddHeader("x-datadog-origin", "rum")
         else if (headerType = "b3")
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
             hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
             hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
             b3 = hexTraceId + "-" + hexSpanId + "-1"
             m.AddHeader("b3", b3)
         else if (headerType = "b3multi")
-            m.AddHeader("X-B3-TraceId", traceContext.traceIdFullHex)
-            m.AddHeader("X-B3-SpanId", traceContext.spanIdHex)
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
+            m.AddHeader("X-B3-TraceId", padLeft(traceContext.traceIdFullHex, 32, "0"))
+            m.AddHeader("X-B3-SpanId", padLeft(traceContext.spanIdHex, 16, "0"))
             m.AddHeader("X-B3-Sampled", "1")
         else if (headerType = "tracecontext")
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
             hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
             hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
             traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
@@ -772,9 +780,9 @@ function __DdUrlTransfer_builder()
                 usrIdByteArray = CreateObject("roByteArray")
                 usrIdByteArray.FromAsciiString(usrId)
                 usrIdBase64 = usrIdByteArray.ToBase64String().Replace("=", "~")
-                tracestate = "dd=s:1;o:rum;p:" + spanId.hex + ";t.usr.id:" + usrIdBase64
+                tracestate = "dd=s:1;o:rum;p:" + hexSpanId + ";t.usr.id:" + usrIdBase64
             else
-                tracestate = "dd=s:1;o:rum;p:" + spanId.hex
+                tracestate = "dd=s:1;o:rum;p:" + hexSpanId
             end if
             m.AddHeader("tracestate", tracestate)
         else
@@ -820,6 +828,7 @@ function __DdUrlTransfer_builder()
         m.headers.Delete("x-datadog-parent-id")
         m.headers.Delete("x-datadog-sampling-priority")
         m.headers.Delete("x-datadog-origin")
+        m.headers.Delete("x-datadog-tags")
         m.headers.Delete("b3")
         m.headers.Delete("X-B3-TraceId")
         m.headers.Delete("X-B3-SpanId")
@@ -915,19 +924,14 @@ end function
 '   - spanIdHex (string) the 64 bit span id in hexadecimal
 ' ----------------------------------------------------------------
 function generateTraceContext() as object
-    maxInt = 4294967295
-    traceHigh0& = Rnd(maxInt) - 1
-    traceHigh1& = Rnd(maxInt) - 1
-    traceLow0& = Rnd(maxInt) - 1
-    traceLow1& = Rnd(maxInt) - 1
-    spanLow0& = Rnd(maxInt) - 1
-    spanLow1& = Rnd(maxInt) - 1
+    traceId = generateTraceId()
+    spanId = generateSpanId()
     return {
-        traceIdFullHex: printIdToString(traceHigh0&, traceHigh1&, traceLow0&, traceLow1&, 16)
-        traceIdLowDec: printIdToString(0, 0, traceLow0&, traceLow1&, 10)
-        traceIdHighHex: printIdToString(0, 0, traceHigh0&, traceHigh1&, 16)
-        spanIdDec: printIdToString(0, 0, spanLow0&, spanLow1&, 10)
-        spanIdHex: printIdToString(0, 0, spanLow0&, spanLow1&, 16)
+        traceIdFullHex: traceId.hex
+        traceIdLowDec: traceId.lowDecimal
+        traceIdHighHex: traceId.highHex
+        spanIdDec: spanId.decimal
+        spanIdHex: spanId.hex
     }
 end function
 
