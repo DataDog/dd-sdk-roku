@@ -62,8 +62,12 @@ sub handleEvent(event as object, writer as object)
         end if
     else if (event.eventType = "addResource")
         if (isValidResource(event.resource))
-            transferTime& = secToMillis(event.resource.transferTime)
-            resourceStartTimestamp& = timestamp& - transferTime&
+            if (event.resource.startTime <> invalid)
+                resourceStartTimestamp& = event.resource.startTime
+            else
+                transferTime& = secToMillis(event.resource.transferTime)
+                resourceStartTimestamp& = timestamp& - transferTime&
+            end if
             if (resourceStartTimestamp& <= (threshold&))
                 m.resourceCount++
                 m.lastEventTimestamp& = timestamp&
