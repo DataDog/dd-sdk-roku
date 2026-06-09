@@ -21,17 +21,18 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenPadLeftWithLargeString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithLargeString_ThenReturnOriginalString)
     this.addTest("WhenPadLeftWithSmallString_ThenReturnOriginalString", DdUrlTransferTest__WhenPadLeftWithSmallString_ThenReturnOriginalString)
 
-    this.addTest("WhenGenerateUniqueId64_ThenGenerateIdDecimal", DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdDecimal)
-    this.addTest("WhenGenerateUniqueId64_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdHexadecimal)
-    this.addTest("WhenGenerateUniqueId128_ThenGenerateIdDecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdDecimal)
-    this.addTest("WhenGenerateUniqueId128_ThenGenerateIdHexadecimal", DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal)
-    this.addTest("WhenGenerateUniqueIdDd_ThenGenerateAllId", DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId)
+    this.addTest("WhenGenerateTraceId_ThenAllRepresentationsAreValid", DdUrlTransferTest__WhenGenerateTraceId_ThenAllRepresentationsAreValid)
+    this.addTest("WhenGenerateSpanId_ThenDecimalAndPaddedHex", DdUrlTransferTest__WhenGenerateSpanId_ThenDecimalAndPaddedHex)
     this.addTest("WhenPrintIdToString_ThenGenerateStringId", DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId)
     this.addTest("WhenAddSampledInHeaders_ThenHeadersHaveSessionId", DdUrlTransferTest__WhenAddSampledInHeaders_ThenHeadersHaveSessionId)
     this.addTest("WhenDeleteTracingHeaders_ThenDeleteOnlySessionId", DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteOnlySessionId)
     this.addTest("WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders", DdUrlTransferTest__WhenDeleteTracingHeaders_ThenDeleteCorrectHeaders)
 
     this.addTest("WhenSampledIn_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledIn_ThenHaveSampleInHeaders)
+    this.addTest("WhenSampledInWithDatadog_ThenEventIdsAndHeadersAreValid", DdUrlTransferTest__WhenSampledInWithDatadog_ThenEventIdsAndHeadersAreValid)
+    this.addTest("WhenSampledInWithB3_ThenEventIdsAndHeadersAreValid", DdUrlTransferTest__WhenSampledInWithB3_ThenEventIdsAndHeadersAreValid)
+    this.addTest("WhenSampledInWithB3Multi_ThenEventIdsAndHeadersAreValid", DdUrlTransferTest__WhenSampledInWithB3Multi_ThenEventIdsAndHeadersAreValid)
+    this.addTest("WhenSampledInWithTraceContext_ThenEventIdsAndHeadersAreValid", DdUrlTransferTest__WhenSampledInWithTraceContext_ThenEventIdsAndHeadersAreValid)
     this.addTest("WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders)
     this.addTest("WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders)
 
@@ -231,93 +232,37 @@ end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call the generateUniqueId64 method
-'  Then: returns a 64 bits unique id
+'  When: call the generateTraceId method
+'  Then: returns a trace id with a 32 char zero-padded hexadecimal form
+'        (required by the backend), a decimal low part and a 16 char
+'        zero-padded hexadecimal high part
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdDecimal() as string
-    ' Given
-
+function DdUrlTransferTest__WhenGenerateTraceId_ThenAllRepresentationsAreValid() as string
     ' When
-    id = datadogroku_generateUniqueId64()
+    traceId = datadogroku_generateTraceId()
 
     ' Then
-    ' 64 bit ids will never have more than 20 chars in decimal representation
-    Assert.that(Len(id)).isInRange(1, 20)
-    Assert.that(id).matches("^[0-9]+$")
+    Assert.that(traceId.hex).matches("^[0-9a-f]{32}$", "i")
+    Assert.that(traceId.lowDecimal).matches("^[0-9]+$")
+    Assert.that(traceId.highHex).matches("^[0-9a-f]{16}$", "i")
+    ' the full hex id always ends with the low 64 bits and starts with the high 64 bits
+    Assert.that(traceId.hex).matches("^" + traceId.highHex + "[0-9a-f]{16}$", "i")
     return ""
 end function
 
 '----------------------------------------------------------------
 ' Given:
-'  When: call the generateUniqueId64 method
-'  Then: returns a 64 bits unique id
+'  When: call the generateSpanId method
+'  Then: returns a span id with a decimal form (required by the backend)
+'        and a 16 char zero-padded hexadecimal form
 '----------------------------------------------------------------
-function DdUrlTransferTest__WhenGenerateUniqueId64_ThenGenerateIdHexadecimal() as string
-    ' Given
-
+function DdUrlTransferTest__WhenGenerateSpanId_ThenDecimalAndPaddedHex() as string
     ' When
-    id = datadogroku_generateUniqueId64(16)
+    spanId = datadogroku_generateSpanId()
 
     ' Then
-    ' 64 bit ids will never have more than 16 chars in hexadecimal representation
-    Assert.that(Len(id)).isInRange(1, 16)
-    Assert.that(id).matches("^[0-9a-f]+$", "i")
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given:
-'  When: call the generateUniqueId64 method
-'  Then: returns a 64 bits unique id
-'----------------------------------------------------------------
-function DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdDecimal() as string
-    ' Given
-
-    ' When
-    id = datadogroku_generateUniqueId128()
-
-    ' Then
-    ' 64 bit ids will never have more than 39 chars in decimal representation
-    Assert.that(Len(id)).isInRange(1, 39)
-    Assert.that(id).matches("^[0-9]+$")
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given:
-'  When: call the generateUniqueId64 method
-'  Then: returns a 64 bits unique id
-'----------------------------------------------------------------
-function DdUrlTransferTest__WhenGenerateUniqueId128_ThenGenerateIdHexadecimal() as string
-    ' Given
-
-    ' When
-    id = datadogroku_generateUniqueId128(16)
-
-    ' Then
-    ' 64 bit ids will never have more than 32 chars in hexadecimal representation
-    Assert.that(Len(id)).isInRange(1, 32)
-    Assert.that(id).matches("^[0-9a-f]+$", "i")
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given:
-'  When: call the printIdToString method
-'  Then: returns a 64 bits unique id
-'----------------------------------------------------------------
-function DdUrlTransferTest__WhenGenerateUniqueIdDd_ThenGenerateAllId() as string
-    ' Given
-
-    ' When
-    id = datadogroku_generateUniqueIdDd()
-
-    ' Then
-    Assert.that(id).hasSize(3)
-    ' the full id always starts with the high id as both are hexadecimal representations
-    Assert.that(id[0]).matches("^" + id[2] + "[0-9a-f]{16}$", "i")
-    Assert.that(id[1]).matches("^[0-9]+$", "i")
-    Assert.that(id[2]).matches("^[0-9a-f]+$", "i")
+    Assert.that(spanId.decimal).matches("^[0-9]+$")
+    Assert.that(spanId.hex).matches("^[0-9a-f]{16}$", "i")
     return ""
 end function
 
@@ -340,6 +285,10 @@ function DdUrlTransferTest__WhenPrintIdToString_ThenGenerateStringId() as string
     Assert.that(datadogroku_printIdToString(0, 0, 16, 0, hexRadix)).isEqualTo("1000000000")
     Assert.that(datadogroku_printIdToString(0, 815, 0, 0, hexRadix)).isEqualTo("32f0000000000000000")
     Assert.that(datadogroku_printIdToString(23, 0, 0, 0, hexRadix)).isEqualTo("17000000000000000000000000")
+
+    ' a zero value must render as "0", not an empty string, in any radix
+    Assert.that(datadogroku_printIdToString(0, 0, 0, 0, decRadix)).isEqualTo("0")
+    Assert.that(datadogroku_printIdToString(0, 0, 0, 0, hexRadix)).isEqualTo("0")
 
     return ""
 end function
@@ -459,6 +408,110 @@ function DdUrlTransferTest__WhenSampledIn_ThenHaveSampleInHeaders() as string
     result = ddUrlTransfer.GetHeader("baggage")
     Assert.that(result[0]).isEqualTo("session.id=" + fakeSessionId)
     return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a request sampled in with the "datadog" header type
+'  When: _traceRequest is called
+'  Then: the RUM event trace id is 32 char hexadecimal and the span id is
+'        decimal (so the backend rum-span-mapper can correlate it to APM),
+'        and the datadog headers carry the decimal / hex representations
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenSampledInWithDatadog_ThenEventIdsAndHeadersAreValid() as string
+    ddUrlTransfer = sampledInTraceRequest("datadog")
+
+    ' Wire headers
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-trace-id")[0]).matches("^[0-9]+$")
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-parent-id")[0]).isEqualTo(ddUrlTransfer.spanId)
+    Assert.that(ddUrlTransfer.GetHeader("x-datadog-tags")[0]).matches("^_dd.p.tid=[0-9a-f]{16}$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a request sampled in with the "b3" header type
+'  When: _traceRequest is called
+'  Then: the RUM event trace id is 32 char hexadecimal and the span id is
+'        decimal, and the b3 header uses the padded hexadecimal forms
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenSampledInWithB3_ThenEventIdsAndHeadersAreValid() as string
+    ddUrlTransfer = sampledInTraceRequest("b3")
+
+    ' Wire header
+    Assert.that(ddUrlTransfer.GetHeader("b3")[0]).matches("^[0-9a-f]{32}-[0-9a-f]{16}-1$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a request sampled in with the "b3multi" header type
+'  When: _traceRequest is called
+'  Then: the RUM event trace id is 32 char hexadecimal and the span id is
+'        decimal, and the X-B3-* headers use the padded hexadecimal forms
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenSampledInWithB3Multi_ThenEventIdsAndHeadersAreValid() as string
+    ddUrlTransfer = sampledInTraceRequest("b3multi")
+
+    ' Wire headers
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-TraceId")[0]).matches("^[0-9a-f]{32}$", "i")
+    Assert.that(ddUrlTransfer.GetHeader("X-B3-SpanId")[0]).matches("^[0-9a-f]{16}$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a request sampled in with the "tracecontext" header type
+'  When: _traceRequest is called
+'  Then: the RUM event trace id is 32 char hexadecimal and the span id is
+'        decimal, and the traceparent header uses the padded hexadecimal forms
+'----------------------------------------------------------------
+function DdUrlTransferTest__WhenSampledInWithTraceContext_ThenEventIdsAndHeadersAreValid() as string
+    ddUrlTransfer = sampledInTraceRequest("tracecontext")
+
+    ' Wire header
+    Assert.that(ddUrlTransfer.GetHeader("traceparent")[0]).matches("^00-[0-9a-f]{32}-[0-9a-f]{16}-01$", "i")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Runs a sampled-in trace request for the given header type and asserts the
+' shared RUM event contract: the trace id is a 32 char hexadecimal string and
+' the span id is decimal (so the backend rum-span-mapper can correlate the
+' resource to an APM span). Returns the ddUrlTransfer so the caller can assert
+' the header-type-specific wire headers.
+'----------------------------------------------------------------
+function sampledInTraceRequest(headerType as string) as object
+    ddUrlTransfer = datadogroku_DdUrlTransfer(createTracingGlobal(headerType))
+    ddUrlTransfer.SetUrl("https://datadog.com")
+    ddUrlTransfer._traceRequest()
+
+    ' RUM event fields (validated by the backend)
+    Assert.that(ddUrlTransfer.traceId).matches("^[0-9a-f]{32}$", "i")
+    Assert.that(ddUrlTransfer.spanId).matches("^[0-9]+$")
+    return ddUrlTransfer
+end function
+
+'----------------------------------------------------------------
+' Builds a fake global node configured to trace requests to datadog.com
+' with the given tracing header type, at a 100% sample rate.
+'----------------------------------------------------------------
+function createTracingGlobal(headerType as string) as object
+    fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent")
+    fakeGlobal = {
+        datadogRumContext: {
+            sessionId: IG_GetString(16)
+        },
+        datadogRumAgent: fakeDatadogRumAgent,
+        datadogTraceAgent: {
+            traceSampleRate: 100,
+            tracingHeaderTypes: [
+                {
+                    "host": "datadog.com",
+                    "header": headerType
+                }
+            ],
+            traceContextInjection: "sampled"
+        },
+        datadogUserInfo: { id: IG_GetString(8), name: IG_GetString(16), email: IG_GetString(32) }
+    }
+    return fakeGlobal
 end function
 
 
