@@ -24,7 +24,7 @@ do
 
     # Needs to happen after calling bsc as it needs bslint in node_modules
     echo " - Cleanup node junk"
-    rm -r node_modules
+    rm -rf node_modules
 
     # back to root folder
     cd $cwd 
