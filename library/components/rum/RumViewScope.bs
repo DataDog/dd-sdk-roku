@@ -533,6 +533,7 @@ sub sendViewUpdate(context as object, writer as object)
             name: m.top.viewName,
             time_spent: timeSpentNs&,
             action: { count: m.actionCount },
+            crash: { count: 0 },
             error: { count: m.errorCount },
             resource: { count: m.resourceCount }
         }

@@ -24,6 +24,7 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleStopViewEventWithAction_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithAction_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithError_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithError_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventWithResource_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleStopViewEvent_ThenViewEventHasCrashCountZero", RumViewScopeTest__WhenHandleStopViewEvent_ThenViewEventHasCrashCountZero, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStopViewEventTwice_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStopViewEventTwice_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleStartViewEvent_ThenWriteViewEvent", RumViewScopeTest__WhenHandleStartViewEvent_ThenWriteViewEvent, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenStopUnknownView_ThenDoNothing", RumViewScopeTest__WhenStopUnknownView_ThenDoNothing, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
@@ -609,6 +610,38 @@ function RumViewScopeTest__WhenHandleStopViewEventWithResource_ThenWriteViewUpda
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(1)
     Assert.that(viewEvent.context).contains(m.fakeInitialContext)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope
+'  When: handling an event (stopView)
+'  Then: view event has crash.count = 0
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleStopViewEvent_ThenViewEventHasCrashCountZero() as string
+    ' Given
+    fakeParentContext = {
+        applicationId: IG_GetString(32),
+        service: IG_GetString(32),
+        sessionId: IG_GetString(32),
+        applicationVersion: IG_GetString(32),
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    fakeEvent = { mock: "event", eventType: "stopView", viewName: m.fakeViewName, viewUrl: m.fakeViewUrl }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    viewEvent = ParseJson(updates[0])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent.view.crash.count).isEqualTo(0)
     return ""
 end function
 
