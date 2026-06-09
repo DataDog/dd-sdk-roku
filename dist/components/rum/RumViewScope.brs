@@ -565,6 +565,9 @@ sub sendViewUpdate(context as object, writer as object)
             action: {
                 count: m.actionCount
             }
+            crash: {
+                count: 0
+            }
             error: {
                 count: m.errorCount
             }
