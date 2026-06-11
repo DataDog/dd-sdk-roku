@@ -106,6 +106,7 @@ sub sendCrashReportFromViewEventFile(filepath as string)
         }
         context: lastViewEvent.context
         date: timestamp&
+        device: lastViewEvent.device
         error: {
             id: CreateObject("roDeviceInfo").GetRandomUUID()
             is_crash: true
