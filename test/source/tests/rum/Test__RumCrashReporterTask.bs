@@ -97,6 +97,12 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -140,6 +146,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
     Assert.that(errorEvent.source).isEqualTo("roku")
     Assert.that(errorEvent.type).isEqualTo("error")
     Assert.that(errorEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(errorEvent.device).isEqualTo(fakePreviousViewEvent.device)
     Assert.that(errorEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
     Assert.that(errorEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
     Assert.that(errorEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
@@ -203,6 +210,12 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -248,6 +261,7 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
     Assert.that(errorEvent.source).isEqualTo("roku")
     Assert.that(errorEvent.type).isEqualTo("error")
     Assert.that(errorEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(errorEvent.device).isEqualTo(fakePreviousViewEvent.device)
     Assert.that(errorEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
     Assert.that(errorEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
     Assert.that(errorEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
@@ -302,6 +316,12 @@ function RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEven
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -369,6 +389,12 @@ function RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing() 
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -428,6 +454,12 @@ function RumCrashReporterTaskTest__WhenExitreasonIsIgnored_ThenDoNothing() as st
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -482,6 +514,12 @@ function RumCrashReporterTaskTest__WhenExitreasonIsCustomIgnored_ThenDoNothing()
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -534,6 +572,12 @@ function RumCrashReporterTaskTest__WhenExitreasonIsEmpty_ThenDoNothing() as stri
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: {
+            type: "tv",
+            name: IG_GetString(16),
+            model: IG_GetString(16),
+            brand: "Roku"
+        },
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
