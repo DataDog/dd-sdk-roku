@@ -43,6 +43,17 @@ sub RumCrashReporterTaskTest__SetUp()
         m.testSuite.fakeGlobalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
+    m.testSuite.fakeDevice = {
+        type: "tv",
+        name: IG_GetString(16),
+        model: IG_GetString(16),
+        brand: "Roku"
+    }
+    m.testSuite.fakeOs = {
+        name: "Roku",
+        version: IG_GetString(8),
+        version_major: IG_GetString(4)
+    }
 
     ' Global configuration
     m.testSuite.global.addFields({
@@ -97,6 +108,8 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -140,6 +153,8 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
     Assert.that(errorEvent.source).isEqualTo("roku")
     Assert.that(errorEvent.type).isEqualTo("error")
     Assert.that(errorEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(errorEvent.device).isEqualTo(fakePreviousViewEvent.device)
+    Assert.that(errorEvent.os).isEqualTo(fakePreviousViewEvent.os)
     Assert.that(errorEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
     Assert.that(errorEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
     Assert.that(errorEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
@@ -203,6 +218,8 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -248,6 +265,8 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
     Assert.that(errorEvent.source).isEqualTo("roku")
     Assert.that(errorEvent.type).isEqualTo("error")
     Assert.that(errorEvent.version).isEqualTo(fakePreviousViewEvent.version)
+    Assert.that(errorEvent.device).isEqualTo(fakePreviousViewEvent.device)
+    Assert.that(errorEvent.os).isEqualTo(fakePreviousViewEvent.os)
     Assert.that(errorEvent.view.id).isEqualTo(fakePreviousViewEvent.view.id)
     Assert.that(errorEvent.view.name).isEqualTo(fakePreviousViewEvent.view.name)
     Assert.that(errorEvent.view.url).isEqualTo(fakePreviousViewEvent.view.url)
@@ -302,6 +321,8 @@ function RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEven
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -339,6 +360,8 @@ function RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEven
     Assert.that(errorEvent.error.type).isEqualTo(fakeUnknownExitStatus)
     Assert.that(errorEvent.error.is_crash).isEqualTo(true)
     Assert.that(errorEvent.context).isEqualTo(fakePreviousViewEvent.context)
+    Assert.that(errorEvent.device).isEqualTo(fakePreviousViewEvent.device)
+    Assert.that(errorEvent.os).isEqualTo(fakePreviousViewEvent.os)
 
     Assert.that(lastViewFilePath).doesNotExist()
     return ""
@@ -369,6 +392,8 @@ function RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing() 
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -428,6 +453,8 @@ function RumCrashReporterTaskTest__WhenExitreasonIsIgnored_ThenDoNothing() as st
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -482,6 +509,8 @@ function RumCrashReporterTaskTest__WhenExitreasonIsCustomIgnored_ThenDoNothing()
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
@@ -534,6 +563,8 @@ function RumCrashReporterTaskTest__WhenExitreasonIsEmpty_ThenDoNothing() as stri
         },
         context: m.global.datadogContext,
         date: IG_GetLongInteger(),
+        device: m.fakeDevice,
+        os: m.fakeOs,
         service: m.fakeGlobalContext,
         session: {
             has_replay: false,
