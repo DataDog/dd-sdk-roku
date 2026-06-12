@@ -773,44 +773,42 @@ class DdUrlTransfer
         if (sessionId <> invalid and sessionId.len() > 0)
             m.AddHeader("baggage","session.id=" + sessionId)
         end if
+
+        traceId = generateTraceId()
+        spanId = generateSpanId()
+        m.traceId = traceId.hex
+        m.spanId = spanId.decimal
+
         if (headerType = TracingHeaderType.datadog)
             ' Datadog uses a complex system for compatibility purposes
-            ddId = generateUniqueIdDd()
-            m.traceId = ddId[0]
-            m.spanId = generateUniqueId64(10)
-            m.AddHeader("x-datadog-trace-id", ddId[1])
-            m.AddHeader("x-datadog-tags", "_dd.p.tid=" + ddId[2])
-            m.AddHeader("x-datadog-parent-id", m.spanId)
+            m.AddHeader("x-datadog-trace-id", traceId.lowDecimal)
+            ' Only forward the high-order bits when they carry information: a
+            ' zero high part means a 64 bit trace id, for which the _dd.p.tid
+            ' tag must be omitted (matching the other Datadog SDKs).
+            if (traceId.highHex <> "0000000000000000")
+                m.AddHeader("x-datadog-tags", "_dd.p.tid=" + traceId.highHex)
+            end if
+            m.AddHeader("x-datadog-parent-id", spanId.decimal)
             m.AddHeader("x-datadog-sampling-priority", "1")
             m.AddHeader("x-datadog-origin", "rum")
         else if (headerType = TracingHeaderType.b3)
-            m.traceId = generateUniqueId128(16)
-            m.spanId = generateUniqueId64(16)
-            hexTraceId = padLeft(m.traceId, 32, "0")
-            hexSpanId = padLeft(m.spanId, 16, "0")
-            b3 = hexTraceId + "-" + hexSpanId + "-1"
+            b3 = traceId.hex + "-" + spanId.hex + "-1"
             m.AddHeader("b3", b3)
         else if (headerType = TracingHeaderType.b3multi)
-            m.traceId = generateUniqueId128(16)
-            m.spanId = generateUniqueId64(16)
-            m.AddHeader("X-B3-TraceId", m.traceId)
-            m.AddHeader("X-B3-SpanId", m.spanId)
+            m.AddHeader("X-B3-TraceId", traceId.hex)
+            m.AddHeader("X-B3-SpanId", spanId.hex)
             m.AddHeader("X-B3-Sampled", "1")
         else if (headerType = TracingHeaderType.tracecontext)
-            m.traceId = generateUniqueId128(16)
-            m.spanId = generateUniqueId64(16)
-            hexTraceId = padLeft(m.traceId, 32, "0")
-            hexSpanId = padLeft(m.spanId, 16, "0")
-            traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
+            traceparent = "00-" + traceId.hex + "-" + spanId.hex + "-01"
             m.AddHeader("traceparent", traceparent)
             usrId = m.global.datadogUserInfo.id
             if (usrId <> invalid)
                 usrIdByteArray = CreateObject("roByteArray")
                 usrIdByteArray.FromAsciiString(usrId)
                 usrIdBase64 = usrIdByteArray.ToBase64String().Replace("=", "~")
-                tracestate = "dd=s:1;o:rum;p:" + hexSpanId + ";t.usr.id:" + usrIdBase64
+                tracestate = "dd=s:1;o:rum;p:" + spanId.hex + ";t.usr.id:" + usrIdBase64
             else
-                tracestate = "dd=s:1;o:rum;p:" + hexSpanId
+                tracestate = "dd=s:1;o:rum;p:" + spanId.hex
             end if
             m.AddHeader("tracestate", tracestate)
         else
@@ -923,45 +921,85 @@ function getTracedHeaderType(url as string, tracingHeaderTypes as object) as dyn
 end function
 
 ' ----------------------------------------------------------------
-' Generates a unique identifier as a 64 bits random number
-' @param radix (integer) the radix to use when representing the id as a string
-' @return (string) the generated Unique id
+' Generates a 128 bit trace id with all the representations required
+' by the supported tracing headers and the RUM resource event.
+'
+' The backend (rum-span-mapper) only correlates a RUM resource to an APM
+' span when `_dd.trace_id` is either a 64 bit decimal number or a 128 bit
+' hexadecimal number padded to exactly 32 chars; an unpadded hexadecimal
+' id (shorter than 32 chars) is rejected. We therefore zero-pad the id.
+'
+' @return (object) an associative array with the following entries:
+'   - hex (string) the full 128 bit id as a 32 char zero-padded hexadecimal
+'       string (used by the RUM event, the W3C and the B3 headers)
+'   - lowDecimal (string) the low 64 bit part in decimal (used by the legacy
+'       x-datadog-trace-id header)
+'   - highHex (string) the high 64 bit part as a 16 char zero-padded
+'       hexadecimal string (used by the _dd.p.tid Datadog tag)
 ' ----------------------------------------------------------------
-function generateUniqueId64(radix = 10 as integer) as string
-    maxInt = 4294967295
-    return printIdToString(0, 0, Rnd(maxInt) - 1, Rnd(maxInt) - 1, radix)
+function generateTraceId() as object
+    high0& = random32()
+    high1& = random32()
+    low0& = random32()
+    low1& = random32()
+
+    return {
+        hex: padLeft(printIdToString(high0&, high1&, low0&, low1&, 16), 32, "0"),
+        lowDecimal: renderId64(low0&, low1&).decimal,
+        highHex: renderId64(high0&, high1&).hex
+    }
 end function
 
-
 ' ----------------------------------------------------------------
-' Generates a unique identifier as a 128 bits random number
-' @param radix (integer) the radix to use when representing the id as a string
-' @return (string) the generated Unique id
+' Generates a 64 bit span id with all the representations required
+' by the supported tracing headers and the RUM resource event.
+'
+' The backend (rum-span-mapper) only correlates a RUM resource to an APM
+' span when `_dd.span_id` is a strictly positive decimal number; a
+' hexadecimal span id is rejected. We therefore expose a decimal form for
+' the RUM event and the Datadog header, and a hexadecimal form for the
+' W3C and B3 headers.
+'
+' @return (object) an associative array with the following entries:
+'   - decimal (string) the id in decimal (used by the RUM event and the
+'       x-datadog-parent-id header)
+'   - hex (string) the id as a 16 char zero-padded hexadecimal string
+'       (used by the W3C and B3 headers)
 ' ----------------------------------------------------------------
-function generateUniqueId128(radix = 10 as integer) as string
-    maxInt = 4294967295
-    return printIdToString(Rnd(maxInt) - 1, Rnd(maxInt) - 1, Rnd(maxInt) - 1, Rnd(maxInt) - 1, radix)
+function generateSpanId() as object
+    return renderId64(random32(), random32())
 end function
 
 ' ----------------------------------------------------------------
-' Generates a unique identifier as a 128 bits random number, fit for Datadog's specification
-' @return (array) the array with the generated id as a list of strings:
-'     - the full 128 bit id in hexadecimal
-'     - the low 64 bit part of the id in decimal (compatible with Datadog's legacy x-datadog-trace-id header)
-'     - the high 64 bit part of the id in id in hexadecimal
+' Renders a 64 bit id (given as two 32 bit halves) in the representations
+' shared by the trace and span id generators.
+' @param hi& (longinteger) the high 32 bits
+' @param lo& (longinteger) the low 32 bits
+' @return (object) an associative array with the following entries:
+'   - decimal (string) the id in decimal (used by the RUM event and the
+'       Datadog headers)
+'   - hex (string) the id as a 16 char zero-padded hexadecimal string
+'       (used by the W3C and B3 headers)
 ' ----------------------------------------------------------------
-function generateUniqueIdDd() as object
-    maxInt = 4294967295
-    high0& = Rnd(maxInt) - 1
-    high1& = Rnd(maxInt) - 1
-    low0& = Rnd(maxInt) - 1
-    low1& = Rnd(maxInt) - 1
+function renderId64(hi& as longinteger, lo& as longinteger) as object
+    return {
+        decimal: printIdToString(0, 0, hi&, lo&, 10),
+        hex: padLeft(printIdToString(0, 0, hi&, lo&, 16), 16, "0")
+    }
+end function
 
-    fullId = printIdToString(high0&, high1&, low0&, low1&, 16)
-    lowId = printIdToString(0, 0, low0&, low1&, 10)
-    highId = printIdToString(0, 0, high0&, high1&, 16)
-
-    return [fullId, lowId, highId]
+' ----------------------------------------------------------------
+' Generates a uniformly distributed unsigned 32 bit value.
+'
+' BrightScript's `Rnd(n)` takes a signed 32 bit Integer, so it cannot be
+' asked directly for the full unsigned 32 bit range; we assemble the value
+' from two independent 16 bit draws instead.
+' @return (longinteger) a value in [0, 4294967295]
+' ----------------------------------------------------------------
+function random32() as longinteger
+    high& = Rnd(65536) - 1 ' 0..65535
+    low& = Rnd(65536) - 1 ' 0..65535
+    return (high& << 16) + low&
 end function
 
 function printIdToString(li0& as longinteger, li1& as longinteger, li2& as longinteger, li3& as longinteger, radix = 10 as integer) as string
@@ -996,6 +1034,13 @@ function printIdToString(li0& as longinteger, li1& as longinteger, li2& as longi
             id = chr(digit + 87) + id ' char 'a' is 97 = 10 + 87
         end if
     end while
+
+    ' A zero value produces no digits in the loop above; return "0" rather than
+    ' an empty string so decimal ids stay valid (e.g. the backend requires
+    ' `_dd.span_id` to be a strictly positive decimal, and "" / missing is rejected).
+    if (id = "")
+        return "0"
+    end if
 
     return id
 end function
