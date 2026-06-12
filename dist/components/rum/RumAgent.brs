@@ -21,12 +21,14 @@ sub init()
     m.top.observeFieldScoped("addAction", m.port)
     m.top.observeFieldScoped("addError", m.port)
     m.top.observeFieldScoped("addResource", m.port)
+    m.top.observeFieldScoped("reportResources", m.port)
     m.top.observeFieldScoped("addConfigTelemetry", m.port)
     m.top.observeFieldScoped("addErrorTelemetry", m.port)
     m.top.observeFieldScoped("addDebugTelemetry", m.port)
     m.top.observeFieldScoped("startOperation", m.port)
     m.top.observeFieldScoped("succeedOperation", m.port)
     m.top.observeFieldScoped("failOperation", m.port)
+    m.top.observeFieldScoped("reportOperations", m.port)
     m.top.functionName = "rumAgentLoop"
 end sub
 
@@ -51,6 +53,8 @@ sub rumAgentLoop()
                 __onAddError(msg.getData())
             else if (fieldName = "addResource")
                 __onAddResource(msg.getData())
+            else if (fieldName = "reportResources")
+                __onReportResources(msg.getData())
             else if (fieldName = "addConfigTelemetry")
                 __onAddConfigTelemetry(msg.getData())
             else if (fieldName = "addErrorTelemetry")
@@ -63,6 +67,8 @@ sub rumAgentLoop()
                 __onSucceedOperation(msg.getData())
             else if (fieldName = "failOperation")
                 __onFailOperation(msg.getData())
+            else if (fieldName = "reportOperations")
+                __onReportOperations(msg.getData())
             end if
         else
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
@@ -255,6 +261,20 @@ sub __onAddResource(event as object)
 end sub
 
 ' ----------------------------------------------------------------
+' Reports a batch of resources in a single rendezvous
+' @param events (object) an array of pre-built resource events
+' ----------------------------------------------------------------
+sub __onReportResources(events as object)
+    if (events <> invalid)
+        for each event in events
+            if (m.rumScope <> invalid)
+                m.rumScope.callfunc("handleEvent", event, m.writer)
+            end if
+        end for
+    end if
+end sub
+
+' ----------------------------------------------------------------
 ' Private: Handles sendCrash field change event
 ' @param lastExitOrTerminationReason (string) the last exit or termination reason
 ' ----------------------------------------------------------------
@@ -410,6 +430,20 @@ end sub
 ' ----------------------------------------------------------------
 sub __onFailOperation(event as object)
     m.rumScope.callfunc("handleEvent", event, m.writer)
+end sub
+
+' ----------------------------------------------------------------
+' Reports a batch of operations in a single rendezvous
+' @param events (object) an array of pre-built operation events
+' ----------------------------------------------------------------
+sub __onReportOperations(events as object)
+    if (events <> invalid)
+        for each event in events
+            if (m.rumScope <> invalid)
+                m.rumScope.callfunc("handleEvent", event, m.writer)
+            end if
+        end for
+    end if
 end sub
 
 ' ----------------------------------------------------------------
