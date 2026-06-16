@@ -15,9 +15,11 @@
 '  - version (string, optional) the version of the channel to report in logs and RUM events
 '  - traceSampleRate (integer, optional) the rate of traces to keep when instrumenting network request
 '     as an integer between 0 and 100 (default is 100)
-'  - tracingHeaderTypes (array) a array of associative arrays. Each array item must have a the following entries:
+'  - tracingHeaderTypes (array) a array of associative arrays. Each array item must have the following entries:
 '       - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
-'       - 'header': one of the supported tracing header types :
+'       - 'header': either a single tracing header type, or an array of tracing header types. When several
+'           types are provided for a host, all of them are injected into the request (sharing the same trace
+'           and span ids), matching the Datadog Browser SDK `allowedTracingUrls` behavior. Supported values:
 '           - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
 '           - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
 '           - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)

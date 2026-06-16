@@ -115,8 +115,13 @@ which supports most features of the `roUrlTransfer` component (except anything r
 For example, here's how to do a `GetToString` call:
 
 ```brightscript
-    validHosts = {}
-    validHosts["example.com"] = "tracecontext" ' add tracing for requests to "example.com" URLs using W3C's tracecontext headers
+    validHosts = [
+        ' add tracing for requests to "example.com" URLs using W3C's tracecontext headers
+        { host: "example.com", header: "tracecontext" }
+        ' a host can be associated with several header types (like the Browser SDK's
+        ' allowedTracingUrls). All of them are injected sharing the same trace/span id:
+        { host: "api.example.com", header: ["datadog", "tracecontext"] }
+    ]
     sampleRate = 50.0 ' only trace 50% of requests
     ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, sampleRate, validHosts)
     ddUrlTransfer.SetUrl(url)
