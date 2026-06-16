@@ -87,6 +87,7 @@ RUN npm --version
 RUN npm install -g brighterscript
 RUN npm install -g ropm
 RUN npm install -g @rokucommunity/bslint
+RUN npm install -g cspell
 
 ####################################################################################################
 # MISC

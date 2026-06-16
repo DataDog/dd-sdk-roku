@@ -33,7 +33,7 @@
   "scripts": {
     "test": "./tools/roku/build.sh library test && ./tools/roku/install.sh test/out/test.zip -listen",
     "sample": "./tools/roku/build.sh library sample && ./tools/roku/install.sh sample/out/sample.zip -listen",
-    "lint": "./tools/roku/build.sh library test sample",
+    "lint": "./tools/roku/build.sh library test sample && npx --no-install cspell --no-progress .",
     "sca-test": "./tools/roku/build.sh library test && ./tools/roku/sca.sh test/out/test.zip",
     "sca-sample": "./tools/roku/build.sh library sample && ./tools/roku/sca.sh sample/out/sample.zip",
     "check-dist": "./tools/roku/build.sh library && git add dist && git diff --exit-code HEAD -- dist",
@@ -47,6 +47,7 @@
   "devDependencies": {
     "@rokucommunity/bslint": "0.8.39",
     "brighterscript": "0.69.13",
+    "cspell": "8.17.5",
     "ropm": "0.11.4"
   }
 }
