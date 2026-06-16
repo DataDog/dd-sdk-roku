@@ -10,7 +10,7 @@
 ' ****************************************************************
 ' * RumViewScope: handles the View level
 ' *  - send view updates when required
-' *  - TODO handle children scopes
+' *  - delegates action events to a child RumActionScope
 ' ****************************************************************
 
 ' ----------------------------------------------------------------
@@ -245,7 +245,6 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, context as object, writer as object)
-    ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, context, writer)
     else if (m.top.activeAction = invalid)

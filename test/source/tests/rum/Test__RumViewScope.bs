@@ -1380,7 +1380,9 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
     nsToSec# = 1000000000
     fakeTransferTime# = fakeDurationNs& / nsToSec#
     fakeSize = IG_GetInteger()
-    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeTraceId = IG_GetString(32)
+    fakeSpanId = IG_GetString(32)
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize, traceId: fakeTraceId, spanId: fakeSpanId }
     fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource }
 
     ' When
@@ -1419,8 +1421,8 @@ function RumViewScopeTest__WhenHandleAddResourceEvent_ThenWriteViewEvent() as st
     Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
-    ' TODO RUMM-2529 assert traceId and spanId
-    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    Assert.that(resourceEvent._dd.trace_id).isEqualTo(fakeTraceId)
+    Assert.that(resourceEvent._dd.span_id).isEqualTo(fakeSpanId)
     return ""
 end function
 
@@ -1502,7 +1504,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithGlobalContext_ThenWrite
     nsToSec# = 1000000000
     fakeTransferTime# = fakeDurationNs& / nsToSec#
     fakeSize = IG_GetInteger()
-    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeTraceId = IG_GetString(32)
+    fakeSpanId = IG_GetString(32)
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize, traceId: fakeTraceId, spanId: fakeSpanId }
     fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource }
     m.global.setField("datadogContext", m.fakeGlobalContext)
 
@@ -1543,8 +1547,8 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithGlobalContext_ThenWrite
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
     Assert.that(resourceEvent.context).contains(m.fakeGlobalContext)
-    ' TODO RUMM-2529 assert traceId and spanId
-    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    Assert.that(resourceEvent._dd.trace_id).isEqualTo(fakeTraceId)
+    Assert.that(resourceEvent._dd.span_id).isEqualTo(fakeSpanId)
     return ""
 end function
 
@@ -1577,7 +1581,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithLocalContext_ThenWriteV
     nsToSec# = 1000000000
     fakeTransferTime# = fakeDurationNs& / nsToSec#
     fakeSize = IG_GetInteger()
-    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeTraceId = IG_GetString(32)
+    fakeSpanId = IG_GetString(32)
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize, traceId: fakeTraceId, spanId: fakeSpanId }
     fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource, context: m.fakeLocalContext }
 
     ' When
@@ -1617,8 +1623,8 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithLocalContext_ThenWriteV
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
     Assert.that(resourceEvent.context).contains(m.fakeLocalContext)
-    ' TODO RUMM-2529 assert traceId and spanId
-    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    Assert.that(resourceEvent._dd.trace_id).isEqualTo(fakeTraceId)
+    Assert.that(resourceEvent._dd.span_id).isEqualTo(fakeSpanId)
     return ""
 end function
 
@@ -1651,7 +1657,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithUserInfo_ThenWriteViewE
     nsToSec# = 1000000000
     fakeTransferTime# = fakeDurationNs& / nsToSec#
     fakeSize = IG_GetInteger()
-    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeTraceId = IG_GetString(32)
+    fakeSpanId = IG_GetString(32)
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize, traceId: fakeTraceId, spanId: fakeSpanId }
     fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource }
     m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
 
@@ -1692,8 +1700,8 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithUserInfo_ThenWriteViewE
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
     Assert.that(resourceEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
-    ' TODO RUMM-2529 assert traceId and spanId
-    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    Assert.that(resourceEvent._dd.trace_id).isEqualTo(fakeTraceId)
+    Assert.that(resourceEvent._dd.span_id).isEqualTo(fakeSpanId)
     return ""
 end function
 
@@ -1727,7 +1735,9 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEve
     nsToSec# = 1000000000
     fakeTransferTime# = fakeDurationNs& / nsToSec#
     fakeSize = IG_GetInteger()
-    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize }
+    fakeTraceId = IG_GetString(32)
+    fakeSpanId = IG_GetString(32)
+    fakeResource = { url: fakeResourceUrl, method: fakeMethod, status: "ok", httpCode: fakeHttpCode, transferTime: fakeTransferTime#, bytesDownloaded: fakeSize, traceId: fakeTraceId, spanId: fakeSpanId }
     fakeEvent = { mock: "event", eventType: "addResource", resource: fakeResource }
 
     ' When
@@ -1766,8 +1776,8 @@ function RumViewScopeTest__WhenHandleAddResourceEventWithAction_ThenWriteViewEve
     Assert.that(resourceEvent.resource.status_code).isEqualTo(fakeHttpCode)
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(fakeSize)
-    ' TODO RUMM-2529 assert traceId and spanId
-    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    Assert.that(resourceEvent._dd.trace_id).isEqualTo(fakeTraceId)
+    Assert.that(resourceEvent._dd.span_id).isEqualTo(fakeSpanId)
     return ""
 end function
 
@@ -1837,8 +1847,8 @@ function RumViewScopeTest__WhenHandleAddMinimalResourceEvent_ThenWriteViewEvent(
     Assert.that(resourceEvent.resource.status_code).isEqualTo(invalid)
     Assert.that(resourceEvent.resource.duration).isInRange(fakeDurationNs& - 1000, fakeDurationNs& + 1000)
     Assert.that(resourceEvent.resource.size).isEqualTo(invalid)
-    ' TODO RUMM-2529 assert traceId and spanId
-    ' TODO RUMM-2530 assert timings (dns, ssl, …)?
+    Assert.that(resourceEvent._dd.trace_id).isEqualTo(invalid)
+    Assert.that(resourceEvent._dd.span_id).isEqualTo(invalid)
     return ""
 end function
 

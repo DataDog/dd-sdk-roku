@@ -55,6 +55,8 @@ sub MultiTrackUploaderTaskTest__SetUp()
     for i = 0 to 3
         m.testSuite.fakeQueryParams[IG_GetString(8)] = IG_GetString(16)
     end for
+    ' value with reserved/whitespace characters to verify URL-encoding (mirrors the real ddtags param)
+    m.testSuite.fakeQueryParams["ddtags"] = "sdk_version:1.5.0,env:my prod env"
 
     ' Tested Task
     m.testSuite.testedTask = CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask")
@@ -346,8 +348,9 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
         Assert.that(calls).hasSize(1)
     end if
 
+    escaper = CreateObject("roUrlTransfer")
     for each key in m.fakeQueryParams
-        Assert.that(firstCall.url).hasSubstring(firstCall.url, key + "=" + m.fakeQueryParams[key])
+        Assert.that(firstCall.url).hasSubstring(key + "=" + escaper.Escape(m.fakeQueryParams[key]))
     end for
 
     return ""

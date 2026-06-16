@@ -39,6 +39,5 @@ end sub
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
     ddLogVerbose("RumScope::isActive()")
-    ' TODO
-    return invalid
+    return true
 end function

@@ -59,7 +59,6 @@ sub RumAgentTest__SetUp()
     m.testSuite.fakeOsVersionMajor = IG_GetString(16)
     m.testSuite.fakeEnv = IG_GetString(10)
     m.testSuite.fakeSite = IG_GetString(3)
-    m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeVersion = IG_GetString(32)
@@ -74,7 +73,6 @@ sub RumAgentTest__SetUp()
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
     m.testSuite.testedNode.site = m.testSuite.fakeSite
     m.testSuite.testedNode.env = m.testSuite.fakeEnv
-    m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.version = m.testSuite.fakeVersion
@@ -96,7 +94,6 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.fakeOsVersion = IG_GetString(16)
     m.testSuite.fakeOsVersionMajor = IG_GetString(16)
     m.testSuite.fakeSite = IG_GetOneOf(["us1", "us3", "us5", "eu1"])
-    m.testSuite.fakeClientToken = "pub" + IG_GetString(32)
     m.testSuite.fakeApplicationId = IG_GetString(32)
     m.testSuite.fakeService = IG_GetString(32)
     m.testSuite.fakeKeepAliveDelayMs = 10 + IG_GetInteger(30)
@@ -107,7 +104,6 @@ sub RumAgentTest__SetUpNoMock()
     m.testSuite.testedNode = CreateObject("roSGNode", "datadogroku_RumAgent")
     m.testSuite.testedNode.keepAliveDelayMs = m.testSuite.fakeKeepAliveDelayMs
     m.testSuite.testedNode.site = m.testSuite.fakeSite
-    m.testSuite.testedNode.clientToken = m.testSuite.fakeClientToken
     m.testSuite.testedNode.applicationId = m.testSuite.fakeApplicationId
     m.testSuite.testedNode.service = m.testSuite.fakeService
     m.testSuite.testedNode.version = m.testSuite.fakeVersion
