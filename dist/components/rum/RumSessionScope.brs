@@ -16,6 +16,16 @@
 ' Initialize the component
 ' ----------------------------------------------------------------
 sub init()
+    ' Resolved once at init and immutable afterwards; cache it to avoid a
+    ' cross-thread global read on every event sent from this Task thread.
+    m.anonymousId = (function(m)
+            __bsConsequent = m.global.datadogAnonymousId
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return ""
+            end if
+        end function)(m)
 end sub
 
 ' ----------------------------------------------------------------
@@ -251,7 +261,7 @@ sub sendVitalEvent(event as object, stepType as string, writer as object)
         }
         source: agentSource()
         type: "vital"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global.datadogUserInfo, m.anonymousId)
         version: rumContext.applicationVersion
         view: {
             id: viewId

@@ -11,5 +11,6 @@
     <script type="text/brightscript" uri="pkg:/source/rum/rumHelper.brs" />
     <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
     <script type="text/brightscript" uri="pkg:/source/datadogSdk.brs" />
+    <script type="text/brightscript" uri="pkg:/source/identityStorage.brs" />
     <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
 </component>

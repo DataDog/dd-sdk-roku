@@ -29,6 +29,16 @@ sub init()
         end function)(m)
     datadogRumContext.actionId = m.actionId
     m.global.setField("datadogRumContext", datadogRumContext)
+    ' Resolved once at init and immutable afterwards; cache it to avoid a
+    ' cross-thread global read on every event sent from this Task thread.
+    m.anonymousId = (function(m)
+            __bsConsequent = m.global.datadogAnonymousId
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return ""
+            end if
+        end function)(m)
 end sub
 
 ' ----------------------------------------------------------------
@@ -153,7 +163,7 @@ sub sendAction(writer as object)
         }
         source: agentSource()
         type: "action"
-        usr: m.global.datadogUserInfo
+        usr: getDatadogUserInfo(m.global.datadogUserInfo, m.anonymousId)
         version: context.applicationVersion
         view: {
             id: context.viewId

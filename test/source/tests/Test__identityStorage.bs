@@ -1,0 +1,101 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+'----------------------------------------------------------------
+' Main setup function.
+' @return (object) a configured TestSuite object.
+'----------------------------------------------------------------
+function TestSuite__IdentityStorage() as object
+    this = BaseTestSuite()
+    this.Name = "IdentityStorage"
+
+    this.addTest("WhenWriteAnonymousId_ThenReadReturnsValue", IdentityStorageTest__WhenWriteAnonymousId_ThenReadReturnsValue, IdentityStorageTest__SetUp, IdentityStorageTest__TearDown)
+    this.addTest("WhenRegistryEmpty_ThenReadReturnsEmptyString", IdentityStorageTest__WhenRegistryEmpty_ThenReadReturnsEmptyString, IdentityStorageTest__SetUp, IdentityStorageTest__TearDown)
+    this.addTest("WhenClearAnonymousId_ThenValueRemoved", IdentityStorageTest__WhenClearAnonymousId_ThenValueRemoved, IdentityStorageTest__SetUp, IdentityStorageTest__TearDown)
+    this.addTest("WhenClearWithEmptyRegistry_ThenDoesNotCrash", IdentityStorageTest__WhenClearWithEmptyRegistry_ThenDoesNotCrash, IdentityStorageTest__SetUp, IdentityStorageTest__TearDown)
+
+    return this
+end function
+
+'----------------------------------------------------------------
+' Removes any leftover anonymous_id so each test starts from a known state.
+'----------------------------------------------------------------
+sub IdentityStorageTest__RemoveAnonymousId()
+    section = CreateObject("roRegistrySection", "datadog")
+    if (section.Exists("anonymous_id"))
+        section.Delete("anonymous_id")
+        section.Flush()
+    end if
+end sub
+
+sub IdentityStorageTest__SetUp()
+    IdentityStorageTest__RemoveAnonymousId()
+end sub
+
+sub IdentityStorageTest__TearDown()
+    IdentityStorageTest__RemoveAnonymousId()
+end sub
+
+'----------------------------------------------------------------
+' Given: an anonymous id written to the registry
+'  When: reading it back
+'  Then: returns the stored value
+'----------------------------------------------------------------
+function IdentityStorageTest__WhenWriteAnonymousId_ThenReadReturnsValue() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+
+    ' When
+    datadogroku_writeDatadogAnonymousId(fakeAnonymousId)
+
+    ' Then
+    Assert.that(datadogroku_readDatadogAnonymousId()).isEqualTo(fakeAnonymousId)
+    section = CreateObject("roRegistrySection", "datadog")
+    Assert.that(section.Read("anonymous_id")).isEqualTo(fakeAnonymousId)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: no persisted anonymous id
+'  When: reading it
+'  Then: returns an empty string
+'----------------------------------------------------------------
+function IdentityStorageTest__WhenRegistryEmpty_ThenReadReturnsEmptyString() as string
+    ' Then
+    Assert.that(datadogroku_readDatadogAnonymousId()).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a persisted anonymous id
+'  When: clearing it
+'  Then: the value is removed from the registry
+'----------------------------------------------------------------
+function IdentityStorageTest__WhenClearAnonymousId_ThenValueRemoved() as string
+    ' Given
+    datadogroku_writeDatadogAnonymousId(IG_GetString(32))
+
+    ' When
+    datadogroku_clearDatadogAnonymousId()
+
+    ' Then
+    section = CreateObject("roRegistrySection", "datadog")
+    Assert.that(section.Exists("anonymous_id")).isFalse()
+    Assert.that(datadogroku_readDatadogAnonymousId()).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: no persisted anonymous id
+'  When: clearing it
+'  Then: does not crash (idempotent)
+'----------------------------------------------------------------
+function IdentityStorageTest__WhenClearWithEmptyRegistry_ThenDoesNotCrash() as string
+    ' When
+    datadogroku_clearDatadogAnonymousId()
+
+    ' Then
+    Assert.that(datadogroku_readDatadogAnonymousId()).isEqualTo("")
+    return ""
+end function
