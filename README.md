@@ -19,7 +19,7 @@ ropm install datadog-roku
 If your project does not use `ROPM`, install the library manually by downloading the [Roku SDK][5] zip archive, 
 and unzipping it in your project's root folder.
 
-Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your projet.
+Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your project.
 
 ### Configure Datadog
 
@@ -94,7 +94,7 @@ You can also track errors manually without using a `try-catch` block, as follows
 ```brightscript
     customError = {
         type: "MyError",
-        message: "An unexpected situation occured"
+        message: "An unexpected situation occurred"
     }
     m.global.datadogRumAgent.callfunc("addError", customError)
 

@@ -358,7 +358,7 @@ class DdUrlTransfer
     ' Returns the body of the response even if the HTTP status code indicates
     ' that an error occurred.
     '
-    ' @param retain (booleanà A flag specifying whether to return the response
+    ' @param retain (boolean) A flag specifying whether to return the response
     ' body when there is an HTTP error response code.
     '
     ' @return (boolean) A flag indicating whether the operation was successful

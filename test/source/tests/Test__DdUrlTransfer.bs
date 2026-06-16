@@ -34,7 +34,7 @@ function TestSuite__DdUrlTransfer() as object
     this.addTest("WhenSampledInWithB3Multi_ThenEventIdsAndHeadersAreValid", DdUrlTransferTest__WhenSampledInWithB3Multi_ThenEventIdsAndHeadersAreValid)
     this.addTest("WhenSampledInWithTraceContext_ThenEventIdsAndHeadersAreValid", DdUrlTransferTest__WhenSampledInWithTraceContext_ThenEventIdsAndHeadersAreValid)
     this.addTest("WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionAll_ThenHaveSampleInHeaders)
-    this.addTest("WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders)
+    this.addTest("WhenSampledOutAndTraceContextInjectionSampled_ThenHaveSampleInHeaders", DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionSampled_ThenHaveSampleInHeaders)
 
     this.addTest("WhenParseUuidLastSegment_WithValidUuid_ThenReturnsLast48Bits", DdUrlTransferTest__WhenParseUuidLastSegment_WithValidUuid_ThenReturnsLast48Bits)
     this.addTest("WhenParseUuidLastSegment_WithInvalidUuid_ThenReturnsZero", DdUrlTransferTest__WhenParseUuidLastSegment_WithInvalidUuid_ThenReturnsZero)
@@ -546,7 +546,7 @@ function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionAll_ThenHaveSa
     return ""
 end function
 
-function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectioSampled_ThenHaveSampleInHeaders() as string
+function DdUrlTransferTest__WhenSampledOutAndTraceContextInjectionSampled_ThenHaveSampleInHeaders() as string
     fakeSessionId = IG_GetString(16)
     fakeDatadogRumAgent = CreateObject("roSGNode", "datadogRoku_RumAgent") 
     fakeId = IG_GetInteger()

@@ -115,7 +115,7 @@ end sub
 sub sendCustomError()
     customError = {
         type: "Error42",
-        message: "An unexpected situation occured"
+        message: "An unexpected situation occurred"
     }
     datadogroku_ddLogError("Caught something", customError)
     m.global.datadogRumAgent@.addError(customError, { custom_add_error: Rnd(100) })
