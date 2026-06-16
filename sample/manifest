@@ -52,7 +52,7 @@ bs_prof_enabled=true
 # Optional misc
 # hidden=1
 # playonly_aware=1 # if the remote as independent play and pause button, this will change the input event when play is pressed
-# pause_aware=1 # disable the default play/pause toggle on remote, and sends an independant pause event
+# pause_aware=1 # disable the default play/pause toggle on remote, and sends an independent pause event
 # rsg_version=1.2   
 # automatic_audio_guide_disabled=1
 # suppress_unconnected_hud=0

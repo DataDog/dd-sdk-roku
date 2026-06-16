@@ -34,6 +34,12 @@ stages:
   tags: ['arch:amd64']
   image: $CI_IMAGE
 
+.node-configuration:
+  extends:
+    - .base-configuration
+  before_script:
+    - npm install --include=dev
+
 ########################################################################################################################
 # CI IMAGE
 ########################################################################################################################
@@ -75,7 +81,7 @@ analysis:check_copyright:
 
 analysis:lint:
   extends:
-    - .base-configuration
+    - .node-configuration
   stage: analysis
   timeout: 30m
   script:
@@ -83,7 +89,7 @@ analysis:lint:
 
 analysis:sca-test:
   extends:
-    - .base-configuration
+    - .node-configuration
   stage: analysis
   timeout: 30m
   script:
@@ -92,7 +98,7 @@ analysis:sca-test:
 
 analysis:sca-sample:
   extends:
-    - .base-configuration
+    - .node-configuration
   stage: analysis
   timeout: 30m
   script:
@@ -101,7 +107,7 @@ analysis:sca-sample:
 
 analysis:check-dist:
   extends:
-    - .base-configuration
+    - .node-configuration
   stage: analysis
   timeout: 30m
   script:
@@ -115,11 +121,10 @@ test:roku:
 # disabled for now as we need a device in CI to run the tests :/
   when: manual
   extends:
-    - .base-configuration
+    - .node-configuration
   stage: test
   timeout: 1h
   script:
-    - npm install
     - npm test
 
 ########################################################################################################################
