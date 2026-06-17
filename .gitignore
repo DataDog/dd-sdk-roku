@@ -7,7 +7,7 @@ roku_modules
 
 # NPM
 node_modules
-package-lock.json
+*/package-lock.json
 .npmrc
 
 # Java

@@ -41,7 +41,7 @@ OLD_ZIPS=$(git ls-files "datadogroku-*.zip" | grep -v "datadogroku-$1.zip" || tr
 [ -n "$OLD_ZIPS" ] && git rm $OLD_ZIPS || true
 
 echo "---- Creating a commit for version $1"
-git add **/*.brs **/*.bs **/package.json package.json CHANGELOG.md
+git add **/*.brs **/*.bs **/package.json package.json package-lock.json CHANGELOG.md
 git add datadogroku-*.zip
 git commit -s -m "Bump version to $1"
 
