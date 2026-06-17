@@ -122,6 +122,14 @@ end function
 function getUploadUrl(trackInfo as object) as string
     url = trackInfo.url
     if (trackInfo.queryParams <> invalid)
+        m.urlEscaper = (function(m)
+                __bsConsequent = m.urlEscaper
+                if __bsConsequent <> invalid then
+                    return __bsConsequent
+                else
+                    return CreateObject("roUrlTransfer")
+                end if
+            end function)(m)
         first = true
         for each key in trackInfo.queryParams
             ddLogVerbose("Found query params " + key)
@@ -131,8 +139,8 @@ function getUploadUrl(trackInfo as object) as string
             else
                 prefix = "&"
             end if
-            ' TODO add url encoding of values
-            url = url + prefix + key + "=" + trackInfo.queryParams[key]
+            ' URL-encode the value so reserved/whitespace characters (e.g. in the user-provided env) keep the query string well-formed
+            url = url + prefix + key + "=" + m.urlEscaper.Escape(trackInfo.queryParams[key])
             first = false
         end for
     else
