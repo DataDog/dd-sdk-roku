@@ -87,9 +87,11 @@ sub initialize(configuration as object, global as object)
         ddLogInfo("No RUM agent, creating one")
         ' Create the RUM context synchronously so any early log can observe it
         ' before the RumAgent task fills in the rest.
+        rumInstanceId = CreateObject("roDeviceInfo").GetRandomUUID()
         global.addFields({
             datadogRumContext: {
                 applicationId: configuration.applicationId
+                instanceId: rumInstanceId
             }
         })
         rumAgent = CreateObject("roSGNode", "RumAgent")
@@ -104,6 +106,7 @@ sub initialize(configuration as object, global as object)
                     end if
                 end function)(configuration)
             applicationId: configuration.applicationId
+            instanceId: rumInstanceId
             service: service
             version: version
             uploader: datadogUploader

@@ -78,6 +78,7 @@ sub setup()
     m.rumScope = fields.rumScope 'allow tests to inject a mock
     m.telemetryScope = fields.telemetryScope 'allow tests to inject a mock
     m.applicationId = fields.applicationId
+    m.instanceId = fields.instanceId
     m.service = fields.service
     m.version = fields.version
     m.deviceName = fields.deviceName
@@ -90,12 +91,7 @@ sub setup()
     m.lastExitOrTerminationReason = fields.lastExitOrTerminationReason
     m.configuration = fields.configuration
     ' 2. Create internal scopes
-    m.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
     ddLogVerbose("RumAgent.instanceId:" + m.instanceId)
-    m.global.setField("datadogRumContext", {
-        applicationId: m.applicationId
-        instanceId: m.instanceId
-    })
     if (m.rumScope = invalid) 'skipped in tests (mock pre-injected)
         ddLogVerbose("Creating RumApplicationScope")
         m.rumScope = CreateObject("roSGNode", "RumApplicationScope")
