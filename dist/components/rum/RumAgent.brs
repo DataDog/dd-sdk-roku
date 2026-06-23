@@ -258,14 +258,12 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Reports a batch of resources in a single rendezvous
-' @param events (object) an array of pre-built resource events
+' @param events (dynamic) an array of pre-built resource events, or invalid
 ' ----------------------------------------------------------------
-sub __onReportResources(events as object)
-    if (events <> invalid)
+sub __onReportResources(events as dynamic)
+    if (events <> invalid and m.rumScope <> invalid)
         for each event in events
-            if (m.rumScope <> invalid)
-                m.rumScope.callfunc("handleEvent", event, m.writer)
-            end if
+            m.rumScope.callfunc("handleEvent", event, m.writer)
         end for
     end if
 end sub
@@ -430,14 +428,12 @@ end sub
 
 ' ----------------------------------------------------------------
 ' Reports a batch of operations in a single rendezvous
-' @param events (object) an array of pre-built operation events
+' @param events (dynamic) an array of pre-built operation events, or invalid
 ' ----------------------------------------------------------------
-sub __onReportOperations(events as object)
-    if (events <> invalid)
+sub __onReportOperations(events as dynamic)
+    if (events <> invalid and m.rumScope <> invalid)
         for each event in events
-            if (m.rumScope <> invalid)
-                m.rumScope.callfunc("handleEvent", event, m.writer)
-            end if
+            m.rumScope.callfunc("handleEvent", event, m.writer)
         end for
     end if
 end sub

@@ -36,6 +36,7 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenFailOperation_ThenDelegateToRumScope", RumAgentTest__WhenFailOperation_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenFailOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenFailOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenReportOperations_ThenDelegateToRumScope", RumAgentTest__WhenReportOperations_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     ' Operation input validation tests
     this.addTest("WhenStartOperationWithBlankName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -661,6 +662,20 @@ function RumAgentTest__WhenReportOperations_ThenDelegateToRumScope() as string
     result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: fakeEvent1, writer: m.mockWriter })
     result += m.mockRumScope@.assertFunctionCalled("handleEvent", { event: fakeEvent2, writer: m.mockWriter })
     return result
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with an empty array
+'  Then: dispatches nothing to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch() as string
+    ' When
+    m.testedNode.reportOperations = []
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
 end function
 
 '----------------------------------------------------------------
