@@ -21,8 +21,9 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddErrorWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddErrorWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResourceWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddResourceWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
-    this.addTest("WhenReportResources_ThenDelegateToRumScope", RumAgentTest__WhenReportResources_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
-    this.addTest("WhenReportResourcesIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenReportResourcesIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResources_ThenDelegateToRumScope", RumAgentTest__WhenAddResources_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResourcesIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenAddResourcesIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResourcesHasMalformedEvent_ThenSkipIt", RumAgentTest__WhenAddResourcesHasMalformedEvent_ThenSkipIt, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     this.addTest("WhenAddConfigTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddConfigTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -37,6 +38,7 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenFailOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenFailOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenReportOperations_ThenDelegateToRumScope", RumAgentTest__WhenReportOperations_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenReportOperationsIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsHasInvalidKey_ThenSkipIt", RumAgentTest__WhenReportOperationsHasInvalidKey_ThenSkipIt, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     ' Operation input validation tests
     this.addTest("WhenStartOperationWithBlankName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -377,16 +379,16 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
-'  When: set the reportResources field with an array of pre-built resource events
+'  When: set the addResources field with an array of pre-built resource events
 '  Then: delegates each event to the root RumScope
 '----------------------------------------------------------------
-function RumAgentTest__WhenReportResources_ThenDelegateToRumScope() as string
+function RumAgentTest__WhenAddResources_ThenDelegateToRumScope() as string
     ' Given
     fakeEvent1 = { eventType: "addResource", resource: { url: IG_GetString(128) } }
     fakeEvent2 = { eventType: "addResource", resource: { url: IG_GetString(128) } }
 
     ' When
-    m.testedNode.reportResources = [fakeEvent1, fakeEvent2]
+    m.testedNode.addResources = [fakeEvent1, fakeEvent2]
     sleep(30)
 
     ' Then
@@ -397,16 +399,38 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
-'  When: set the reportResources field with an empty array
+'  When: set the addResources field with an empty array
 '  Then: dispatches nothing to the root RumScope
 '----------------------------------------------------------------
-function RumAgentTest__WhenReportResourcesIsEmpty_ThenDoNotDispatch() as string
+function RumAgentTest__WhenAddResourcesIsEmpty_ThenDoNotDispatch() as string
     ' When
-    m.testedNode.reportResources = []
+    m.testedNode.addResources = []
     sleep(30)
 
     ' Then
     return m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the addResources field with a malformed event (no resource)
+'  Then: skips the malformed event but still dispatches the valid one
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddResourcesHasMalformedEvent_ThenSkipIt() as string
+    ' Given
+    malformedEvent = { eventType: "addResource" }
+    validEvent = { eventType: "addResource", resource: { url: IG_GetString(128) } }
+
+    ' When
+    m.testedNode.addResources = [malformedEvent, validEvent]
+    sleep(30)
+
+    ' Then: the valid event is dispatched and it is the only handleEvent call
+    ' (asserting the valid call first consumes it, so the {} check that follows
+    ' confirms nothing else, e.g. the malformed event, was forwarded)
+    result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: validEvent, writer: m.mockWriter }, 1)
+    result += m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+    return result
 end function
 
 '----------------------------------------------------------------
@@ -676,6 +700,29 @@ function RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch() as string
 
     ' Then
     return m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with an event carrying an invalid
+'        (non-string) operationKey
+'  Then: skips the invalid event but still dispatches the valid one
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsHasInvalidKey_ThenSkipIt() as string
+    ' Given
+    invalidEvent = { eventType: "startFeatureOperation", name: IG_GetString(32), operationKey: 1 }
+    validEvent = { eventType: "startFeatureOperation", name: IG_GetString(32) }
+
+    ' When
+    m.testedNode.reportOperations = [invalidEvent, validEvent]
+    sleep(30)
+
+    ' Then: the valid event is dispatched and it is the only handleEvent call
+    ' (asserting the valid call first consumes it, so the {} check that follows
+    ' confirms nothing else, e.g. the invalid event, was forwarded)
+    result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: validEvent, writer: m.mockWriter }, 1)
+    result += m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+    return result
 end function
 
 '----------------------------------------------------------------

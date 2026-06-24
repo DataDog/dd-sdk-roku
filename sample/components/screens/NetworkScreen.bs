@@ -15,7 +15,7 @@ sub init()
         "GetToFile",
         "PostFromString",
         "PostFromFile",
-        "Report Resources Batch"
+        "Add Resources Batch"
     ]
 
     m.networkLabelList = m.top.findNode("networkLabelList")

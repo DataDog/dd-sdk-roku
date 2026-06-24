@@ -27,8 +27,8 @@ sub performTest()
             result = PostFromString()
         else if (operationName = "PostFromFile")
             result = PostFromFile()
-        else if (operationName = "Report Resources Batch")
-            result = ReportResourcesBatch()
+        else if (operationName = "Add Resources Batch")
+            result = AddResourcesBatch()
         else
             result.error = "Operation '" + m.top.operation + "' is not implemented yet"
         end if
@@ -100,9 +100,9 @@ function PostFromFile() as object
 end function
 
 ' Builds a batch of pre-built resource events and reports them all in a single
-' cross-thread rendezvous via the reportResources field, instead of one set per
+' cross-thread rendezvous via the addResources field, instead of one set per
 ' resource.
-function ReportResourcesBatch() as object
+function AddResourcesBatch() as object
     ' The click that triggered this is what produces the resources, so stamp each
     ' one just after "now" (staggered 50ms apart) so they render after the
     ' triggering click, in order. We set startTime explicitly (the field RUM
@@ -121,7 +121,7 @@ function ReportResourcesBatch() as object
         }
         events.push(datadogroku_addResourceEvent(resource, { batch_index: i }))
     end for
-    m.global.datadogRumAgent.reportResources = events
+    m.global.datadogRumAgent.addResources = events
     return {
         reported: events.count().toStr()
     }

@@ -30,7 +30,7 @@ Copyright 2022-Today Datadog, Inc.
         <field id="addAction" type="assocarray" />
         <field id="addError" type="assocarray" />
         <field id="addResource" type="assocarray" />
-        <field id="reportResources" type="array" />
+        <field id="addResources" type="array" />
         <field id="addConfigTelemetry" type="assocarray" />
         <field id="addErrorTelemetry" type="assocarray" />
         <field id="addDebugTelemetry" type="assocarray" />

@@ -23,7 +23,7 @@ sub init()
     m.top.observeFieldScoped("addAction", m.port)
     m.top.observeFieldScoped("addError", m.port)
     m.top.observeFieldScoped("addResource", m.port)
-    m.top.observeFieldScoped("reportResources", m.port)
+    m.top.observeFieldScoped("addResources", m.port)
     m.top.observeFieldScoped("addConfigTelemetry", m.port)
     m.top.observeFieldScoped("addErrorTelemetry", m.port)
     m.top.observeFieldScoped("addDebugTelemetry", m.port)
@@ -57,8 +57,8 @@ sub rumAgentLoop()
                 __onAddError(msg.getData())
             else if(fieldName = "addResource")
                 __onAddResource(msg.getData())
-            else if(fieldName = "reportResources")
-                __onReportResources(msg.getData())
+            else if(fieldName = "addResources")
+                __onAddResources(msg.getData())
             else if(fieldName = "addConfigTelemetry")
                 __onAddConfigTelemetry(msg.getData())
             else if(fieldName = "addErrorTelemetry")
@@ -252,10 +252,17 @@ end sub
 ' Reports a batch of resources in a single rendezvous
 ' @param events (dynamic) an array of pre-built resource events, or invalid
 ' ----------------------------------------------------------------
-sub __onReportResources(events as dynamic)
+sub __onAddResources(events as dynamic)
     if (events <> invalid and m.rumScope <> invalid)
         for each event in events
-            m.rumScope@.handleEvent(event, m.writer)
+            ' The batch path bypasses the typed addResource(resource as object) wrapper,
+            ' so guard that each item carries a resource assocarray before forwarding;
+            ' a missing/invalid resource would otherwise crash the RUM scope.
+            if (type(event) = "roAssociativeArray" and type(event.resource) = "roAssociativeArray")
+                m.rumScope@.handleEvent(event, m.writer)
+            else
+                ddLogError("RumAgent: addResources received a malformed resource event, ignoring")
+            end if
         end for
     end if
 end sub
@@ -425,17 +432,52 @@ end sub
 sub __onReportOperations(events as dynamic)
     if (events <> invalid and m.rumScope <> invalid)
         for each event in events
-            m.rumScope@.handleEvent(event, m.writer)
+            if (__isValidOperationEvent(event))
+                m.rumScope@.handleEvent(event, m.writer)
+            else
+                ddLogError("RumAgent: reportOperations received an invalid operation event, ignoring")
+            end if
         end for
     end if
 end sub
 
 ' ----------------------------------------------------------------
-' Returns true if the operation name is valid (non-blank after trimming)
-' @param name (string) the operation name to validate
+' Returns true if a batched operation event carries a valid name, operationKey
+' and (for fail events) failureReason. Mirrors the validation the single-item
+' startOperation/succeedOperation/failOperation methods run before dispatching,
+' which the batch path bypasses by taking pre-built events. Without it a bad
+' key (e.g. a non-string) would crash the task in __operationLookupKey.
+' @param event (dynamic) the pre-built operation event to validate
+' @return (boolean) whether the event is safe to forward
+' ----------------------------------------------------------------
+function __isValidOperationEvent(event as dynamic) as boolean
+    if (type(event) <> "roAssociativeArray")
+        return false
+    end if
+    if (not __isValidOperationName(event.name))
+        return false
+    end if
+    if (not __isValidOperationKey(event.operationKey))
+        return false
+    end if
+    ' start/succeed events carry no failureReason (invalid is fine); fail events do
+    if (event.failureReason <> invalid and not __isValidFailureReason(event.failureReason))
+        return false
+    end if
+    return true
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the operation name is valid (a non-blank string after
+' trimming). Accepts dynamic so it can guard pre-built batch events as well as
+' the typed single-item callers.
+' @param name (dynamic) the operation name to validate
 ' @return (boolean) whether the name is valid
 ' ----------------------------------------------------------------
-function __isValidOperationName(name as string) as boolean
+function __isValidOperationName(name as dynamic) as boolean
+    if (type(name) <> "roString" and type(name) <> "String")
+        return false
+    end if
     return name.Trim().Len() > 0
 end function
 
@@ -460,10 +502,15 @@ function __isValidOperationKey(operationKey as dynamic) as boolean
 end function
 
 ' ----------------------------------------------------------------
-' Returns true if the failureReason is a known FailureReason value
-' @param failureReason (string) the failure reason to validate
+' Returns true if the failureReason is a known FailureReason value. Accepts
+' dynamic so it can guard pre-built batch events as well as the typed
+' single-item callers.
+' @param reason (dynamic) the failure reason to validate
 ' @return (boolean) whether the failure reason is valid
 ' ----------------------------------------------------------------
-function __isValidFailureReason(reason as string) as boolean
+function __isValidFailureReason(reason as dynamic) as boolean
+    if (type(reason) <> "roString" and type(reason) <> "String")
+        return false
+    end if
     return (reason = FailureReason.error or reason = FailureReason.abandoned or reason = FailureReason.other)
 end function
