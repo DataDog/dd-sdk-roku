@@ -7,7 +7,7 @@ IFS=$'\n'
 
 # Lists all files requiring the license header.
 function files {
-	find -E . -iregex '.*\.(xml|brs|sh)$' \
+	find . \( -iname '*.xml' -o -iname '*.brs' -o -iname '*.sh' \) \
         -not -path "*/dist/*" \
         -not -path "*/out/*" \
         -not -path "*/node_modules/*" \

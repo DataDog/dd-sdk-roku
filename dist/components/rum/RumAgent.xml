@@ -4,6 +4,7 @@
         <field id="site" type="string" value="us1" />
         <field id="env" type="string" value="" />
         <field id="applicationId" type="string" />
+        <field id="instanceId" type="string" />
         <field id="service" type="string" />
         <field id="version" type="string" />
         <field id="deviceName" type="string" />

@@ -1,4 +1,16 @@
-# Next release: 1.6.0
+# Next release: 1.7.0
+
+# 1.6.0 / 2026-06-25
+* [FEATURE] Support multiple tracing header types in `DdUrlTransfer`. See [#181](https://github.com/DataDog/dd-sdk-roku/pull/181)
+* [BUGFIX] Fix race condition: seed RUM `instanceId` on the render thread. See [#192](https://github.com/DataDog/dd-sdk-roku/pull/192)
+* [BUGFIX] Emit decimal `span_id` and zero-padded 32-char hex `trace_id` in RUM resource events. See [#185](https://github.com/DataDog/dd-sdk-roku/pull/185)
+* [IMPROVEMENT] Add device and OS information to RUM crash events. See [#187](https://github.com/DataDog/dd-sdk-roku/pull/187)
+* [IMPROVEMENT] Add crash count `0` to RUM view event. See [#183](https://github.com/DataDog/dd-sdk-roku/pull/183)
+* [IMPROVEMENT] Use request dispatch time as RUM resource start date. See [#180](https://github.com/DataDog/dd-sdk-roku/pull/180)
+* [MAINTENANCE] Unify BrighterScript build tooling across all targets. See [#184](https://github.com/DataDog/dd-sdk-roku/pull/184)
+* [MAINTENANCE] Add `cspell` and fix typos across the codebase. See [#188](https://github.com/DataDog/dd-sdk-roku/pull/188)
+* [MAINTENANCE] Clean up RUM TODOs and tests. See [#190](https://github.com/DataDog/dd-sdk-roku/pull/190)
+* [MAINTENANCE] Clean up GitLab CI and build setup. See [#191](https://github.com/DataDog/dd-sdk-roku/pull/191)
 
 # 1.5.0 / 2026-06-03
 * [FEATURE] Support trace sampling based on Session Id. See [#169](https://github.com/DataDog/dd-sdk-roku/pull/169)

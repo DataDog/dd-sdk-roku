@@ -28,7 +28,7 @@ end function
 ' @param event (object) the event to handle
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
-sub handleEvent(event as object, writer as object)
+sub handleEvent(event as object, _writer as object)
     ddLogVerbose("RumScope::handleEvent(" + FormatJson(event) + ", writer)")
 end sub
 
@@ -39,6 +39,5 @@ end sub
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
     ddLogVerbose("RumScope::isActive()")
-    ' TODO
-    return invalid
+    return true
 end function

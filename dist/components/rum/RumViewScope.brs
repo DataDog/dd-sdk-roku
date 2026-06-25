@@ -10,7 +10,7 @@
 ' ****************************************************************
 ' * RumViewScope: handles the View level
 ' *  - send view updates when required
-' *  - TODO handle children scopes
+' *  - delegates action events to a child RumActionScope
 ' ****************************************************************
 
 ' ----------------------------------------------------------------
@@ -245,7 +245,6 @@ end sub
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub addAction(action as object, context as object, writer as object)
-    ' TODO RUMM-2586 handle multiple consecutive actions
     if (action.type = "custom")
         sendCustomAction(action.target, context, writer)
     else if (m.top.activeAction = invalid)
@@ -335,6 +334,7 @@ end sub
 '  - bytesDownloaded (dynamic) the size of the downloaded payload (in bytes as integer) or invalid
 '  - traceId (dynamic) the id of the trace forwarded in the request header (as string), or invalid
 '  - spanId (dynamic) the id of the span forwarded in the request header (as string), or invalid
+'  - startTime (dynamic) the wall-clock dispatch time (ms since EPOCH) when the request started, or invalid
 ' @param context (object) an assocarray of custom attributes to add to the view
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
@@ -346,7 +346,14 @@ sub sendResource(resource as object, context as object, writer as object)
     if (m.top.activeAction <> invalid)
         actionId = m.top.activeAction.callfunc("getRumContext", invalid).actionId
     end if
-    startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
+    ' Prefer the dispatch time captured when the request started; falling back to
+    ' (now - transferTime) drifts the resource start later by the latency between the
+    ' request completing and this event being serialized.
+    if (resource.startTime <> invalid)
+        startTimestampMs& = resource.startTime
+    else
+        startTimestampMs& = timestamp& - secToMillis(resource.transferTime)
+    end if
     resourceEvent = {
         _dd: {
             format_version: 2
@@ -556,6 +563,9 @@ sub sendViewUpdate(context as object, writer as object)
             time_spent: timeSpentNs&
             action: {
                 count: m.actionCount
+            }
+            crash: {
+                count: 0
             }
             error: {
                 count: m.errorCount

@@ -46,8 +46,7 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
-    ' TODO
-    return invalid
+    return true
 end function
 
 sub setupIfNeeded()

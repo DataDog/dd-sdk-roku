@@ -37,6 +37,7 @@ sub RunUserInterface(args as dynamic)
         applicationId: credentials.datadogApplicationId,
         site: credentials.site,
         env: "prod",
+        service: "com.datadog.roku.sample",
         launchArgs: args,
         traceSampleRate: 100,
         tracingHeaderTypes: credentials.mirrorHostsTracingHeaderTypes,

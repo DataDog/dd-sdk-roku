@@ -28,9 +28,11 @@ function __DdUrlTransfer_builder()
     ' ----------------------------------------------------------------
     ' Sets the traced hosts.
     '
-    ' @param tracingHeaderTypes (array) a array of associative arrays. Each array item must have a the following entries:
+    ' @param tracingHeaderTypes (array) an array of associative arrays. Each array item must have the following entries:
     '   - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
-    '   - 'header': one of the supported tracing header types :
+    '   - 'header': either a single tracing header type, or an array of tracing header types. When several
+    '       types are provided for a host, all of them are injected into the request (sharing the same
+    '       trace and span ids), matching the Datadog Browser SDK `allowedTracingUrls` behavior. Supported values:
     '       - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
     '       - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
     '       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
@@ -109,6 +111,7 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToString()
         if (not result)
@@ -133,6 +136,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "GET"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             bytesDownloaded: bytesDownloaded
@@ -170,6 +174,7 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncGetToFile(filename)
         if (not result)
@@ -194,6 +199,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "GET"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             bytesDownloaded: bytesDownloaded
@@ -226,6 +232,7 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromString(request)
         if (not result)
@@ -248,6 +255,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "POST"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             traceId: m.traceId
@@ -280,6 +288,7 @@ function __DdUrlTransfer_builder()
         m.roUrlTransfer.SetMessagePort(port)
         url = m.roUrlTransfer.GetUrl()
         m._traceRequest()
+        startTime& = getTimestamp()
         timer.Mark()
         result = m.roUrlTransfer.AsyncPostFromFile(filename)
         if (not result)
@@ -302,6 +311,7 @@ function __DdUrlTransfer_builder()
                             url: url
                             method: "POST"
                             transferTime: transferTime#
+                            startTime: startTime&
                             httpCode: httpCode
                             status: status
                             traceId: m.traceId
@@ -323,7 +333,7 @@ function __DdUrlTransfer_builder()
     ' Returns the body of the response even if the HTTP status code indicates
     ' that an error occurred.
     '
-    ' @param retain (booleanà A flag specifying whether to return the response
+    ' @param retain (boolean) A flag specifying whether to return the response
     ' body when there is an HTTP error response code.
     '
     ' @return (boolean) A flag indicating whether the operation was successful
@@ -617,15 +627,15 @@ function __DdUrlTransfer_builder()
     instance._traceRequest = sub()
         sessionId = m.global.datadogRumContext?.sessionId
         isSampledIn = m._isSampledIn(sessionId)
-        headerType = getTracedHeaderType(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
-        if (headerType <> invalid)
-            ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + headerType)
+        headerTypes = getTracedHeaderTypes(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
+        if (headerTypes.count() > 0)
+            ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + FormatJson(headerTypes))
             if (isSampledIn)
                 ddLogInfo("Request trace is sampled in")
-                m._addSampledInHeaders(headerType, sessionId)
+                m._addSampledInHeaders(headerTypes, sessionId)
             else if (m.traceContextInjection = "all")
                 ddLogInfo("Request trace is sampled out")
-                m._addSampledOutHeaders(headerType)
+                m._addSampledOutHeaders(headerTypes)
             else
                 ddLogInfo("Request trace is sampled out, but no header is added.")
             end if
@@ -711,42 +721,58 @@ function __DdUrlTransfer_builder()
     end function
     ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
-    ' matching the given type
-    ' @param headerType (string) the header type to use
+    ' matching the given types. A single trace/span id is generated and
+    ' shared across all header types so that the same trace is propagated
+    ' whatever propagation format the downstream service relies on.
+    ' @param headerTypes (array) the list of header types to use
     ' ----------------------------------------------------------------
-    instance._addSampledInHeaders = sub(headerType as object, sessionId as dynamic)
+    instance._addSampledInHeaders = sub(headerTypes as object, sessionId as dynamic)
         m._deleteTracingHeaders()
         if (sessionId <> invalid and sessionId.len() > 0)
             m.AddHeader("baggage", "session.id=" + sessionId)
         end if
+        ' A single trace context is shared by every propagation format.
+        traceContext = generateTraceContext()
+        m.traceId = invalid
+        m.spanId = invalid
+        for each headerType in headerTypes
+            m._addSampledInHeadersForType(headerType, traceContext)
+        end for
+    end sub
+    ' ----------------------------------------------------------------
+    ' (Internal) adds the headers for a single propagation format using
+    ' the provided shared trace context.
+    ' @param headerType (TracingHeaderType) the header type to use
+    ' @param traceContext (object) the shared trace context (see generateTraceContext)
+    ' ----------------------------------------------------------------
+    instance._addSampledInHeadersForType = sub(headerType as object, traceContext as object)
         if (headerType = "datadog")
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
             ' Datadog uses a complex system for compatibility purposes
-            ddId = generateUniqueIdDd()
-            m.traceId = ddId[0]
-            m.spanId = generateUniqueId64(10)
-            m.AddHeader("x-datadog-trace-id", ddId[1])
-            m.AddHeader("x-datadog-tags", "_dd.p.tid=" + ddId[2])
-            m.AddHeader("x-datadog-parent-id", m.spanId)
+            m.AddHeader("x-datadog-trace-id", traceContext.traceIdLowDec)
+            m.AddHeader("x-datadog-tags", "_dd.p.tid=" + traceContext.traceIdHighHex)
+            m.AddHeader("x-datadog-parent-id", traceContext.spanIdDec)
             m.AddHeader("x-datadog-sampling-priority", "1")
             m.AddHeader("x-datadog-origin", "rum")
         else if (headerType = "b3")
-            m.traceId = generateUniqueId128(16)
-            m.spanId = generateUniqueId64(16)
-            hexTraceId = padLeft(m.traceId, 32, "0")
-            hexSpanId = padLeft(m.spanId, 16, "0")
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
+            hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
+            hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
             b3 = hexTraceId + "-" + hexSpanId + "-1"
             m.AddHeader("b3", b3)
         else if (headerType = "b3multi")
-            m.traceId = generateUniqueId128(16)
-            m.spanId = generateUniqueId64(16)
-            m.AddHeader("X-B3-TraceId", m.traceId)
-            m.AddHeader("X-B3-SpanId", m.spanId)
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
+            m.AddHeader("X-B3-TraceId", padLeft(traceContext.traceIdFullHex, 32, "0"))
+            m.AddHeader("X-B3-SpanId", padLeft(traceContext.spanIdHex, 16, "0"))
             m.AddHeader("X-B3-Sampled", "1")
         else if (headerType = "tracecontext")
-            m.traceId = generateUniqueId128(16)
-            m.spanId = generateUniqueId64(16)
-            hexTraceId = padLeft(m.traceId, 32, "0")
-            hexSpanId = padLeft(m.spanId, 16, "0")
+            m.traceId = traceContext.traceIdFullHex
+            m.spanId = traceContext.spanIdDec
+            hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
+            hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
             traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
             m.AddHeader("traceparent", traceparent)
             usrId = m.global.datadogUserInfo.id
@@ -760,31 +786,31 @@ function __DdUrlTransfer_builder()
             end if
             m.AddHeader("tracestate", tracestate)
         else
-            m.traceId = invalid
-            m.spanId = invalid
             ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
         end if
     end sub
     ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
-    ' matching the given type, to sample this request out
-    ' @param headerType (TracingHeaderType) the header type to use
+    ' matching the given types, to sample this request out
+    ' @param headerTypes (array) the list of header types to use
     ' ----------------------------------------------------------------
-    instance._addSampledOutHeaders = sub(headerType as object)
+    instance._addSampledOutHeaders = sub(headerTypes as object)
         m._deleteTracingHeaders()
         m.traceId = invalid
         m.spanId = invalid
-        if (headerType = "datadog")
-            m.AddHeader("x-datadog-sampling-priority", "0")
-        else if (headerType = "b3")
-            m.AddHeader("b3", "0")
-        else if (headerType = "b3multi")
-            m.AddHeader("X-B3-Sampled", "0")
-        else if (headerType = "tracecontext")
-            m.AddHeader("traceparent", "00-" + padLeft("", 32, "0") + "-" + padLeft("", 16, "0") + "-00")
-        else
-            ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
-        end if
+        for each headerType in headerTypes
+            if (headerType = "datadog")
+                m.AddHeader("x-datadog-sampling-priority", "0")
+            else if (headerType = "b3")
+                m.AddHeader("b3", "0")
+            else if (headerType = "b3multi")
+                m.AddHeader("X-B3-Sampled", "0")
+            else if (headerType = "tracecontext")
+                m.AddHeader("traceparent", "00-" + padLeft("", 32, "0") + "-" + padLeft("", 16, "0") + "-00")
+            else
+                ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
+            end if
+        end for
     end sub
     ' ----------------------------------------------------------------
     ' (Internal) delete the tracing headers to avoid duplicated value
@@ -802,6 +828,7 @@ function __DdUrlTransfer_builder()
         m.headers.Delete("x-datadog-parent-id")
         m.headers.Delete("x-datadog-sampling-priority")
         m.headers.Delete("x-datadog-origin")
+        m.headers.Delete("x-datadog-tags")
         m.headers.Delete("b3")
         m.headers.Delete("X-B3-TraceId")
         m.headers.Delete("X-B3-SpanId")
@@ -841,18 +868,21 @@ end function
 '*****************************************************************
 
 ' ----------------------------------------------------------------
-' Verifies whether the given url uses one of the provided hosts
+' Returns every tracing header type configured for the given url's host.
+' Mirrors the Datadog Browser SDK `allowedTracingUrls` behavior where a
+' single host can be associated with several propagators, all of which
+' are injected into the request.
 ' @param url (string) a url
-' @param tracingHeaderTypes (array) a array of associative arrays. Each array item must have a the following entries:
+' @param tracingHeaderTypes (array) a array of associative arrays. Each array item must have the following entries:
 '   - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
-'   - 'header': one of the supported tracing header types :
+'   - 'header': either a single tracing header type, or an array of tracing header types. Supported values:
 '       - "b3": Open Telemetry B3 Single header (cf: https://github.com/openzipkin/b3-propagation#single-header)
 '       - "b3multi": Open Telemetry B3 Multiple header (cf: https://github.com/openzipkin/b3-propagation#multiple-headers)
 '       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
 '       - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
-' @return (dynamic) the tracing header to use or invalid
+' @return (array) the deduplicated list of tracing header types to use (empty if the host is not configured)
 ' ----------------------------------------------------------------
-function getTracedHeaderType(url as string, tracingHeaderTypes as object) as dynamic
+function getTracedHeaderTypes(url as string, tracingHeaderTypes as object) as object
     tokens = url.split("/")
     ' assuming we have "scheme://host[/…]",
     ' tokens[0] = 'scheme:'
@@ -860,55 +890,130 @@ function getTracedHeaderType(url as string, tracingHeaderTypes as object) as dyn
     ' tokens[2] = 'host'
     ' tokens[3+] = params
     urlHost = tokens[2]
+    headerTypes = []
+    seen = {}
     for each item in tracingHeaderTypes
         if (item.host = urlHost)
-            return item.header
+            header = item.header
+            if (GetInterface(header, "ifArray") <> invalid)
+                for each headerType in header
+                    if (headerType <> invalid and not seen.doesExist(headerType))
+                        seen[headerType] = true
+                        headerTypes.Push(headerType)
+                    end if
+                end for
+            else if (header <> invalid and not seen.doesExist(header))
+                seen[header] = true
+                headerTypes.Push(header)
+            end if
         end if
     end for
-    return invalid
+    return headerTypes
 end function
 
 ' ----------------------------------------------------------------
-' Generates a unique identifier as a 64 bits random number
-' @param radix (integer) the radix to use when representing the id as a string
-' @return (string) the generated Unique id
+' Generates a single trace context (trace id and span id) and exposes
+' the representations required by the different propagation formats.
+' Sharing one context guarantees the same trace is propagated regardless
+' of which header(s) the downstream service reads.
+' @return (object) an associative array with the following entries:
+'   - traceIdFullHex (string) the full 128 bit trace id in hexadecimal
+'   - traceIdLowDec (string) the low 64 bit part of the trace id in decimal (Datadog's `x-datadog-trace-id`)
+'   - traceIdHighHex (string) the high 64 bit part of the trace id in hexadecimal (Datadog's `_dd.p.tid`)
+'   - spanIdDec (string) the 64 bit span id in decimal
+'   - spanIdHex (string) the 64 bit span id in hexadecimal
 ' ----------------------------------------------------------------
-function generateUniqueId64(radix = 10 as integer) as string
-    maxInt = 4294967295
-    return printIdToString(0, 0, Rnd(maxInt) - 1, Rnd(maxInt) - 1, radix)
+function generateTraceContext() as object
+    traceId = generateTraceId()
+    spanId = generateSpanId()
+    return {
+        traceIdFullHex: traceId.hex
+        traceIdLowDec: traceId.lowDecimal
+        traceIdHighHex: traceId.highHex
+        spanIdDec: spanId.decimal
+        spanIdHex: spanId.hex
+    }
 end function
 
 ' ----------------------------------------------------------------
-' Generates a unique identifier as a 128 bits random number
-' @param radix (integer) the radix to use when representing the id as a string
-' @return (string) the generated Unique id
+' Generates a 128 bit trace id with all the representations required
+' by the supported tracing headers and the RUM resource event.
+'
+' The backend (rum-span-mapper) only correlates a RUM resource to an APM
+' span when `_dd.trace_id` is either a 64 bit decimal number or a 128 bit
+' hexadecimal number padded to exactly 32 chars; an unpadded hexadecimal
+' id (shorter than 32 chars) is rejected. We therefore zero-pad the id.
+'
+' @return (object) an associative array with the following entries:
+'   - hex (string) the full 128 bit id as a 32 char zero-padded hexadecimal
+'       string (used by the RUM event, the W3C and the B3 headers)
+'   - lowDecimal (string) the low 64 bit part in decimal (used by the legacy
+'       x-datadog-trace-id header)
+'   - highHex (string) the high 64 bit part as a 16 char zero-padded
+'       hexadecimal string (used by the _dd.p.tid Datadog tag)
 ' ----------------------------------------------------------------
-function generateUniqueId128(radix = 10 as integer) as string
-    maxInt = 4294967295
-    return printIdToString(Rnd(maxInt) - 1, Rnd(maxInt) - 1, Rnd(maxInt) - 1, Rnd(maxInt) - 1, radix)
+function generateTraceId() as object
+    high0& = random32()
+    high1& = random32()
+    low0& = random32()
+    low1& = random32()
+    return {
+        hex: padLeft(printIdToString(high0&, high1&, low0&, low1&, 16), 32, "0")
+        lowDecimal: renderId64(low0&, low1&).decimal
+        highHex: renderId64(high0&, high1&).hex
+    }
 end function
 
 ' ----------------------------------------------------------------
-' Generates a unique identifier as a 128 bits random number, fit for Datadog's specification
-' @return (array) the array with the generated id as a list of strings:
-'     - the full 128 bit id in hexadecimal
-'     - the low 64 bit part of the id in decimal (compatible with Datadog's legacy x-datadog-trace-id header)
-'     - the high 64 bit part of the id in id in hexadecimal
+' Generates a 64 bit span id with all the representations required
+' by the supported tracing headers and the RUM resource event.
+'
+' The backend (rum-span-mapper) only correlates a RUM resource to an APM
+' span when `_dd.span_id` is a strictly positive decimal number; a
+' hexadecimal span id is rejected. We therefore expose a decimal form for
+' the RUM event and the Datadog header, and a hexadecimal form for the
+' W3C and B3 headers.
+'
+' @return (object) an associative array with the following entries:
+'   - decimal (string) the id in decimal (used by the RUM event and the
+'       x-datadog-parent-id header)
+'   - hex (string) the id as a 16 char zero-padded hexadecimal string
+'       (used by the W3C and B3 headers)
 ' ----------------------------------------------------------------
-function generateUniqueIdDd() as object
-    maxInt = 4294967295
-    high0& = Rnd(maxInt) - 1
-    high1& = Rnd(maxInt) - 1
-    low0& = Rnd(maxInt) - 1
-    low1& = Rnd(maxInt) - 1
-    fullId = printIdToString(high0&, high1&, low0&, low1&, 16)
-    lowId = printIdToString(0, 0, low0&, low1&, 10)
-    highId = printIdToString(0, 0, high0&, high1&, 16)
-    return [
-        fullId
-        lowId
-        highId
-    ]
+function generateSpanId() as object
+    return renderId64(random32(), random32())
+end function
+
+' ----------------------------------------------------------------
+' Renders a 64 bit id (given as two 32 bit halves) in the representations
+' shared by the trace and span id generators.
+' @param hi& (longinteger) the high 32 bits
+' @param lo& (longinteger) the low 32 bits
+' @return (object) an associative array with the following entries:
+'   - decimal (string) the id in decimal (used by the RUM event and the
+'       Datadog headers)
+'   - hex (string) the id as a 16 char zero-padded hexadecimal string
+'       (used by the W3C and B3 headers)
+' ----------------------------------------------------------------
+function renderId64(hi& as longinteger, lo& as longinteger) as object
+    return {
+        decimal: printIdToString(0, 0, hi&, lo&, 10)
+        hex: padLeft(printIdToString(0, 0, hi&, lo&, 16), 16, "0")
+    }
+end function
+
+' ----------------------------------------------------------------
+' Generates a uniformly distributed unsigned 32 bit value.
+'
+' BrightScript's `Rnd(n)` takes a signed 32 bit Integer, so it cannot be
+' asked directly for the full unsigned 32 bit range; we assemble the value
+' from two independent 16 bit draws instead.
+' @return (longinteger) a value in [0, 4294967295]
+' ----------------------------------------------------------------
+function random32() as longinteger
+    high& = Rnd(65536) - 1 ' 0..65535
+    low& = Rnd(65536) - 1 ' 0..65535
+    return (high& << 16) + low&
 end function
 
 function printIdToString(li0& as longinteger, li1& as longinteger, li2& as longinteger, li3& as longinteger, radix = 10 as integer) as string
@@ -939,6 +1044,12 @@ function printIdToString(li0& as longinteger, li1& as longinteger, li2& as longi
             id = chr(digit + 87) + id ' char 'a' is 97 = 10 + 87
         end if
     end while
+    ' A zero value produces no digits in the loop above; return "0" rather than
+    ' an empty string so decimal ids stay valid (e.g. the backend requires
+    ' `_dd.span_id` to be a strictly positive decimal, and "" / missing is rejected).
+    if (id = "")
+        return "0"
+    end if
     return id
 end function
 

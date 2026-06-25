@@ -247,6 +247,9 @@ function DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal() as
     Assert.that(actualDatadogRumAgent.service).isEqualTo(randomService)
     Assert.that(actualDatadogRumAgent.version).isEqualTo(randomVersion)
     Assert.that(actualDatadogRumAgent.sessionSampleRate).isEqualTo(randomSessionRate)
+    Assert.that(actualDatadogRumAgent.instanceId).isNotEmpty()
+    rumContext = fakeGlobal.getField("datadogRumContext")
+    Assert.that(rumContext.instanceId).isEqualTo(actualDatadogRumAgent.instanceId)
     return ""
 end function
 

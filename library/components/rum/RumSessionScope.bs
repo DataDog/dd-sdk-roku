@@ -42,7 +42,6 @@ end function
 ' @param writer (object) the writer node (see WriterTask component)
 ' ----------------------------------------------------------------
 sub handleEvent(event as object, writer as object)
-    ' TODO RUMM-2478 update session (+ update global rum context)
     updateSession(event.eventType)
 
     if (m.sessionState = RumSessionState.tracked)
@@ -79,8 +78,7 @@ end sub
 ' @return (boolean) `true` if this scope expects more event, `false` if it's complete
 ' ----------------------------------------------------------------
 function isActive(_ph as dynamic) as boolean
-    ' TODO
-    return invalid
+    return true
 end function
 
 ' ----------------------------------------------------------------

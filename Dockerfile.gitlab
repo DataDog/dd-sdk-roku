@@ -83,18 +83,13 @@ RUN set -x \
 RUN node --version
 RUN npm --version
 
-# Install NPM global dependencies
-RUN npm install -g brighterscript
-RUN npm install -g ropm
-RUN npm install -g @rokucommunity/bslint
-
 ####################################################################################################
 # MISC
 ####################################################################################################
 
 # Woke
-ENV WOKE_VERSION "0.6.0"
-ENV WOKE_SHA256 "ea5605d4242b93d9586a21878264dd8abcf64ed92f0f6538ea831d9d3215b883"
+ENV WOKE_VERSION="0.6.0"
+ENV WOKE_SHA256="ea5605d4242b93d9586a21878264dd8abcf64ed92f0f6538ea831d9d3215b883"
 
 RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/woke-${WOKE_VERSION}-linux-amd64.tar.gz -o woke-linux-amd64.tar.gz \
    && echo "${WOKE_SHA256} woke-linux-amd64.tar.gz" | sha256sum -c  \
@@ -106,8 +101,8 @@ RUN curl -L https://github.com/get-woke/woke/releases/download/v${WOKE_VERSION}/
 # ROKU
 ####################################################################################################
 
-ENV ROKU_SCA_URL "http://devtools.web.roku.com/static-channel-analysis/sca-cmd.zip"
-ENV ROKU_SCA_SHA256 "b4affb79c7924c5dfc10c9f9358d32e5fa279386711c328c067e3819d5278ff8"
+ENV ROKU_SCA_URL="https://devtools.web.roku.com/static-channel-analysis/sca-cmd.zip"
+ENV ROKU_SCA_SHA256="79267cba877a404989a443ed0789e769c11fde6a8c753ce5658b0011274993e6"
 RUN curl -L $ROKU_SCA_URL -o sca-cmd.zip \
    && echo "${ROKU_SCA_SHA256} sca-cmd.zip" | sha256sum -c  \
    && unzip sca-cmd.zip \
