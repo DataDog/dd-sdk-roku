@@ -5,6 +5,7 @@
 import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
 import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
+import "pkg:/source/roku_modules/datadogroku/rum/rumRawEvents.brs"
 
 sub init()
     datadogroku_ddLogThread("OperationsScreen.init()")
@@ -17,7 +18,8 @@ sub init()
         "Start Login",
         "Fail Login (error)",
         "Start Keyed Operation",
-        "Succeed Keyed Operation"
+        "Succeed Keyed Operation",
+        "Report Operations Batch"
     ]
 
     m.operationsLabelList = m.top.findNode("operationsLabelList")
@@ -65,6 +67,8 @@ sub onItemSelected()
         startKeyedOperation()
     else if (itemSelected = 6)
         succeedKeyedOperation()
+    else if (itemSelected = 7)
+        reportOperationsBatch()
     end if
 end sub
 
@@ -135,4 +139,30 @@ sub succeedKeyedOperation()
     m.global.datadogRumAgent@.succeedOperation("contentLoad", m.lastOperationKey)
     m.msgLabel.text = "Keyed operation succeeded: contentLoad [" + m.lastOperationKey + "]"
     m.lastOperationKey = invalid
+end sub
+
+' Builds a batch of pre-built operation events on this thread and reports them
+' all in a single cross-thread rendezvous via the reportOperations field.
+'
+' The builders stamp each event with getTimestamp() at build time, so a batch
+' built in one tight loop would record near-zero durations. We override the
+' per-event timestamp (a supported field, honored by sendVitalEvent) to give
+' each operation a realistic span: a 200ms startup that succeeds, followed by a
+' 100ms prefetch that fails.
+sub reportOperationsBatch()
+    now& = datadogroku_getTimestamp()
+
+    startupStart = datadogroku_startFeatureOperationEvent("batchStartup", invalid, { source: "batch" })
+    startupStart.timestamp = now&
+    startupEnd = datadogroku_succeedFeatureOperationEvent("batchStartup", invalid, { source: "batch" })
+    startupEnd.timestamp = now& + 200
+
+    prefetchStart = datadogroku_startFeatureOperationEvent("batchPrefetch", invalid, {})
+    prefetchStart.timestamp = now& + 200
+    prefetchEnd = datadogroku_failFeatureOperationEvent("batchPrefetch", invalid, "error", { error_code: "timeout" })
+    prefetchEnd.timestamp = now& + 300
+
+    events = [startupStart, startupEnd, prefetchStart, prefetchEnd]
+    m.global.datadogRumAgent.reportOperations = events
+    m.msgLabel.text = "Reported " + events.count().toStr() + " operation events in one batch"
 end sub

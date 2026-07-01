@@ -20,12 +20,14 @@
         <field id="addAction" type="assocarray" />
         <field id="addError" type="assocarray" />
         <field id="addResource" type="assocarray" />
+        <field id="addResources" type="array" />
         <field id="addConfigTelemetry" type="assocarray" />
         <field id="addErrorTelemetry" type="assocarray" />
         <field id="addDebugTelemetry" type="assocarray" />
         <field id="startOperation" type="assocarray" />
         <field id="succeedOperation" type="assocarray" />
         <field id="failOperation" type="assocarray" />
+        <field id="reportOperations" type="array" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
