@@ -21,99 +21,117 @@ end sub
 ' Adds a ok log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logOk(message as string, attributes as object)
+sub logOk(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logOk()")
     ddLogVerbose("[ OK ] " + message)
-    sendLog("ok", message, attributes)
+    sendLog("ok", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a debug log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logDebug(message as string, attributes as object)
+sub logDebug(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logDebug()")
     ddLogVerbose("[ DEBUG ] " + message)
-    sendLog("debug", message, attributes)
+    sendLog("debug", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a info log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logInfo(message as string, attributes as object)
+sub logInfo(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logInfo()")
     ddLogInfo("[ INFO ] " + message)
-    sendLog("info", message, attributes)
+    sendLog("info", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a notice log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logNotice(message as string, attributes as object)
+sub logNotice(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logNotice()")
     ddLogInfo("[ NOTICE ] " + message)
-    sendLog("notice", message, attributes)
+    sendLog("notice", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a warn log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logWarn(message as string, attributes as object)
+sub logWarn(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logWarn()")
     ddLogWarning("[ WARN ] " + message)
-    sendLog("warn", message, attributes)
+    sendLog("warn", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a error log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logError(message as string, attributes as object)
+sub logError(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logError()")
     ddLogError("[ ERROR ] " + message)
-    sendLog("error", message, attributes)
+    sendLog("error", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a critical log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logCritical(message as string, attributes as object)
+sub logCritical(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logCritical()")
     ddLogError("[ CRITICAL ] " + message)
-    sendLog("critical", message, attributes)
+    sendLog("critical", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a alert log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logAlert(message as string, attributes as object)
+sub logAlert(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logAlert()")
     ddLogError("[ ALERT ] " + message)
-    sendLog("alert", message, attributes)
+    sendLog("alert", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
 ' Adds a emergency log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested; defaults to the current time when not provided
 ' ----------------------------------------------------------------
-sub logEmergency(message as string, attributes as object)
+sub logEmergency(message as string, attributes as object, timestamp = invalid as dynamic)
     ddLogThread("LogsAgent.logEmergency()")
     ddLogError("[ EMERGENCY ] " + message)
-    sendLog("emergency", message, attributes)
+    sendLog("emergency", message, attributes, timestamp)
 end sub
 
 ' ----------------------------------------------------------------
@@ -121,12 +139,19 @@ end sub
 ' @param status (LogStatus) the status of the log
 ' @param message (string) the log message
 ' @param attributes (object) additional custom attributes
+' @param timestamp (dynamic) optional timestamp (ms since epoch) for when the
+'   log was requested. When provided it is used as the event date so the log
+'   reflects when it was requested rather than when the agent processes it;
+'   otherwise the current time is used.
 ' ----------------------------------------------------------------
-sub sendLog(status as object, message as string, attributes as object)
-    timestamp& = getTimestamp()
+sub sendLog(status as object, message as string, attributes as object, timestamp = invalid as dynamic)
+    eventTimestamp& = getTimestamp()
+    if (timestamp <> invalid)
+        eventTimestamp& = timestamp
+    end if
     setupIfNeeded()
     logEvent = {
-        date: timestamp&
+        date: eventTimestamp&
         ddtags: "env:" + m.env + ",version:" + m.version
         message: message
         status: status

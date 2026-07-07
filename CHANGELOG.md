@@ -1,4 +1,5 @@
 # Next release: 1.7.0
+* [IMPROVEMENT] Allow an optional caller-provided timestamp on the `LogsAgent` logging APIs so a log's date reflects when it was requested rather than when the agent processes it.
 
 # 1.6.0 / 2026-06-25
 * [FEATURE] Support multiple tracing header types in `DdUrlTransfer`. See [#181](https://github.com/DataDog/dd-sdk-roku/pull/181)
