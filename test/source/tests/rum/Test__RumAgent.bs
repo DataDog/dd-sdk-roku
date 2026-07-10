@@ -47,8 +47,9 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch", RumAgentTest__WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithSpacedOperationKey_ThenDispatch", RumAgentTest__WhenStartOperationWithSpacedOperationKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithNilKey_ThenDispatch", RumAgentTest__WhenStartOperationWithNilKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
-    this.addTest("WhenStartOperationWithBlankKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
-    this.addTest("WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithBlankKey_ThenDispatchWithWarning", RumAgentTest__WhenStartOperationWithBlankKey_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithWhitespaceKey_ThenDispatchWithWarning", RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithNonStringKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithNonStringKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenFailOperationWithInvalidReason_ThenDoNotDispatch", RumAgentTest__WhenFailOperationWithInvalidReason_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     return this
@@ -857,9 +858,11 @@ end function
 '----------------------------------------------------------------
 ' Given: a RumAgent
 '  When: call the startOperation method with a blank operationKey
-'  Then: do not dispatch any event to the RumScope
+'  Then: dispatch the event anyway — operationKey is optional, so a
+'        malformed value is never grounds to drop the step. The agent
+'        still logs a WARNING to flag the suspicious key.
 '----------------------------------------------------------------
-function RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch() as string
+function RumAgentTest__WhenStartOperationWithBlankKey_ThenDispatchWithWarning() as string
     ' Given
     fakeName = IG_GetString(32)
 
@@ -868,20 +871,44 @@ function RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch() as str
     sleep(30)
 
     ' Then
-    return m.mockRumScope@.assertNoInteractions()
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].event.operationKey).isEqualTo("")
+    return ""
 end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
 '  When: call the startOperation method with a whitespace-only operationKey
-'  Then: do not dispatch any event to the RumScope
+'  Then: dispatch the event anyway — see blank-key test above.
 '----------------------------------------------------------------
-function RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch() as string
+function RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDispatchWithWarning() as string
     ' Given
     fakeName = IG_GetString(32)
 
     ' When
     m.testedNode@.startOperation(fakeName, "   ")
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].event.operationKey).isEqualTo("   ")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a non-string, non-invalid
+'        operationKey (a caller-side type error, not a schema concern)
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithNonStringKey_ThenDoNotDispatch() as string
+    ' Given
+    fakeName = IG_GetString(32)
+
+    ' When
+    m.testedNode@.startOperation(fakeName, 42)
     sleep(30)
 
     ' Then
