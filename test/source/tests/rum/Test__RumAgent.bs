@@ -44,6 +44,8 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenStartOperationWithBlankName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithWhitespaceName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithWhitespaceName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenStartOperationWithDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenSucceedOperationWithDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenSucceedOperationWithDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenFailOperationWithDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenFailOperationWithDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch", RumAgentTest__WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithSpacedOperationKey_ThenDispatch", RumAgentTest__WhenStartOperationWithSpacedOperationKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithNilKey_ThenDispatch", RumAgentTest__WhenStartOperationWithNilKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -613,6 +615,40 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the succeedOperation method with a name containing
+'        characters outside the schema facet-path character set
+'        (letters / digits / - _ . @ $)
+'  Then: dispatch the event anyway — see startOperation's disallowed-
+'        character test for the rationale. The agent still logs a
+'        WARNING to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenSucceedOperationWithDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given
+    invalidNames = ["user login", "api/v1", "checkout:step", "a,b", "login!", "a+b", "ログイン", "café"]
+
+    ' When
+    for each invalidName in invalidNames
+        m.testedNode@.succeedOperation(invalidName, invalid)
+    end for
+    sleep(30)
+
+    ' Then — one handleEvent dispatch per invalid name; name is preserved.
+    ' Compared as a set (not by index) since dispatch is not guaranteed to
+    ' preserve call order.
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(invalidNames.Count())
+    dispatchedNames = []
+    for each call in calls
+        dispatchedNames.push(call.event.name)
+    end for
+    for each invalidName in invalidNames
+        Assert.that(dispatchedNames).contains(invalidName)
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the failOperation method
 '  Then: delegates to the root RumScope
 '----------------------------------------------------------------
@@ -731,6 +767,40 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the failOperation method with a name containing
+'        characters outside the schema facet-path character set
+'        (letters / digits / - _ . @ $)
+'  Then: dispatch the event anyway — see startOperation's disallowed-
+'        character test for the rationale. The agent still logs a
+'        WARNING to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenFailOperationWithDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given
+    invalidNames = ["user login", "api/v1", "checkout:step", "a,b", "login!", "a+b", "ログイン", "café"]
+
+    ' When
+    for each invalidName in invalidNames
+        m.testedNode@.failOperation(invalidName, "error", invalid)
+    end for
+    sleep(30)
+
+    ' Then — one handleEvent dispatch per invalid name; name is preserved.
+    ' Compared as a set (not by index) since dispatch is not guaranteed to
+    ' preserve call order.
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(invalidNames.Count())
+    dispatchedNames = []
+    for each call in calls
+        dispatchedNames.push(call.event.name)
+    end for
+    for each invalidName in invalidNames
+        Assert.that(dispatchedNames).contains(invalidName)
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the startOperation method with a blank name
 '  Then: do not dispatch any event to the RumScope (the backend
 '        rejects blank/empty names with its own non-empty precondition).
@@ -780,10 +850,16 @@ function RumAgentTest__WhenStartOperationWithDisallowedCharacterInName_ThenDispa
     sleep(30)
 
     ' Then — one handleEvent dispatch per invalid name; name is preserved.
+    ' Compared as a set (not by index) since dispatch is not guaranteed to
+    ' preserve call order.
     calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
     Assert.that(calls).isNotInvalid().hasSize(invalidNames.Count())
-    for i = 0 to invalidNames.Count() - 1
-        Assert.that(calls[i].event.name).isEqualTo(invalidNames[i])
+    dispatchedNames = []
+    for each call in calls
+        dispatchedNames.push(call.event.name)
+    end for
+    for each invalidName in invalidNames
+        Assert.that(dispatchedNames).contains(invalidName)
     end for
     return ""
 end function
