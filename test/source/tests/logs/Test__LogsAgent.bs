@@ -64,6 +64,10 @@ function TestSuite__LogsAgent() as object
     this.addTest("WhenLogEmergencyWithUserInfo_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithUserInfo_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogEmergencyWithRumContext_ThenWriteLog", LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
 
+    this.addTest("WhenLogOkWithTimestamp_ThenWriteLogWithGivenTimestamp", LogsAgentTest__WhenLogOkWithTimestamp_ThenWriteLogWithGivenTimestamp, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogErrorWithTimestamp_ThenWriteLogWithGivenTimestamp", LogsAgentTest__WhenLogErrorWithTimestamp_ThenWriteLogWithGivenTimestamp, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+    this.addTest("WhenLogOkWithNonNumericTimestamp_ThenWriteLogWithCurrentTimestamp", LogsAgentTest__WhenLogOkWithNonNumericTimestamp_ThenWriteLogWithCurrentTimestamp, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     return this
 end function
 
@@ -169,6 +173,85 @@ sub LogsAgentTest__TearDown()
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("testedNode")
 end sub
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call log ok with an explicit timestamp
+'  Then: writes a log whose date is the given timestamp, not the current time
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithTimestamp_ThenWriteLogWithGivenTimestamp() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    ' a timestamp clearly in the past so it cannot be confused with "now"
+    givenTimestamp& = datadogroku_getTimestamp() - 3600000
+
+    ' When
+    m.testedNode@.logOk(fakeMessage, fakeAttributes, givenTimestamp&)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isEqualTo(givenTimestamp&)
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.status).isEqualTo("ok")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call log error with an explicit timestamp
+'  Then: writes a log whose date is the given timestamp, not the current time
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogErrorWithTimestamp_ThenWriteLogWithGivenTimestamp() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    ' a timestamp clearly in the past so it cannot be confused with "now"
+    givenTimestamp& = datadogroku_getTimestamp() - 3600000
+
+    ' When
+    m.testedNode@.logError(fakeMessage, fakeAttributes, givenTimestamp&)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isEqualTo(givenTimestamp&)
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.status).isEqualTo("error")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a LogsAgent
+'  When: call log ok with a non-numeric timestamp
+'  Then: writes a log whose date is the current time, ignoring the invalid value
+'----------------------------------------------------------------
+function LogsAgentTest__WhenLogOkWithNonNumericTimestamp_ThenWriteLogWithCurrentTimestamp() as string
+    ' Given
+    fakeMessage = IG_GetString(32)
+    fakeAttributes = {}
+    invalidTimestamp = IG_GetString(16)
+    beforeCall& = datadogroku_getTimestamp()
+
+    ' When
+    m.testedNode@.logOk(fakeMessage, fakeAttributes, invalidTimestamp)
+    afterCall& = datadogroku_getTimestamp()
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    logEvent = ParseJson(updates[0])
+    Assert.that(updates).hasSize(1)
+    Assert.that(logEvent).isNotInvalid()
+    Assert.that(logEvent.date).isInRange(beforeCall&, afterCall&)
+    Assert.that(logEvent.message).isEqualTo(fakeMessage)
+    Assert.that(logEvent.status).isEqualTo("ok")
+    return ""
+end function
 
 '----------------------------------------------------------------
 ' Given: a LogsAgent
