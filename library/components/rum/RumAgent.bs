@@ -348,12 +348,25 @@ end sub
 ' ----------------------------------------------------------------
 sub startOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
     if (not __isValidOperationName(name))
+        ' Backend rejects blank/empty names with its own non-empty
+        ' precondition; drop client-side to match.
         ddLogError("RumAgent: startOperation called with blank name, ignoring")
         return
     end if
-    if (not __isValidOperationKey(operationKey))
-        ddLogError("RumAgent: startOperation called with blank operationKey, ignoring")
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit: the backend is the source of truth on the
+        ' character-set policy. Dropping client-side would force a customer
+        ' SDK bump if the rule is ever relaxed.
+        ddLogWarning("RumAgent: startOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
+    if (not __isValidOperationKeyType(operationKey))
+        ddLogError("RumAgent: startOperation called with invalid operationKey, ignoring")
         return
+    end if
+    if (__isOperationKeyBlank(operationKey))
+        ' Warn but still emit: operationKey is optional, so a malformed value
+        ' is never grounds to drop the step (canonical cross-SDK behavior).
+        ddLogWarning("RumAgent: startOperation operationKey cannot be empty or contain only whitespace, but was '" + operationKey + "'. The event will still be sent.")
     end if
     m.top.startOperation = startFeatureOperationEvent(name, operationKey, context)
 end sub
@@ -378,9 +391,17 @@ sub succeedOperation(name as string, operationKey = invalid as dynamic, context 
         ddLogError("RumAgent: succeedOperation called with blank name, ignoring")
         return
     end if
-    if (not __isValidOperationKey(operationKey))
-        ddLogError("RumAgent: succeedOperation called with blank operationKey, ignoring")
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: succeedOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
+    if (not __isValidOperationKeyType(operationKey))
+        ddLogError("RumAgent: succeedOperation called with invalid operationKey, ignoring")
         return
+    end if
+    if (__isOperationKeyBlank(operationKey))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: succeedOperation operationKey cannot be empty or contain only whitespace, but was '" + operationKey + "'. The event will still be sent.")
     end if
     m.top.succeedOperation = succeedFeatureOperationEvent(name, operationKey, context)
 end sub
@@ -406,9 +427,17 @@ sub failOperation(name as string, failureReason as string, operationKey = invali
         ddLogError("RumAgent: failOperation called with blank name, ignoring")
         return
     end if
-    if (not __isValidOperationKey(operationKey))
-        ddLogError("RumAgent: failOperation called with blank operationKey, ignoring")
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: failOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
+    if (not __isValidOperationKeyType(operationKey))
+        ddLogError("RumAgent: failOperation called with invalid operationKey, ignoring")
         return
+    end if
+    if (__isOperationKeyBlank(operationKey))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: failOperation operationKey cannot be empty or contain only whitespace, but was '" + operationKey + "'. The event will still be sent.")
     end if
     if (not __isValidFailureReason(failureReason))
         ddLogError("RumAgent: failOperation called with invalid failureReason '" + failureReason + "', ignoring")
@@ -433,6 +462,12 @@ sub __onReportOperations(events as dynamic)
     if (events <> invalid and m.rumScope <> invalid)
         for each event in events
             if (__isValidOperationEvent(event))
+                if (not __operationNameMatchesBackendPattern(event.name))
+                    ddLogWarning("RumAgent: reportOperations name '" + event.name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+                end if
+                if (__isOperationKeyBlank(event.operationKey))
+                    ddLogWarning("RumAgent: reportOperations operationKey cannot be empty or contain only whitespace, but was '" + event.operationKey + "'. The event will still be sent.")
+                end if
                 m.rumScope@.handleEvent(event, m.writer)
             else
                 ddLogError("RumAgent: reportOperations received an invalid operation event, ignoring")
@@ -442,11 +477,14 @@ sub __onReportOperations(events as dynamic)
 end sub
 
 ' ----------------------------------------------------------------
-' Returns true if a batched operation event carries a valid name, operationKey
-' and (for fail events) failureReason. Mirrors the validation the single-item
-' startOperation/succeedOperation/failOperation methods run before dispatching,
-' which the batch path bypasses by taking pre-built events. Without it a bad
-' key (e.g. a non-string) would crash the task in __operationLookupKey.
+' Returns true if a batched operation event carries a fundamentally valid
+' name, operationKey type and (for fail events) failureReason. Mirrors only
+' the hard-drop checks the single-item startOperation/succeedOperation/
+' failOperation methods run before dispatching, which the batch path bypasses
+' by taking pre-built events. Without it a bad key (e.g. a non-string) would
+' crash the task in __operationLookupKey. Character-set / blank-key issues
+' are warn-and-emit, not drop, and are handled separately in
+' __onReportOperations after this returns true.
 ' @param event (dynamic) the pre-built operation event to validate
 ' @return (boolean) whether the event is safe to forward
 ' ----------------------------------------------------------------
@@ -457,7 +495,7 @@ function __isValidOperationEvent(event as dynamic) as boolean
     if (not __isValidOperationName(event.name))
         return false
     end if
-    if (not __isValidOperationKey(event.operationKey))
+    if (not __isValidOperationKeyType(event.operationKey))
         return false
     end if
     ' start/succeed events carry no failureReason (invalid is fine); fail events do
@@ -482,23 +520,48 @@ function __isValidOperationName(name as dynamic) as boolean
 end function
 
 ' ----------------------------------------------------------------
-' Returns true if the operationKey is valid:
+' Returns true if the operation name matches the backend's server-side
+' `[\w.@$-]*` validation regex. operation_key is a separate parameter
+' and is not subject to this rule. The `*` quantifier means an empty
+' string also matches.
+' @param name (string) the operation name to validate
+' @return (boolean) whether the name matches the backend pattern
+' ----------------------------------------------------------------
+function __operationNameMatchesBackendPattern(name as string) as boolean
+    regex = CreateObject("roRegex", "^[\w.@$-]*$", "")
+    return regex.IsMatch(name)
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the operationKey is of an acceptable type:
 '   - invalid is VALID (means unkeyed operation)
-'   - non-empty string after trimming is VALID
-'   - empty or whitespace-only string is INVALID
+'   - a string (blank or not) is VALID — blankness is checked separately
+'     by __isOperationKeyBlank and only warns, never drops (operationKey
+'     is optional, so a malformed value is never grounds to drop the step)
 '   - non-string, non-invalid values are INVALID
 ' @param operationKey (dynamic) the operation key to validate
-' @return (boolean) whether the key is valid
+' @return (boolean) whether the key's type is acceptable
 ' ----------------------------------------------------------------
-function __isValidOperationKey(operationKey as dynamic) as boolean
+function __isValidOperationKeyType(operationKey as dynamic) as boolean
     if (operationKey = invalid)
         return true
     end if
-    if (type(operationKey) = "roString" or type(operationKey) = "String")
-        return operationKey.Trim().Len() > 0
+    return (type(operationKey) = "roString" or type(operationKey) = "String")
+end function
+
+' ----------------------------------------------------------------
+' Returns true if operationKey was provided as a string but is empty or
+' whitespace-only after trimming. Does not flag `invalid` (unkeyed) as
+' blank. Callers should only invoke this after __isValidOperationKeyType
+' has confirmed the key is a string or invalid.
+' @param operationKey (dynamic) the operation key to check
+' @return (boolean) whether the key is a blank/whitespace-only string
+' ----------------------------------------------------------------
+function __isOperationKeyBlank(operationKey as dynamic) as boolean
+    if (type(operationKey) <> "roString" and type(operationKey) <> "String")
+        return false
     end if
-    ' Non-string, non-invalid values are invalid
-    return false
+    return operationKey.Trim().Len() = 0
 end function
 
 ' ----------------------------------------------------------------
