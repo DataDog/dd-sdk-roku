@@ -85,6 +85,21 @@ function keepAliveEvent() as object
 end function
 
 ' ----------------------------------------------------------------
+' @return (object) a user-activity signal that refreshes the session's
+'   inactivity clock and emits a view update (when a view is active) to
+'   extend the session/view duration in Datadog. The timestamp makes each
+'   event value unique (so the node field observer always fires, rather
+'   than being suppressed as an unchanged assocarray) and is used to
+'   throttle high-frequency reports.
+' ----------------------------------------------------------------
+function userActivityEvent() as object
+    return {
+        eventType: "userActivity"
+        timestamp: getTimestamp()
+    }
+end function
+
+' ----------------------------------------------------------------
 ' @param configuration (object) the configuration object
 ' @return (object) an event describing an addTelemetryConfigEvent action
 ' ----------------------------------------------------------------

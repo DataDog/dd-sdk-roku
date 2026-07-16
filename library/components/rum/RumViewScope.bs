@@ -78,6 +78,8 @@ sub handleEvent(event as object, writer as object)
         addAction(event.action, context, writer)
     else if (event.eventType = RawEvent.keepAlive)
         sendViewUpdate(context, writer)
+    else if (event.eventType = RawEvent.userActivity)
+        sendViewUpdate(context, writer)
     end if
 end sub
 

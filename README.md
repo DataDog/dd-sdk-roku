@@ -193,6 +193,18 @@ Whenever you use a `Video` or an `Audio` node to stream media, you can forward a
     end while
 ```
 
+#### Refresh session activity
+
+If your channel already has a natural signal that proves the user is actively engaged — a video playback position tick, a GPS fix, a sensor reading — you can use that signal to keep the RUM session alive:
+
+```brightscript
+    m.global.datadogRumAgent.callfunc("reportUserActivity")
+```
+
+This is equivalent to a real user action for session-duration purposes. It refreshes the session's inactivity clock, renewing the session if it has already expired. When a view is active, it also emits a view update, extending the session and view duration in Datadog. Use this when users may not touch the remote for long periods while remaining actively engaged, such as when watching a movie.
+
+You can safely call `reportUserActivity` from a high-frequency signal, such as a video position tick that fires once per second. Calls are throttled internally, so no more than one view update is emitted during each `keepAliveDelayMs` window, which defaults to 60000 ms (1 minute). Reports received within the same window are ignored, keeping RUM event volume bounded. To use finer or coarser granularity, configure the RUM agent's `keepAliveDelayMs` field.
+
 ### Identifying your users
 
 Adding user information to your RUM sessions makes it easy to:
