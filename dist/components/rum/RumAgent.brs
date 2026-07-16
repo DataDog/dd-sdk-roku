@@ -470,6 +470,12 @@ sub __onReportOperations(events as dynamic)
     if (events <> invalid and m.rumScope <> invalid)
         for each event in events
             if (__isValidOperationEvent(event))
+                if (not __operationNameMatchesBackendPattern(event.name))
+                    ddLogWarning("RumAgent: reportOperations name '" + event.name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+                end if
+                if (__isOperationKeyBlank(event.operationKey))
+                    ddLogWarning("RumAgent: reportOperations operationKey cannot be empty or contain only whitespace, but was '" + event.operationKey + "'. The event will still be sent.")
+                end if
                 m.rumScope.callfunc("handleEvent", event, m.writer)
             else
                 ddLogError("RumAgent: reportOperations received an invalid operation event, ignoring")
@@ -479,11 +485,14 @@ sub __onReportOperations(events as dynamic)
 end sub
 
 ' ----------------------------------------------------------------
-' Returns true if a batched operation event carries a valid name, operationKey
-' and (for fail events) failureReason. Mirrors the validation the single-item
-' startOperation/succeedOperation/failOperation methods run before dispatching,
-' which the batch path bypasses by taking pre-built events. Without it a bad
-' key (e.g. a non-string) would crash the task in __operationLookupKey.
+' Returns true if a batched operation event carries a fundamentally valid
+' name, operationKey type and (for fail events) failureReason. Mirrors only
+' the hard-drop checks the single-item startOperation/succeedOperation/
+' failOperation methods run before dispatching, which the batch path bypasses
+' by taking pre-built events. Without it a bad key (e.g. a non-string) would
+' crash the task in __operationLookupKey. Character-set / blank-key issues
+' are warn-and-emit, not drop, and are handled separately in
+' __onReportOperations after this returns true.
 ' @param event (dynamic) the pre-built operation event to validate
 ' @return (boolean) whether the event is safe to forward
 ' ----------------------------------------------------------------
@@ -494,7 +503,7 @@ function __isValidOperationEvent(event as dynamic) as boolean
     if (not __isValidOperationName(event.name))
         return false
     end if
-    if (not __isValidOperationKey(event.operationKey))
+    if (not __isValidOperationKeyType(event.operationKey))
         return false
     end if
     ' start/succeed events carry no failureReason (invalid is fine); fail events do

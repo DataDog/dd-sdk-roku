@@ -39,6 +39,8 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenReportOperations_ThenDelegateToRumScope", RumAgentTest__WhenReportOperations_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenReportOperationsIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenReportOperationsHasInvalidKey_ThenSkipIt", RumAgentTest__WhenReportOperationsHasInvalidKey_ThenSkipIt, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsHasDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenReportOperationsHasDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsHasBlankOperationKey_ThenDispatchWithWarning", RumAgentTest__WhenReportOperationsHasBlankOperationKey_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     ' Operation input validation tests
     this.addTest("WhenStartOperationWithBlankName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -763,6 +765,46 @@ function RumAgentTest__WhenReportOperationsHasInvalidKey_ThenSkipIt() as string
     result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: validEvent, writer: m.mockWriter }, 1)
     result += m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
     return result
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with a pre-built event whose name
+'        contains characters outside the schema facet-path character set
+'  Then: dispatch the event anyway — see startOperation's disallowed-
+'        character test for the rationale. The agent still logs a WARNING
+'        to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsHasDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given
+    invalidNameEvent = { eventType: "startFeatureOperation", name: "user login" }
+
+    ' When
+    m.testedNode.reportOperations = [invalidNameEvent]
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", { event: invalidNameEvent, writer: m.mockWriter }, 1)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with a pre-built event whose
+'        operationKey is blank/whitespace-only
+'  Then: dispatch the event anyway — operationKey is optional, so a
+'        malformed value is never grounds to drop the step. The agent
+'        still logs a WARNING to flag the suspicious key.
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsHasBlankOperationKey_ThenDispatchWithWarning() as string
+    ' Given
+    blankKeyEvent = { eventType: "startFeatureOperation", name: IG_GetString(32), operationKey: "   " }
+
+    ' When
+    m.testedNode.reportOperations = [blankKeyEvent]
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", { event: blankKeyEvent, writer: m.mockWriter }, 1)
 end function
 
 '----------------------------------------------------------------
