@@ -131,7 +131,7 @@ sub sendLog(status as object, message as string, attributes as object)
         message: message
         status: status
         service: m.service
-        usr: m.userInfo
+        usr: getDatadogUserInfo(m.userInfo, m.anonymousId)
         device: {
             type: "tv"
             name: m.deviceName
@@ -222,6 +222,16 @@ sub setupIfNeeded()
     m.userInfo = m.global.datadogUserInfo
     m.ddContext = m.global.datadogContext
     m.rumContext = m.global.datadogRumContext
+    ' Resolved once at init and immutable afterwards, so read it a single time
+    ' rather than on every log event.
+    m.anonymousId = (function(m)
+            __bsConsequent = m.global.datadogAnonymousId
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return ""
+            end if
+        end function)(m)
     m.isConfigured = true
 end sub
 

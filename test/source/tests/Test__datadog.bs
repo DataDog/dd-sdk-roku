@@ -26,6 +26,13 @@ function TestSuite__Datadog() as object
     this.addTest("WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal", DatadogTest__WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal)
     this.addTest("WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal", DatadogTest__WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal)
     this.addTest("WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal", DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal)
+    this.addTest("WhenInitialize_WithTrackAnonymousUserDisabled_ThenClearPersistedAnonymousId", DatadogTest__WhenInitialize_WithTrackAnonymousUserDisabled_ThenClearPersistedAnonymousId)
+    this.addTest("WhenInitialize_WithEmptyRegistry_ThenGenerateAndPersistAnonymousId", DatadogTest__WhenInitialize_WithEmptyRegistry_ThenGenerateAndPersistAnonymousId)
+    this.addTest("WhenInitialize_WithRegistryValue_ThenReuseAnonymousId", DatadogTest__WhenInitialize_WithRegistryValue_ThenReuseAnonymousId)
+    this.addTest("WhenGetDatadogUserInfo_ThenIncludesAnonymousIdFromGlobal", DatadogTest__WhenGetDatadogUserInfo_ThenIncludesAnonymousIdFromGlobal)
+    this.addTest("WhenGetDatadogUserInfo_WithExistingAnonymousId_ThenKeepUserValue", DatadogTest__WhenGetDatadogUserInfo_WithExistingAnonymousId_ThenKeepUserValue)
+    this.addTest("WhenGetDatadogUserInfo_WithEmptyAnonymousId_ThenDoNotEnrich", DatadogTest__WhenGetDatadogUserInfo_WithEmptyAnonymousId_ThenDoNotEnrich)
+    this.addTest("WhenGetDatadogUserInfo_WithInvalidUserInfo_ThenEnrichEmpty", DatadogTest__WhenGetDatadogUserInfo_WithInvalidUserInfo_ThenEnrichEmpty)
 
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
@@ -196,6 +203,78 @@ function DatadogTest__WhenGetEndpointRumUnknown_ThenCreateEndpoint() as string
 
     ' Then
     Assert.that(endpoint).isEqualTo("")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: user info without anonymous_id and a resolved anonymous id
+'  When: retrieving Datadog user info for payloads
+'  Then: enrich a copy with anonymous_id, leaving the input untouched
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_ThenIncludesAnonymousIdFromGlobal() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+    fakeUserInfo = { id: IG_GetString(16) }
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(fakeUserInfo, fakeAnonymousId)
+
+    ' Then
+    Assert.that(userInfo.id).isEqualTo(fakeUserInfo.id)
+    Assert.that(userInfo.anonymous_id).isEqualTo(fakeAnonymousId)
+    ' the original must not be mutated (shared global state)
+    Assert.that(fakeUserInfo.anonymous_id).isInvalid()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: user info with an explicit anonymous_id and a resolved anonymous id
+'  When: retrieving Datadog user info for payloads
+'  Then: keeps explicit user value
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_WithExistingAnonymousId_ThenKeepUserValue() as string
+    ' Given
+    fakeUserInfo = { id: IG_GetString(16), anonymous_id: "user-defined-anon" }
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(fakeUserInfo, IG_GetString(32))
+
+    ' Then
+    Assert.that(userInfo.anonymous_id).isEqualTo("user-defined-anon")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: anonymous tracking disabled (empty anonymous id)
+'  When: retrieving Datadog user info for payloads
+'  Then: does not add anonymous_id
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_WithEmptyAnonymousId_ThenDoNotEnrich() as string
+    ' Given
+    fakeUserInfo = { id: IG_GetString(16) }
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(fakeUserInfo, "")
+
+    ' Then
+    Assert.that(userInfo.anonymous_id).isInvalid()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: invalid user info (never set by the integrator)
+'  When: retrieving Datadog user info for payloads
+'  Then: returns an object enriched with the anonymous id, no crash
+'----------------------------------------------------------------
+function DatadogTest__WhenGetDatadogUserInfo_WithInvalidUserInfo_ThenEnrichEmpty() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+
+    ' When
+    userInfo = datadogroku_getDatadogUserInfo(invalid, fakeAnonymousId)
+
+    ' Then
+    Assert.that(userInfo.anonymous_id).isEqualTo(fakeAnonymousId)
     return ""
 end function
 
@@ -404,3 +483,99 @@ function DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsS
     return ""
 end function
 
+'----------------------------------------------------------------
+' Given: a previously persisted anonymous id in the registry
+'  When: initializing the SDK with `trackAnonymousUser: false`
+'  Then: the persisted id is removed from the registry, honoring
+'        the integrator's consent-withdrawal signal
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithTrackAnonymousUserDisabled_ThenClearPersistedAnonymousId() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+    section = CreateObject("roRegistrySection", "datadog")
+    section.Write("anonymous_id", fakeAnonymousId)
+    section.Flush()
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16),
+        trackAnonymousUser: false
+    }
+
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then
+    Assert.that(fakeGlobal.getField("datadogTrackAnonymousUser")).isFalse()
+    persistedSection = CreateObject("roRegistrySection", "datadog")
+    Assert.that(persistedSection.Exists("anonymous_id")).isFalse()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: an empty registry section
+'  When: initializing the SDK with anonymous tracking enabled
+'  Then: generates a new anonymous id and persists it to the registry
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithEmptyRegistry_ThenGenerateAndPersistAnonymousId() as string
+    ' Given
+    section = CreateObject("roRegistrySection", "datadog")
+    if (section.Exists("anonymous_id"))
+        section.Delete("anonymous_id")
+        section.Flush()
+    end if
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then
+    generatedAnonymousId = fakeGlobal.getField("datadogAnonymousId")
+    Assert.that(generatedAnonymousId).isNotEmpty()
+    persistedSection = CreateObject("roRegistrySection", "datadog")
+    Assert.that(persistedSection.Read("anonymous_id")).isEqualTo(generatedAnonymousId)
+
+    ' Cleanup
+    persistedSection.Delete("anonymous_id")
+    persistedSection.Flush()
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a value pre-existing in the registry from a prior channel launch
+'  When: initializing the SDK with anonymous tracking enabled
+'  Then: reuses the persisted anonymous id rather than generating a new one
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithRegistryValue_ThenReuseAnonymousId() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+    section = CreateObject("roRegistrySection", "datadog")
+    section.Write("anonymous_id", fakeAnonymousId)
+    section.Flush()
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+
+    ' When
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then
+    Assert.that(fakeGlobal.getField("datadogAnonymousId")).isEqualTo(fakeAnonymousId)
+
+    ' Cleanup
+    section.Delete("anonymous_id")
+    section.Flush()
+    return ""
+end function

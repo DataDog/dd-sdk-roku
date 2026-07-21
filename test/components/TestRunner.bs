@@ -15,6 +15,7 @@ import "pkg:/source/tests/Test__fileUtils.bs"
 import "pkg:/source/tests/Test__internalLogger.bs"
 import "pkg:/source/tests/Test__timeUtils.bs"
 import "pkg:/source/tests/Test__datadog.bs"
+import "pkg:/source/tests/Test__identityStorage.bs"
 import "pkg:/source/tests/Test__DdUrlTransfer.bs"
 import "pkg:/source/tests/core/Test__MultitrackUploaderTask.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"
@@ -24,12 +25,12 @@ import "pkg:/source/tests/rum/Test__RumAgent.bs"
 import "pkg:/source/tests/rum/Test__RumApplicationScope.bs"
 import "pkg:/source/tests/rum/Test__RumSessionScope.bs"
 import "pkg:/source/tests/rum/Test__RumViewScope.bs"
-import "pkg:/source/tests/rum/Test__RumViewScope.bs"
 import "pkg:/source/tests/rum/Test__RumTelemetryScope.bs"
 import "pkg:/source/tests/rum/Test__RumCrashReporterTask.bs"
 
 import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
 import "pkg:/source/roku_modules/datadogroku/fileUtils.brs"
+import "pkg:/source/roku_modules/datadogroku/identityStorage.brs"
 import "pkg:/source/roku_modules/datadogroku/internalLogger.brs"
 import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 import "pkg:/source/roku_modules/datadogroku/wrapper/DdUrlTransfer.brs"
@@ -54,6 +55,7 @@ sub runTests()
     Runner.SetFunctions([
         ' Core
         TestSuite__Datadog,
+        TestSuite__IdentityStorage,
         TestSuite__DdUrlTransfer,
         TestSuite__FileUtils,
         TestSuite__InternalLogger,

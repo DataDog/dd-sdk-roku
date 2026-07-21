@@ -67,6 +67,7 @@ function TestSuite__RumViewScope() as object
     this.addTest("WhenHandleKeepAliveEvent_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleKeepAliveEvent_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleKeepAliveEventWithContext_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleKeepAliveEventWithContext_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
     this.addTest("WhenHandleKeepAliveEventWithUserInfo_ThenWriteViewUpdate", RumViewScopeTest__WhenHandleKeepAliveEventWithUserInfo_ThenWriteViewUpdate, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
+    this.addTest("WhenHandleKeepAliveEventWithAnonymousId_ThenWriteViewUpdateWithAnonymousId", RumViewScopeTest__WhenHandleKeepAliveEventWithAnonymousId_ThenWriteViewUpdateWithAnonymousId, RumViewScopeTest__SetUp, RumViewScopeTest__TearDown)
 
     return this
 end function
@@ -102,7 +103,7 @@ sub RumViewScopeTest__SetUp()
         m.testSuite.fakeLocalContext[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
         m.testSuite.fakeGlobalUserInfo[IG_GetString(16) + i.toStr()] = IG_GetOneOf([IG_GetString(12), IG_GetInteger(), IG_GetFloat(), IG_GetBoolean()])
     end for
-    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {} })
+    m.testSuite.global.addFields({ datadogContext: {}, datadogUserInfo: {}, datadogRumContext: {}, datadogAnonymousId: "" })
     m.testSuite.global.setField("datadogRumContext", { instanceId: m.testSuite.fakeInstanceId })
 
     ' Filesystem
@@ -2828,5 +2829,48 @@ function RumViewScopeTest__WhenHandleKeepAliveEventWithUserInfo_ThenWriteViewUpd
     Assert.that(viewEvent.view.error.count).isEqualTo(0)
     Assert.that(viewEvent.view.resource.count).isEqualTo(0)
     Assert.that(viewEvent.usr).isEqualTo(m.fakeGlobalUserInfo)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumViewScope created with a resolved datadogAnonymousId
+'  When: handling an event (keep alive)
+'  Then: enriches usr with the anonymous_id, without mutating the global
+'----------------------------------------------------------------
+function RumViewScopeTest__WhenHandleKeepAliveEventWithAnonymousId_ThenWriteViewUpdateWithAnonymousId() as string
+    ' Given
+    fakeAnonymousId = IG_GetString(32)
+    fakeParentContext = {
+        applicationId: IG_GetString(32),
+        service: IG_GetString(32),
+        sessionId: IG_GetString(32),
+        applicationVersion: IG_GetString(32),
+        deviceName: m.fakeDeviceName,
+        deviceModel: m.fakeDeviceModel,
+        osVersion: m.fakeOsVersion,
+        osVersionMajor: m.fakeOsVersionMajor
+    }
+    m.mockParentScope@.stubCall("getRumContext", {}, fakeParentContext)
+    m.global.setField("datadogUserInfo", m.fakeGlobalUserInfo)
+    m.global.setField("datadogAnonymousId", fakeAnonymousId)
+    ' anonymousId is cached at scope init, so create the scope after setting it
+    testedScope = CreateObject("roSGNode", "datadogroku_RumViewScope")
+    testedScope.parentScope = m.mockParentScope
+    testedScope.viewName = m.fakeViewName
+    testedScope.viewUrl = m.fakeViewUrl
+    testedScope.context = m.fakeInitialContext
+    fakeEvent = { mock: "event", eventType: "keepAlive" }
+
+    ' When
+    testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(1)
+    viewEvent = ParseJson(updates[0])
+    Assert.that(viewEvent.usr.id).isEqualTo(m.fakeGlobalUserInfo.id)
+    Assert.that(viewEvent.usr.anonymous_id).isEqualTo(fakeAnonymousId)
+    ' the shared global user info must not be mutated
+    Assert.that(m.global.datadogUserInfo.anonymous_id).isInvalid()
     return ""
 end function

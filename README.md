@@ -214,6 +214,28 @@ To identify user sessions, use the `datadogUserInfo` global field, after initial
     m.global.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com"})
 ```
 
+#### Anonymous user tracking
+
+By default, the SDK generates a stable `anonymous_id` per device on first launch and persists it in the Roku registry so it survives channel relaunches. Every RUM and Logs event's `usr` payload is enriched with this id, which lets you correlate sessions from the same device even when no logged-in user is identified.
+
+If you supply your own `anonymous_id` via `datadogUserInfo` it takes precedence over the SDK-generated one:
+
+```brightscript
+    m.global.setField("datadogUserInfo", { anonymous_id: "your-pseudonymous-id" })
+```
+
+To opt out entirely (for example, to honor a consent signal), pass `trackAnonymousUser: false` at init time. This disables enrichment and clears any previously persisted id from the registry:
+
+```brightscript
+    datadogroku_initialize({
+        clientToken: "…",
+        applicationId: "…",
+        site: "us1",
+        env: "prod",
+        trackAnonymousUser: false
+    }, m.global)
+```
+
 ### Track custom global attributes
 
 In addition to the default attributes captured by the SDK automatically, you can choose to add additional contextual information, such as custom attributes, to your Logs and RUM events to enrich your observability within Datadog. Custom attributes allow you to filter and group information about observed user behavior (for example by cart value, merchant tier, or ad campaign) with code-level information (such as backend services, session timeline, error logs, and network health).
