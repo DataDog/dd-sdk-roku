@@ -24,6 +24,7 @@ sub init()
     m.top.observeFieldScoped("addError", m.port)
     m.top.observeFieldScoped("addResource", m.port)
     m.top.observeFieldScoped("addResources", m.port)
+    m.top.observeFieldScoped("reportUserActivity", m.port)
     m.top.observeFieldScoped("addConfigTelemetry", m.port)
     m.top.observeFieldScoped("addErrorTelemetry", m.port)
     m.top.observeFieldScoped("addDebugTelemetry", m.port)
@@ -59,6 +60,8 @@ sub rumAgentLoop()
                 __onAddResource(msg.getData())
             else if(fieldName = "addResources")
                 __onAddResources(msg.getData())
+            else if(fieldName = "reportUserActivity")
+                __onReportUserActivity(msg.getData())
             else if(fieldName = "addConfigTelemetry")
                 __onAddConfigTelemetry(msg.getData())
             else if(fieldName = "addErrorTelemetry")
@@ -265,6 +268,34 @@ sub __onAddResources(events as dynamic)
             end if
         end for
     end if
+end sub
+
+' ----------------------------------------------------------------
+' Reports user activity to keep the current session alive. This
+' refreshes the session's inactivity clock (renewing it if it has
+' already expired) and, when a view is active, emits a view update
+' so the session/view duration is extended in Datadog.
+' Intended for apps with an existing high-frequency engagement
+' signal (e.g. video playback position, GPS fix, sensor reading).
+' @param _ph (dynamic) no-op argument: callFunc always passes one
+'   argument, so a zero-param function would never be invoked
+' ----------------------------------------------------------------
+sub reportUserActivity(_ph = invalid as dynamic)
+    m.top.reportUserActivity = userActivityEvent()
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles reportUserActivity field change event
+' @param event (object) the reportUserActivity event data
+' ----------------------------------------------------------------
+sub __onReportUserActivity(event as object)
+    nowMs& = event.timestamp
+    if (m.lastUserActivityMs <> invalid and (nowMs& - m.lastUserActivityMs) < m.top.keepAliveDelayMs)
+        ddLogVerbose("Ignoring throttled reportUserActivity")
+        return
+    end if
+    m.lastUserActivityMs = nowMs&
+    m.rumScope@.handleEvent(event, m.writer)
 end sub
 
 ' ----------------------------------------------------------------
