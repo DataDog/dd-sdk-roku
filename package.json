@@ -58,7 +58,6 @@
       "lodash": "^4.18.1"
     },
     "brighterscript": {
-      "lodash": "^4.18.1",
       "qs": "^6.15.3"
     },
     "ropm": {
