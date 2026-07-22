@@ -18,6 +18,9 @@ function TestSuite__TimeUtils() as object
     this.addTest("WhenSecsToNanos_ThenConvertsToNanos", TimeUtilsTest__WhenSecsToNanos_ThenConvertsToNanos)
     this.addTest("WhenSecsToMillis_ThenConvertsToMillis", TimeUtilsTest__WhenSecsToMillis_ThenConvertsToMillis)
 
+    this.addTest("WhenIsTimestampWithNumericValue_ThenReturnsTrue", TimeUtilsTest__WhenIsTimestampWithNumericValue_ThenReturnsTrue)
+    this.addTest("WhenIsTimestampWithNonNumericValue_ThenReturnsFalse", TimeUtilsTest__WhenIsTimestampWithNonNumericValue_ThenReturnsFalse)
+
     return this
 end function
 
@@ -162,6 +165,54 @@ function TimeUtilsTest__WhenSecsToMillis_ThenConvertsToMillis() as string
 
         ' Then
         Assert.that(result).isCloseTo(testcase.ms, offset, "Failed to convert " + testcase.s.toStr() + "s to " + testcase.ms.toStr() + "ms (was " + result.toStr() + "ms)")
+    end for
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenIsTimestampWithNumericValue_ThenReturnsTrue() as string
+    ' Given
+    values = [
+        IG_GetInteger(), ' Integer
+        IG_GetLongInteger(), ' LongInteger
+        IG_GetDouble(), ' Double
+        0
+    ]
+
+    for each value in values
+        ' When
+        result = datadogroku_isTimestamp(value)
+
+        ' Then
+        Assert.that(result).isTrue("Expected " + Type(value) + " value to be considered a valid timestamp")
+    end for
+
+    return ""
+end function
+
+'----------------------------------------------------------------
+'
+'----------------------------------------------------------------
+function TimeUtilsTest__WhenIsTimestampWithNonNumericValue_ThenReturnsFalse() as string
+    ' Given
+    values = [
+        invalid,
+        IG_GetString(16),
+        IG_GetBoolean(),
+        IG_GetFloat(), ' Float: rejected, too imprecise for ms-since-epoch values
+        {},
+        []
+    ]
+
+    for each value in values
+        ' When
+        result = datadogroku_isTimestamp(value)
+
+        ' Then
+        Assert.that(result).isFalse("Expected " + Type(value) + " value not to be considered a valid timestamp")
     end for
 
     return ""
