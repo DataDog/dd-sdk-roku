@@ -54,22 +54,32 @@ sub initialize(configuration as object, global as object)
 
     datadogUploader = global.datadogUploader
     if (datadogUploader = invalid)
-        ddLogInfo("No uploader, creating one")
-        datadogUploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
-        datadogUploader.clientToken = configuration.clientToken
-        datadogUploader.control = "RUN"
-        global.addFields({ datadogUploader: datadogUploader })
+        ' Build the task but do NOT start it yet: only the instance that wins the shared
+        ' `datadogUploader` slot starts its loop, so a concurrent or repeated initialize()
+        ' leaves inert nodes that never start (and are garbage-collected) instead of extra running
+        ' uploader threads racing on (and re-uploading / failing to delete) the same batch files.
+        candidate = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        candidate.clientToken = configuration.clientToken
+        if (global.datadogUploader = invalid)
+            global.addFields({ datadogUploader: candidate })
+        end if
+        datadogUploader = global.datadogUploader
+        if (candidate.isSameNode(datadogUploader))
+            ddLogInfo("No uploader, creating one")
+            datadogUploader.control = "RUN"
+        else
+            ddLogVerbose("Another uploader was registered concurrently; discarding this candidate")
+        end if
     end if
     
     if (configuration.applicationId = invalid or configuration.applicationId = "")
         ddLogWarning("Trying to initialize the Datadog SDK without a RUM Application Id, please check your configuration.")
         return
     else if (global.datadogRumAgent = invalid)
-        ddLogInfo("No RUM agent, creating one")
-        ' Create the RUM context synchronously so any early log can observe it
-        ' before the RumAgent task fills in the rest.
         rumInstanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        global.addFields({ datadogRumContext: { applicationId: configuration.applicationId, instanceId: rumInstanceId } })
+        ' Build the agent but do NOT start it yet: its setup() (which spawns the WriterTask,
+        ' scopes and crash reporter, and registers its track) runs only when the task starts,
+        ' so only the winner of the shared slot creates them; a loser stays inert and is GC'd.
         rumAgent = CreateObject("roSGNode", "RumAgent")
         rumAgent.setFields({
             site: configuration.site,
@@ -87,13 +97,21 @@ sub initialize(configuration as object, global as object)
             osVersionMajor: deviceOsVersion.major,
             configuration: configuration
         })
-        rumAgent.control = "RUN"
-        global.addFields({ datadogRumAgent: rumAgent })
+        if (global.datadogRumAgent = invalid)
+            ' Publish the RUM context (observed synchronously by early logs) and the agent
+            ' together, so the registered instanceId always matches the agent that runs.
+            global.addFields({ datadogRumContext: { applicationId: configuration.applicationId, instanceId: rumInstanceId } })
+            global.addFields({ datadogRumAgent: rumAgent })
+        end if
+        if (rumAgent.isSameNode(global.datadogRumAgent))
+            ddLogInfo("No RUM agent, creating one")
+            global.datadogRumAgent.control = "RUN"
+        else
+            ddLogVerbose("Another RUM agent was registered concurrently; discarding this candidate")
+        end if
     end if
 
     if (global.datadogLogsAgent = invalid)
-        ddLogInfo("No Logs agent, creating one")
-        
         agent = CreateObject("roSGNode", "LogsAgent")
         agent.setFields({
             site: configuration.site,
@@ -106,7 +124,16 @@ sub initialize(configuration as object, global as object)
             osVersion: deviceOsVersionFull,
             osVersionMajor: deviceOsVersion.major
         })
-        global.addFields({ datadogLogsAgent: agent })
+        ' Publish only if we won the slot. A loser is never referenced by callers (they use
+        ' global.datadogLogsAgent), so it lazily creates no WriterTask and is garbage-collected.
+        if (global.datadogLogsAgent = invalid)
+            global.addFields({ datadogLogsAgent: agent })
+        end if
+        if (agent.isSameNode(global.datadogLogsAgent))
+            ddLogInfo("No Logs agent, creating one")
+        else
+            ddLogVerbose("Another Logs agent was registered concurrently; discarding this candidate")
+        end if
     end if
 
     if (configuration.ignoredExitEvents <> invalid and configuration.ignoredExitEvents.count() = 0)
