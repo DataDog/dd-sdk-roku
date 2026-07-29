@@ -6,7 +6,7 @@
 
 variables:
   REPO: 'dd-sdk-roku'
-  CI_IMAGE_VERSION: "6"
+  CI_IMAGE_VERSION: "7"
   CI_IMAGE: 'registry.ddbuild.io/ci/$REPO:$CI_IMAGE_VERSION'
   GIT_REPOSITORY: 'git@github.com:DataDog/dd-sdk-roku.git'
   MAIN_BRANCH: 'main'
