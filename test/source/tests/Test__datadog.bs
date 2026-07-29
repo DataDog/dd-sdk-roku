@@ -30,6 +30,8 @@ function TestSuite__Datadog() as object
     this.addTest("WhenInitialize_WithUploaderAlreadyPresent_ThenExistingIsKept", DatadogTest__WhenInitialize_WithUploaderAlreadyPresent_ThenExistingIsKept)
     this.addTest("WhenInitialize_WithRumAgentAlreadyPresent_ThenExistingIsKept", DatadogTest__WhenInitialize_WithRumAgentAlreadyPresent_ThenExistingIsKept)
     this.addTest("WhenInitialize_WithLogsAgentAlreadyPresent_ThenExistingIsKept", DatadogTest__WhenInitialize_WithLogsAgentAlreadyPresent_ThenExistingIsKept)
+    this.addTest("WhenPublishGlobalSingleton_ThenClaimsEmptyKeepsOccupiedAssignsExistingField", DatadogTest__WhenPublishGlobalSingleton_ThenClaimsEmptyKeepsOccupiedAssignsExistingField)
+    this.addTest("WhenInitialize_WithExistingInvalidUploaderField_ThenUploaderIsAssigned", DatadogTest__WhenInitialize_WithExistingInvalidUploaderField_ThenUploaderIsAssigned)
 
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
@@ -514,6 +516,64 @@ function DatadogTest__WhenInitialize_WithLogsAgentAlreadyPresent_ThenExistingIsK
 
     ' Then: the slot still holds the exact node that was already there
     Assert.that(fakeGlobal.getField("datadogLogsAgent").isSameNode(sentinelLogsAgent)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global node
+'  When: publishGlobalSingleton is called on an empty slot, an occupied slot, and a field
+'        that already exists but holds invalid
+'  Then: it publishes into the empty slot, keeps the occupant of the occupied slot, and
+'        assigns the existing invalid field (addFields alone would not overwrite it)
+'----------------------------------------------------------------
+function DatadogTest__WhenPublishGlobalSingleton_ThenClaimsEmptyKeepsOccupiedAssignsExistingField() as string
+    ' Given
+    nodeA = CreateObject("roSGNode", "ContentNode")
+    nodeB = CreateObject("roSGNode", "ContentNode")
+
+    ' Empty slot (field absent) -> value is published and returned
+    emptyGlobal = CreateObject("roSGNode", "ContentNode")
+    claimed = datadogroku_publishGlobalSingleton(emptyGlobal, "slot", nodeA)
+
+    ' Occupied slot -> existing value kept, candidate ignored
+    kept = datadogroku_publishGlobalSingleton(emptyGlobal, "slot", nodeB)
+
+    ' Field that already exists but holds invalid -> assigned via setField
+    existingFieldGlobal = CreateObject("roSGNode", "ContentNode")
+    existingFieldGlobal.addField("slot", "node", false)
+    assigned = datadogroku_publishGlobalSingleton(existingFieldGlobal, "slot", nodeA)
+
+    ' Then
+    Assert.that(claimed.isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(kept.isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(emptyGlobal.getField("slot").isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(assigned.isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(existingFieldGlobal.getField("slot").isSameNode(nodeA)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global that declares `datadogUploader` as a node field left invalid
+'  When: initializing the SDK
+'  Then: the slot is assigned a real uploader (addFields alone would not overwrite the field)
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithExistingInvalidUploaderField_ThenUploaderIsAssigned() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    fakeGlobal.addField("datadogUploader", "node", false)
+
+    ' When
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then: the previously-invalid slot now holds a real uploader
+    Assert.that(fakeGlobal.getField("datadogUploader")).isNotInvalid()
+    Assert.that(fakeGlobal.getField("datadogUploader").clientToken).isEqualTo(configuration.clientToken)
     return ""
 end function
 

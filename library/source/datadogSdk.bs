@@ -54,18 +54,11 @@ sub initialize(configuration as object, global as object)
 
     datadogUploader = global.datadogUploader
     if (datadogUploader = invalid)
-        ' Build the task but do NOT start it yet: only the instance that wins the shared
-        ' `datadogUploader` slot starts its loop, so a concurrent or repeated initialize()
-        ' leaves inert nodes that never start (and are garbage-collected) instead of extra running
-        ' uploader threads racing on (and re-uploading / failing to delete) the same batch files.
         candidate = CreateObject("roSGNode", "MultiTrackUploaderTask")
         candidate.clientToken = configuration.clientToken
-        if (global.datadogUploader = invalid)
-            global.addFields({ datadogUploader: candidate })
-        end if
-        datadogUploader = global.datadogUploader
+        datadogUploader = publishGlobalSingleton(global, "datadogUploader", candidate)
         if (candidate.isSameNode(datadogUploader))
-            ddLogInfo("No uploader, creating one")
+            ddLogInfo("No uploader found, starting a new one")
             datadogUploader.control = "RUN"
         else
             ddLogVerbose("Another uploader was registered concurrently; discarding this candidate")
@@ -76,16 +69,14 @@ sub initialize(configuration as object, global as object)
         ddLogWarning("Trying to initialize the Datadog SDK without a RUM Application Id, please check your configuration.")
         return
     else if (global.datadogRumAgent = invalid)
-        rumInstanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        ' Build the agent but do NOT start it yet: its setup() (which spawns the WriterTask,
-        ' scopes and crash reporter, and registers its track) runs only when the task starts,
-        ' so only the winner of the shared slot creates them; a loser stays inert and is GC'd.
+        rumContext = publishGlobalSingleton(global, "datadogRumContext", { applicationId: configuration.applicationId, instanceId: CreateObject("roDeviceInfo").GetRandomUUID() })
+
         rumAgent = CreateObject("roSGNode", "RumAgent")
         rumAgent.setFields({
             site: configuration.site,
             env: configuration.env ?? "",
-            applicationId: configuration.applicationId,
-            instanceId: rumInstanceId,
+            applicationId: rumContext.applicationId,
+            instanceId: rumContext.instanceId,
             service: service,
             version: version,
             uploader: datadogUploader,
@@ -97,23 +88,18 @@ sub initialize(configuration as object, global as object)
             osVersionMajor: deviceOsVersion.major,
             configuration: configuration
         })
-        if (global.datadogRumAgent = invalid)
-            ' Publish the RUM context (observed synchronously by early logs) and the agent
-            ' together, so the registered instanceId always matches the agent that runs.
-            global.addFields({ datadogRumContext: { applicationId: configuration.applicationId, instanceId: rumInstanceId } })
-            global.addFields({ datadogRumAgent: rumAgent })
-        end if
-        if (rumAgent.isSameNode(global.datadogRumAgent))
-            ddLogInfo("No RUM agent, creating one")
-            global.datadogRumAgent.control = "RUN"
+        datadogRumAgent = publishGlobalSingleton(global, "datadogRumAgent", rumAgent)
+        if (rumAgent.isSameNode(datadogRumAgent))
+            ddLogInfo("No RUM agent found, starting a new one")
+            rumAgent.control = "RUN"
         else
             ddLogVerbose("Another RUM agent was registered concurrently; discarding this candidate")
         end if
     end if
 
     if (global.datadogLogsAgent = invalid)
-        agent = CreateObject("roSGNode", "LogsAgent")
-        agent.setFields({
+        logsAgent = CreateObject("roSGNode", "LogsAgent")
+        logsAgent.setFields({
             site: configuration.site,
             env: configuration.env ?? "",
             service: service,
@@ -124,13 +110,9 @@ sub initialize(configuration as object, global as object)
             osVersion: deviceOsVersionFull,
             osVersionMajor: deviceOsVersion.major
         })
-        ' Publish only if we won the slot. A loser is never referenced by callers (they use
-        ' global.datadogLogsAgent), so it lazily creates no WriterTask and is garbage-collected.
-        if (global.datadogLogsAgent = invalid)
-            global.addFields({ datadogLogsAgent: agent })
-        end if
-        if (agent.isSameNode(global.datadogLogsAgent))
-            ddLogInfo("No Logs agent, creating one")
+        datadogLogsAgent = publishGlobalSingleton(global, "datadogLogsAgent", logsAgent)
+        if (logsAgent.isSameNode(datadogLogsAgent))
+            ddLogInfo("No Logs agent found, created a new one")
         else
             ddLogVerbose("Another Logs agent was registered concurrently; discarding this candidate")
         end if
@@ -156,6 +138,28 @@ sub initialize(configuration as object, global as object)
         ]
     })
 end sub
+
+' ----------------------------------------------------------------
+' Publishes `value` into `global.<fieldName>` only if the slot is empty, using `setField` when
+' the field already exists (`addFields` won't overwrite). Returns the current occupant, so the
+' caller can check via `isSameNode` whether its own value won the slot.
+' @param global (object) the global node
+' @param fieldName (string) the name of the singleton field
+' @param value (dynamic) the candidate value to publish
+' @return (dynamic) the value currently held in the slot
+' ----------------------------------------------------------------
+function publishGlobalSingleton(global as object, fieldName as string, value as dynamic) as dynamic
+    if (global.getField(fieldName) = invalid)
+        if (global.hasField(fieldName))
+            global.setField(fieldName, value)
+        else
+            fields = {}
+            fields[fieldName] = value
+            global.addFields(fields)
+        end if
+    end if
+    return global.getField(fieldName)
+end function
 
 ' ----------------------------------------------------------------
 ' The available tracing header types that can be injected into http requests.
