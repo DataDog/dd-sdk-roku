@@ -72,27 +72,23 @@ sub initialize(configuration as object, global as object)
     end if
     datadogUploader = global.datadogUploader
     if (datadogUploader = invalid)
-        ddLogInfo("No uploader, creating one")
-        datadogUploader = CreateObject("roSGNode", "MultiTrackUploaderTask")
-        datadogUploader.clientToken = configuration.clientToken
-        datadogUploader.control = "RUN"
-        global.addFields({
-            datadogUploader: datadogUploader
-        })
+        candidate = CreateObject("roSGNode", "MultiTrackUploaderTask")
+        candidate.clientToken = configuration.clientToken
+        datadogUploader = publishGlobalSingleton(global, "datadogUploader", candidate)
+        if (candidate.isSameNode(datadogUploader))
+            ddLogInfo("No uploader found, starting a new one")
+            datadogUploader.control = "RUN"
+        else
+            ddLogVerbose("Another uploader was registered concurrently; discarding this candidate")
+        end if
     end if
     if (configuration.applicationId = invalid or configuration.applicationId = "")
         ddLogWarning("Trying to initialize the Datadog SDK without a RUM Application Id, please check your configuration.")
         return
     else if (global.datadogRumAgent = invalid)
-        ddLogInfo("No RUM agent, creating one")
-        ' Create the RUM context synchronously so any early log can observe it
-        ' before the RumAgent task fills in the rest.
-        rumInstanceId = CreateObject("roDeviceInfo").GetRandomUUID()
-        global.addFields({
-            datadogRumContext: {
-                applicationId: configuration.applicationId
-                instanceId: rumInstanceId
-            }
+        rumContext = publishGlobalSingleton(global, "datadogRumContext", {
+            applicationId: configuration.applicationId
+            instanceId: CreateObject("roDeviceInfo").GetRandomUUID()
         })
         rumAgent = CreateObject("roSGNode", "RumAgent")
         rumAgent.setFields({
@@ -105,8 +101,8 @@ sub initialize(configuration as object, global as object)
                         return ""
                     end if
                 end function)(configuration)
-            applicationId: configuration.applicationId
-            instanceId: rumInstanceId
+            applicationId: rumContext.applicationId
+            instanceId: rumContext.instanceId
             service: service
             version: version
             uploader: datadogUploader
@@ -125,15 +121,17 @@ sub initialize(configuration as object, global as object)
             osVersionMajor: deviceOsVersion.major
             configuration: configuration
         })
-        rumAgent.control = "RUN"
-        global.addFields({
-            datadogRumAgent: rumAgent
-        })
+        datadogRumAgent = publishGlobalSingleton(global, "datadogRumAgent", rumAgent)
+        if (rumAgent.isSameNode(datadogRumAgent))
+            ddLogInfo("No RUM agent found, starting a new one")
+            rumAgent.control = "RUN"
+        else
+            ddLogVerbose("Another RUM agent was registered concurrently; discarding this candidate")
+        end if
     end if
     if (global.datadogLogsAgent = invalid)
-        ddLogInfo("No Logs agent, creating one")
-        agent = CreateObject("roSGNode", "LogsAgent")
-        agent.setFields({
+        logsAgent = CreateObject("roSGNode", "LogsAgent")
+        logsAgent.setFields({
             site: configuration.site
             env: (function(configuration)
                     __bsConsequent = configuration.env
@@ -151,9 +149,12 @@ sub initialize(configuration as object, global as object)
             osVersion: deviceOsVersionFull
             osVersionMajor: deviceOsVersion.major
         })
-        global.addFields({
-            datadogLogsAgent: agent
-        })
+        datadogLogsAgent = publishGlobalSingleton(global, "datadogLogsAgent", logsAgent)
+        if (logsAgent.isSameNode(datadogLogsAgent))
+            ddLogInfo("No Logs agent found, created a new one")
+        else
+            ddLogVerbose("Another Logs agent was registered concurrently; discarding this candidate")
+        end if
     end if
     if (configuration.ignoredExitEvents <> invalid and configuration.ignoredExitEvents.count() = 0)
         ddLogWarning("configuration.ignoredExitEvents is empty; all exit statuses will be reported as crashes.")
@@ -202,6 +203,28 @@ sub initialize(configuration as object, global as object)
             end function)(configuration)
     })
 end sub
+
+' ----------------------------------------------------------------
+' Publishes `value` into `global.<fieldName>` only if the slot is empty, using `setField` when
+' the field already exists (`addFields` won't overwrite). Returns the current occupant, so the
+' caller can check via `isSameNode` whether its own value won the slot.
+' @param global (object) the global node
+' @param fieldName (string) the name of the singleton field
+' @param value (dynamic) the candidate value to publish
+' @return (dynamic) the value currently held in the slot
+' ----------------------------------------------------------------
+function publishGlobalSingleton(global as object, fieldName as string, value as dynamic) as dynamic
+    if (global.getField(fieldName) = invalid)
+        if (global.hasField(fieldName))
+            global.setField(fieldName, value)
+        else
+            fields = {}
+            fields[fieldName] = value
+            global.addFields(fields)
+        end if
+    end if
+    return global.getField(fieldName)
+end function
 ' ----------------------------------------------------------------
 ' The available tracing header types that can be injected into http requests.
 ' ----------------------------------------------------------------
