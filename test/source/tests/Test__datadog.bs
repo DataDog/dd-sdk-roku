@@ -19,6 +19,7 @@ function TestSuite__Datadog() as object
     this.addTest("WhenGetEndpointEU1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointEU1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointAP1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointAP2_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUK1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUK1_ThenCreateEndpoint)
 
     this.addTest("WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal)
     this.addTest("WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal)
@@ -168,6 +169,23 @@ function DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint() as string
 
     ' Then
     Assert.that(endpoint).isEqualTo("https://browser-intake-ap2-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a uk1 site
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returned
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUK1_ThenCreateEndpoint() as string
+    ' Given
+    site = "uk1"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://browser-intake-uk1-datadoghq.com")
     return ""
 end function
 
