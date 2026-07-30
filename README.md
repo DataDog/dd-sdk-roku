@@ -35,9 +35,9 @@ sub RunUserInterface(args as dynamic)
     ' Setup Datadog
     datadogroku_initialize({
         clientToken: "pub00000000000000000000000000000000", ' replace with your client token
-        applicationId: "00000000-0000-0000-0000-000000000000", ' replace with your RUM application Id
+        applicationId: "00000000-0000-0000-0000-000000000000", ' replace with your RUM application ID
         site: "us1", ' replace with the site you're targeting, see the table below
-        env: "prod", ' replace with the environment you're targeting, e.g.: prod, staging, …
+        env: "prod", ' replace with the environment you're targeting, for example: prod, staging, …
         sessionSampleRate: 100, ' the percentage (integer) of sessions to track
         launchArgs: args
     }, globalNode)
@@ -51,13 +51,13 @@ The `configuration` object passed to `datadogroku_initialize` supports the follo
 | Field                    | Type              | Required | Description                                                                                                                                                                                                                                                            |
 | ------------------------ | ----------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | clientToken              | String            | Yes      | The token used to upload data to Datadog.                                                                                                                                                                                                                              |
-| applicationId            | String            | Yes      | The application id to be used in RUM events.                                                                                                                                                                                                                           |
+| applicationId            | String            | Yes      | The application ID used in RUM events.                                                                                                                                                                                                                           |
 | site                     | String            | Yes      | The site to send data to: `"us1"`, `"us3"`, `"us5"`, `"eu1"`, `"ap1"`, `"ap2"`, `"uk1"`, or `"staging"`.                                                                                                                                                                |
 | env                      | String            | Yes      | The name of the environment to report in logs and RUM events.                                                                                                                                                                                                          |
 | sessionSampleRate        | Integer           | Yes      | The percentage of sessions to keep and send to Datadog, as an integer between 0 and 100 (default is 100).                                                                                                                                                             |
 | service                  | String            | No       | The name of the service to report in logs and RUM events (defaults to the channel's title from the manifest).                                                                                                                                                        |
 | version                  | String            | No       | The version of the channel to report in logs and RUM events (defaults to the channel's version from the manifest).                                                                                                                                                    |
-| traceSampleRate          | Integer           | No       | The rate of traces to keep when instrumenting network requests, as an integer between 0 and 100 (default is 100).                                                                                                                                                     |
+| traceSampleRate          | Double            | No       | The rate of traces to keep when instrumenting network requests, as a number between 0 and 100 (default is 100).                                                                                                                                                       |
 | tracingHeaderTypes       | Array             | No       | An array of associative arrays, each with a `host` (string) and a `header` (a single tracing header type, or an array of them: `"b3"`, `"b3multi"`, `"tracecontext"`, or `"datadog"`), used to enable distributed tracing for requests to matching hosts. See [Track RUM Resources](#track-rum-resources). |
 | traceContextInjection    | String            | No       | Whether the trace context should be injected into all requests or only sampled ones: `"all"` or `"sampled"` (default is `"sampled"`).                                                                                                                                 |
 | ignoredExitEvents        | Array             | No       | An array of exit status strings to ignore when detecting crashes. Any exit status **not** in this list is reported as a crash. Defaults to `["EXIT_UNKNOWN", "EXIT_POWER_MODE", "EXIT_IDLE_AUTO_EXIT", "EXIT_DIAL_DELETE", "EXIT_USER_KILL", "EXIT_USER_NAV"]`.      |
@@ -96,7 +96,7 @@ RUM Actions represent the interactions your users have with your channel. You ca
 
 #### Track RUM Operations
 
-RUM Operations let you track the lifecycle of a specific feature or user flow (e.g. login, checkout, content load) as a named span, independent of Views. Start an operation, then report whether it succeeded or failed:
+RUM Operations let you track the lifecycle of a specific feature or user flow (for example, login, checkout, content load) as a named span, independent of Views. Start an operation, then report whether it succeeded or failed:
 
 ```brightscript
     m.global.datadogRumAgent.callfunc("startOperation", "login")

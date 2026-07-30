@@ -6,15 +6,15 @@
 ' Initializes the SDK
 ' @param configuration (object) an Associative Array with the following fields
 '  - clientToken (string) the token used to upload data to Datadog
-'  - applicationId (string) the application id to be used in RUM events
+'  - applicationId (string) the application ID to be used in RUM events
 '  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1", "ap1", "ap2", "uk1", "staging")
 '  - env (string) the name of the environment to report in logs and RUM events
 '  - sessionSampleRate (integer) the rate of session to keep and send to Datadog
 '     as an integer between 0 and 100 (default is 100)
 '  - service (string, optional) the name of the service to report in logs and RUM events
 '  - version (string, optional) the version of the channel to report in logs and RUM events
-'  - traceSampleRate (integer, optional) the rate of traces to keep when instrumenting network request
-'     as an integer between 0 and 100 (default is 100)
+'  - traceSampleRate (double, optional) the rate of traces to keep when instrumenting network request
+'     as a number between 0 and 100 (default is 100)
 '  - tracingHeaderTypes (array) a array of associative arrays. Each array item must have the following entries:
 '       - 'host': the host name  for which requests will have a trace generated (e.g.: example.com)
 '       - 'header': either a single tracing header type, or an array of tracing header types. When several
@@ -83,7 +83,7 @@ sub initialize(configuration as object, global as object)
         end if
     end if
     if (configuration.applicationId = invalid or configuration.applicationId = "")
-        ddLogWarning("Trying to initialize the Datadog SDK without a RUM Application Id, please check your configuration.")
+        ddLogWarning("Trying to initialize the Datadog SDK without a RUM Application ID, please check your configuration.")
         return
     else if (global.datadogRumAgent = invalid)
         rumContext = publishGlobalSingleton(global, "datadogRumContext", {
