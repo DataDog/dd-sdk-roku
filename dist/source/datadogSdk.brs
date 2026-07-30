@@ -7,7 +7,7 @@
 ' @param configuration (object) an Associative Array with the following fields
 '  - clientToken (string) the token used to upload data to Datadog
 '  - applicationId (string) the application id to be used in RUM events
-'  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1")
+'  - site (string) the site to send data to (one of "us1", "us3", "us5", "eu1", "ap1", "ap2", "uk1", "staging")
 '  - env (string) the name of the environment to report in logs and RUM events
 '  - sessionSampleRate (integer) the rate of session to keep and send to Datadog
 '     as an integer between 0 and 100 (default is 100)
@@ -320,6 +320,7 @@ function getEndpoint(site as object) as string
         eu1: "https://browser-intake-datadoghq.eu"
         ap1: "https://browser-intake-ap1-datadoghq.com"
         ap2: "https://browser-intake-ap2-datadoghq.com"
+        uk1: "https://browser-intake-uk1-datadoghq.com"
         staging: "https://browser-intake-datad0g.com"
     }
     endpoint = endpoints[site]
