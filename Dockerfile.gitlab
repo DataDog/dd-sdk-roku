@@ -1,3 +1,5 @@
+FROM node:24.16.0-bookworm-slim AS node
+
 FROM registry.ddbuild.io/images/mirror/ubuntu:24.04
 
 ####################################################################################################
@@ -69,15 +71,12 @@ RUN java --version
 # NPM
 ####################################################################################################
 
-# Install Node
-RUN set -x \
-   && apt-get update \
-   && apt-get -y upgrade \
-   && apt-get -y install --no-install-recommends \
-   nodejs \
-   npm \
-   && apt-get -y clean \
-   && rm -rf /var/lib/apt/lists/*
+# Install Node
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
+
+RUN npm install -g npm@11.16.0
 
 # Check Node and NPM version
 RUN node --version
