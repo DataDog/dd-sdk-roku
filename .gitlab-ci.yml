@@ -44,14 +44,20 @@ ci-image:
   except: [ tags, schedules ]
   tags: ['arch:amd64']
   image: "registry.ddbuild.io/images/docker:27.3.1"
+  id_tokens:
+    DDSIGN_ID_TOKEN:
+      aud: image-integrity
   script:
     - echo $CI_IMAGE
+    - METADATA_FILE=$(mktemp)
     - docker buildx build
       --file Dockerfile.gitlab
       --platform linux/amd64
       --tag $CI_IMAGE
       --push
+      --metadata-file ${METADATA_FILE}
       .
+    - ddsign sign $CI_IMAGE --docker-metadata-file ${METADATA_FILE}
 
 ########################################################################################################################
 # STATIC ANALYSIS
