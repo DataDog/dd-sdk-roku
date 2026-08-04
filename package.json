@@ -49,5 +49,63 @@
     "brighterscript": "0.69.13",
     "cspell": "8.17.5",
     "ropm": "0.11.4"
+  },
+  "overrides": {
+    "@xml-tools/ast": {
+      "lodash": "^4.18.1"
+    },
+    "@xml-tools/common": {
+      "lodash": "^4.18.1"
+    },
+    "brighterscript": {
+      "roku-deploy": {
+        "postman-request": {
+          "qs": "^6.15.3"
+        }
+      },
+      "minimatch": {
+        "brace-expansion": "^1.1.18"
+      }
+    },
+    "ropm": {
+      "roku-deploy": {
+        "postman-request": {
+          "qs": "^6.15.3"
+        }
+      },
+      "del": {
+        "rimraf": {
+          "glob": {
+            "minimatch": {
+              "brace-expansion": "^1.1.18"
+            }
+          }
+        }
+      },
+      "glob-all": {
+        "glob": {
+          "minimatch": {
+            "brace-expansion": "^1.1.18"
+          }
+        }
+      },
+      "npm-packlist": {
+        "glob": {
+          "minimatch": {
+            "brace-expansion": "^1.1.18"
+          }
+        },
+        "ignore-walk": {
+          "minimatch": {
+            "brace-expansion": "^1.1.18"
+          }
+        }
+      }
+    },
+    "@rokucommunity/bslint": {
+      "minimatch": {
+        "brace-expansion": "^1.1.18"
+      }
+    }
   }
 }
