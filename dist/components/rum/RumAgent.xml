@@ -11,7 +11,7 @@
         <field id="deviceModel" type="string" />
         <field id="osVersion" type="string" />
         <field id="osVersionMajor" type="string" />
-        <field id="keepAliveDelayMs" type="integer" value="15000" />
+        <field id="keepAliveDelayMs" type="integer" value="60000" />
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value="" />
         <field id="configuration" type="assocarray" value="{}" />
@@ -32,12 +32,15 @@
         <field id="addAction" type="assocarray" />
         <field id="addError" type="assocarray" />
         <field id="addResource" type="assocarray" />
+        <field id="addResources" type="array" />
+        <field id="reportUserActivity" type="assocarray" />
         <field id="addConfigTelemetry" type="assocarray" />
         <field id="addErrorTelemetry" type="assocarray" />
         <field id="addDebugTelemetry" type="assocarray" />
         <field id="startOperation" type="assocarray" />
         <field id="succeedOperation" type="assocarray" />
         <field id="failOperation" type="assocarray" />
+        <field id="reportOperations" type="array" />
         <field id="uploader" type="node" />
         <field id="writer" type="node" />
         <field id="rumScope" type="node" />
@@ -47,6 +50,7 @@
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
+        <function name="reportUserActivity" />
         <function name="addConfigTelemetry" />
         <function name="addErrorTelemetry" />
         <function name="addDebugTelemetry" />

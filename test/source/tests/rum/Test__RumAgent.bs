@@ -21,6 +21,12 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenAddErrorWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddErrorWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResource_ThenDelegateToRumScope", RumAgentTest__WhenAddResource_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddResourceWithContext_ThenDelegateToRumScope", RumAgentTest__WhenAddResourceWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResources_ThenDelegateToRumScope", RumAgentTest__WhenAddResources_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResourcesIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenAddResourcesIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenAddResourcesHasMalformedEvent_ThenSkipIt", RumAgentTest__WhenAddResourcesHasMalformedEvent_ThenSkipIt, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportUserActivity_ThenDelegateToRumScope", RumAgentTest__WhenReportUserActivity_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportUserActivityTwiceWithinDelay_ThenThrottleSecond", RumAgentTest__WhenReportUserActivityTwiceWithinDelay_ThenThrottleSecond, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportUserActivityTwiceAfterDelay_ThenBothDelegated", RumAgentTest__WhenReportUserActivityTwiceAfterDelay_ThenBothDelegated, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     this.addTest("WhenAddConfigTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddConfigTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenAddErrorTelemetry_ThenDelegateToTelemetryScope", RumAgentTest__WhenAddErrorTelemetry_ThenDelegateToTelemetryScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
@@ -33,13 +39,24 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenSucceedOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenSucceedOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenFailOperation_ThenDelegateToRumScope", RumAgentTest__WhenFailOperation_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenFailOperationWithContext_ThenDelegateToRumScope", RumAgentTest__WhenFailOperationWithContext_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperations_ThenDelegateToRumScope", RumAgentTest__WhenReportOperations_ThenDelegateToRumScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsIsEmpty_ThenDoNotDispatch", RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsHasInvalidKey_ThenSkipIt", RumAgentTest__WhenReportOperationsHasInvalidKey_ThenSkipIt, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsHasDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenReportOperationsHasDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenReportOperationsHasBlankOperationKey_ThenDispatchWithWarning", RumAgentTest__WhenReportOperationsHasBlankOperationKey_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     ' Operation input validation tests
     this.addTest("WhenStartOperationWithBlankName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithWhitespaceName_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithWhitespaceName_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenStartOperationWithDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenSucceedOperationWithDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenSucceedOperationWithDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenFailOperationWithDisallowedCharacterInName_ThenDispatchWithWarning", RumAgentTest__WhenFailOperationWithDisallowedCharacterInName_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch", RumAgentTest__WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithSpacedOperationKey_ThenDispatch", RumAgentTest__WhenStartOperationWithSpacedOperationKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenStartOperationWithNilKey_ThenDispatch", RumAgentTest__WhenStartOperationWithNilKey_ThenDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
-    this.addTest("WhenStartOperationWithBlankKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
-    this.addTest("WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithBlankKey_ThenDispatchWithWarning", RumAgentTest__WhenStartOperationWithBlankKey_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithWhitespaceKey_ThenDispatchWithWarning", RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDispatchWithWarning, RumAgentTest__SetUp, RumAgentTest__TearDown)
+    this.addTest("WhenStartOperationWithNonStringKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithNonStringKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenFailOperationWithInvalidReason_ThenDoNotDispatch", RumAgentTest__WhenFailOperationWithInvalidReason_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
     return this
@@ -373,6 +390,62 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: set the addResources field with an array of pre-built resource events
+'  Then: delegates each event to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddResources_ThenDelegateToRumScope() as string
+    ' Given
+    fakeEvent1 = { eventType: "addResource", resource: { url: IG_GetString(128) } }
+    fakeEvent2 = { eventType: "addResource", resource: { url: IG_GetString(128) } }
+
+    ' When
+    m.testedNode.addResources = [fakeEvent1, fakeEvent2]
+    sleep(30)
+
+    ' Then
+    result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: fakeEvent1, writer: m.mockWriter })
+    result += m.mockRumScope@.assertFunctionCalled("handleEvent", { event: fakeEvent2, writer: m.mockWriter })
+    return result
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the addResources field with an empty array
+'  Then: dispatches nothing to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddResourcesIsEmpty_ThenDoNotDispatch() as string
+    ' When
+    m.testedNode.addResources = []
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the addResources field with a malformed event (no resource)
+'  Then: skips the malformed event but still dispatches the valid one
+'----------------------------------------------------------------
+function RumAgentTest__WhenAddResourcesHasMalformedEvent_ThenSkipIt() as string
+    ' Given
+    malformedEvent = { eventType: "addResource" }
+    validEvent = { eventType: "addResource", resource: { url: IG_GetString(128) } }
+
+    ' When
+    m.testedNode.addResources = [malformedEvent, validEvent]
+    sleep(30)
+
+    ' Then: the valid event is dispatched and it is the only handleEvent call
+    ' (asserting the valid call first consumes it, so the {} check that follows
+    ' confirms nothing else, e.g. the malformed event, was forwarded)
+    result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: validEvent, writer: m.mockWriter }, 1)
+    result += m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+    return result
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the addConfigTelemetry method
 '  Then: delegates to the root TelemetryScope
 '----------------------------------------------------------------
@@ -552,6 +625,40 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: call the succeedOperation method with a name containing
+'        characters outside the schema facet-path character set
+'        (letters / digits / - _ . @ $)
+'  Then: dispatch the event anyway — see startOperation's disallowed-
+'        character test for the rationale. The agent still logs a
+'        WARNING to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenSucceedOperationWithDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given
+    invalidNames = ["user login", "api/v1", "checkout:step", "a,b", "login!", "a+b", "ログイン", "café"]
+
+    ' When
+    for each invalidName in invalidNames
+        m.testedNode@.succeedOperation(invalidName, invalid)
+    end for
+    sleep(30)
+
+    ' Then — one handleEvent dispatch per invalid name; name is preserved.
+    ' Compared as a set (not by index) since dispatch is not guaranteed to
+    ' preserve call order.
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(invalidNames.Count())
+    dispatchedNames = []
+    for each call in calls
+        dispatchedNames.push(call.event.name)
+    end for
+    for each invalidName in invalidNames
+        Assert.that(dispatchedNames).contains(invalidName)
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the failOperation method
 '  Then: delegates to the root RumScope
 '----------------------------------------------------------------
@@ -613,12 +720,142 @@ end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
+'  When: set the reportOperations field with an array of pre-built operation events
+'  Then: delegates each event to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperations_ThenDelegateToRumScope() as string
+    ' Given
+    fakeEvent1 = { eventType: "startFeatureOperation", name: IG_GetString(32) }
+    fakeEvent2 = { eventType: "stopFeatureOperation", name: IG_GetString(32) }
+
+    ' When
+    m.testedNode.reportOperations = [fakeEvent1, fakeEvent2]
+    sleep(30)
+
+    ' Then
+    result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: fakeEvent1, writer: m.mockWriter })
+    result += m.mockRumScope@.assertFunctionCalled("handleEvent", { event: fakeEvent2, writer: m.mockWriter })
+    return result
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with an empty array
+'  Then: dispatches nothing to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsIsEmpty_ThenDoNotDispatch() as string
+    ' When
+    m.testedNode.reportOperations = []
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with an event carrying an invalid
+'        (non-string) operationKey
+'  Then: skips the invalid event but still dispatches the valid one
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsHasInvalidKey_ThenSkipIt() as string
+    ' Given
+    invalidEvent = { eventType: "startFeatureOperation", name: IG_GetString(32), operationKey: 1 }
+    validEvent = { eventType: "startFeatureOperation", name: IG_GetString(32) }
+
+    ' When
+    m.testedNode.reportOperations = [invalidEvent, validEvent]
+    sleep(30)
+
+    ' Then: the valid event is dispatched and it is the only handleEvent call
+    ' (asserting the valid call first consumes it, so the {} check that follows
+    ' confirms nothing else, e.g. the invalid event, was forwarded)
+    result = m.mockRumScope@.assertFunctionCalled("handleEvent", { event: validEvent, writer: m.mockWriter }, 1)
+    result += m.mockRumScope@.assertFunctionCalled("handleEvent", {}, 0)
+    return result
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with a pre-built event whose name
+'        contains characters outside the schema facet-path character set
+'  Then: dispatch the event anyway — see startOperation's disallowed-
+'        character test for the rationale. The agent still logs a WARNING
+'        to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsHasDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given
+    invalidNameEvent = { eventType: "startFeatureOperation", name: "user login" }
+
+    ' When
+    m.testedNode.reportOperations = [invalidNameEvent]
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", { event: invalidNameEvent, writer: m.mockWriter }, 1)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: set the reportOperations field with a pre-built event whose
+'        operationKey is blank/whitespace-only
+'  Then: dispatch the event anyway — operationKey is optional, so a
+'        malformed value is never grounds to drop the step. The agent
+'        still logs a WARNING to flag the suspicious key.
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportOperationsHasBlankOperationKey_ThenDispatchWithWarning() as string
+    ' Given
+    blankKeyEvent = { eventType: "startFeatureOperation", name: IG_GetString(32), operationKey: "   " }
+
+    ' When
+    m.testedNode.reportOperations = [blankKeyEvent]
+    sleep(30)
+
+    ' Then
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", { event: blankKeyEvent, writer: m.mockWriter }, 1)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the failOperation method with a name containing
+'        characters outside the schema facet-path character set
+'        (letters / digits / - _ . @ $)
+'  Then: dispatch the event anyway — see startOperation's disallowed-
+'        character test for the rationale. The agent still logs a
+'        WARNING to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenFailOperationWithDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given
+    invalidNames = ["user login", "api/v1", "checkout:step", "a,b", "login!", "a+b", "ログイン", "café"]
+
+    ' When
+    for each invalidName in invalidNames
+        m.testedNode@.failOperation(invalidName, "error", invalid)
+    end for
+    sleep(30)
+
+    ' Then — one handleEvent dispatch per invalid name; name is preserved.
+    ' Compared as a set (not by index) since dispatch is not guaranteed to
+    ' preserve call order.
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "stopFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(invalidNames.Count())
+    dispatchedNames = []
+    for each call in calls
+        dispatchedNames.push(call.event.name)
+    end for
+    for each invalidName in invalidNames
+        Assert.that(dispatchedNames).contains(invalidName)
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
 '  When: call the startOperation method with a blank name
-'  Then: do not dispatch any event to the RumScope
+'  Then: do not dispatch any event to the RumScope (the backend
+'        rejects blank/empty names with its own non-empty precondition).
 '----------------------------------------------------------------
 function RumAgentTest__WhenStartOperationWithBlankName_ThenDoNotDispatch() as string
-    ' Given
-
     ' When
     m.testedNode@.startOperation("", invalid)
     sleep(30)
@@ -633,14 +870,93 @@ end function
 '  Then: do not dispatch any event to the RumScope
 '----------------------------------------------------------------
 function RumAgentTest__WhenStartOperationWithWhitespaceName_ThenDoNotDispatch() as string
-    ' Given
-
     ' When
     m.testedNode@.startOperation("   ", invalid)
     sleep(30)
 
     ' Then
     return m.mockRumScope@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a name containing
+'        characters outside the schema facet-path character set
+'        (letters / digits / - _ . @ $)
+'  Then: dispatch the event anyway — the backend owns the authoritative
+'        character-set policy, so client-side drop would force a
+'        customer SDK bump if that policy is ever relaxed. The agent
+'        still logs a WARNING to flag the suspicious name.
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithDisallowedCharacterInName_ThenDispatchWithWarning() as string
+    ' Given — includes a non-ASCII name to pin the ASCII-only \w semantics
+    ' of BrightScript roRegex (PCRE).
+    invalidNames = ["user login", "api/v1", "checkout:step", "a,b", "login!", "a+b", "ログイン", "café"]
+
+    ' When
+    for each invalidName in invalidNames
+        m.testedNode@.startOperation(invalidName, invalid)
+    end for
+    sleep(30)
+
+    ' Then — one handleEvent dispatch per invalid name; name is preserved.
+    ' Compared as a set (not by index) since dispatch is not guaranteed to
+    ' preserve call order.
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(invalidNames.Count())
+    dispatchedNames = []
+    for each call in calls
+        dispatchedNames.push(call.event.name)
+    end for
+    for each invalidName in invalidNames
+        Assert.that(dispatchedNames).contains(invalidName)
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with names that use only
+'        schema-allowed characters (letters, digits, - _ . @ $)
+'  Then: dispatch every event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithAllowedSchemaCharacters_ThenDispatch() as string
+    ' Given
+    validNames = ["login", "step42", "login-v2", "user_login", "login.v2", "login@prod", "login$1", "LoginV2"]
+
+    ' When
+    for each validName in validNames
+        m.testedNode@.startOperation(validName, invalid)
+    end for
+    sleep(30)
+
+    ' Then — one handleEvent dispatch per valid name
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(validNames.Count())
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with an operationKey
+'        containing characters outside the name character set
+'        (spaces, slashes)
+'  Then: dispatch the event — operation_key has no character
+'        restriction in the schema
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithSpacedOperationKey_ThenDispatch() as string
+    ' Given
+    fakeKey = "session 42 / user foo"
+
+    ' When
+    m.testedNode@.startOperation("login", fakeKey)
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].event.operationKey).isEqualTo(fakeKey)
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -668,9 +984,11 @@ end function
 '----------------------------------------------------------------
 ' Given: a RumAgent
 '  When: call the startOperation method with a blank operationKey
-'  Then: do not dispatch any event to the RumScope
+'  Then: dispatch the event anyway — operationKey is optional, so a
+'        malformed value is never grounds to drop the step. The agent
+'        still logs a WARNING to flag the suspicious key.
 '----------------------------------------------------------------
-function RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch() as string
+function RumAgentTest__WhenStartOperationWithBlankKey_ThenDispatchWithWarning() as string
     ' Given
     fakeName = IG_GetString(32)
 
@@ -679,20 +997,44 @@ function RumAgentTest__WhenStartOperationWithBlankKey_ThenDoNotDispatch() as str
     sleep(30)
 
     ' Then
-    return m.mockRumScope@.assertNoInteractions()
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].event.operationKey).isEqualTo("")
+    return ""
 end function
 
 '----------------------------------------------------------------
 ' Given: a RumAgent
 '  When: call the startOperation method with a whitespace-only operationKey
-'  Then: do not dispatch any event to the RumScope
+'  Then: dispatch the event anyway — see blank-key test above.
 '----------------------------------------------------------------
-function RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDoNotDispatch() as string
+function RumAgentTest__WhenStartOperationWithWhitespaceKey_ThenDispatchWithWarning() as string
     ' Given
     fakeName = IG_GetString(32)
 
     ' When
     m.testedNode@.startOperation(fakeName, "   ")
+    sleep(30)
+
+    ' Then
+    calls = m.mockRumScope@.captureFunctionCalls("handleEvent", { event: { eventType: "startFeatureOperation" } })
+    Assert.that(calls).isNotInvalid().hasSize(1)
+    Assert.that(calls[0].event.operationKey).isEqualTo("   ")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the startOperation method with a non-string, non-invalid
+'        operationKey (a caller-side type error, not a schema concern)
+'  Then: do not dispatch any event to the RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenStartOperationWithNonStringKey_ThenDoNotDispatch() as string
+    ' Given
+    fakeName = IG_GetString(32)
+
+    ' When
+    m.testedNode@.startOperation(fakeName, 42)
     sleep(30)
 
     ' Then
@@ -714,4 +1056,60 @@ function RumAgentTest__WhenFailOperationWithInvalidReason_ThenDoNotDispatch() as
 
     ' Then
     return m.mockRumScope@.assertNoInteractions()
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent
+'  When: call the reportUserActivity method (via callFunc, which passes a
+'        placeholder arg - reportUserActivity must accept it or never runs)
+'  Then: delegates a userActivity event to the root RumScope
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportUserActivity_ThenDelegateToRumScope() as string
+    ' When
+    m.testedNode@.reportUserActivity()
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "userActivity" }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent with a large keepAliveDelayMs
+'  When: calling reportUserActivity twice within the delay window
+'  Then: only the first report is delegated (the second is throttled)
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportUserActivityTwiceWithinDelay_ThenThrottleSecond() as string
+    ' Given
+    m.testedNode.keepAliveDelayMs = 60000
+
+    ' When
+    m.testedNode@.reportUserActivity()
+    sleep(30)
+    m.testedNode@.reportUserActivity()
+    sleep(30)
+
+    ' Then
+    expectedArgs = { event: { eventType: "userActivity" }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs, 1)
+end function
+
+'----------------------------------------------------------------
+' Given: a RumAgent with a small keepAliveDelayMs
+'  When: calling reportUserActivity twice, spaced further apart than the delay
+'  Then: both reports are delegated
+'----------------------------------------------------------------
+function RumAgentTest__WhenReportUserActivityTwiceAfterDelay_ThenBothDelegated() as string
+    ' Given
+    m.testedNode.keepAliveDelayMs = 10
+
+    ' When
+    m.testedNode@.reportUserActivity()
+    sleep(50)
+    m.testedNode@.reportUserActivity()
+    sleep(50)
+
+    ' Then
+    expectedArgs = { event: { eventType: "userActivity" }, writer: m.mockWriter }
+    return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs, 2)
 end function

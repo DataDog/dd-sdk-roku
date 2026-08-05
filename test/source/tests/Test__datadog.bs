@@ -19,6 +19,7 @@ function TestSuite__Datadog() as object
     this.addTest("WhenGetEndpointEU1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointEU1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointAP1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP1_ThenCreateEndpoint)
     this.addTest("WhenGetEndpointAP2_ThenCreateEndpoint", DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint)
+    this.addTest("WhenGetEndpointUK1_ThenCreateEndpoint", DatadogTest__WhenGetEndpointUK1_ThenCreateEndpoint)
 
     this.addTest("WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenRumAgentConfigurationIsSetInGlobal)
     this.addTest("WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal", DatadogTest__WhenInitialize_ThenLogsAgentConfigurationIsSetInGlobal)
@@ -26,6 +27,12 @@ function TestSuite__Datadog() as object
     this.addTest("WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal", DatadogTest__WhenInitialize_WithNoIgnoredExitEvents_ThenDefaultIsSetInGlobal)
     this.addTest("WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal", DatadogTest__WhenInitialize_WithCustomIgnoredExitEvents_ThenCustomIsSetInGlobal)
     this.addTest("WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal", DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsSetInGlobal)
+    this.addTest("WhenInitializeTwice_ThenSingletonsAreNotDuplicated", DatadogTest__WhenInitializeTwice_ThenSingletonsAreNotDuplicated)
+    this.addTest("WhenInitialize_WithUploaderAlreadyPresent_ThenExistingIsKept", DatadogTest__WhenInitialize_WithUploaderAlreadyPresent_ThenExistingIsKept)
+    this.addTest("WhenInitialize_WithRumAgentAlreadyPresent_ThenExistingIsKept", DatadogTest__WhenInitialize_WithRumAgentAlreadyPresent_ThenExistingIsKept)
+    this.addTest("WhenInitialize_WithLogsAgentAlreadyPresent_ThenExistingIsKept", DatadogTest__WhenInitialize_WithLogsAgentAlreadyPresent_ThenExistingIsKept)
+    this.addTest("WhenPublishGlobalSingleton_ThenClaimsEmptyKeepsOccupiedAssignsExistingField", DatadogTest__WhenPublishGlobalSingleton_ThenClaimsEmptyKeepsOccupiedAssignsExistingField)
+    this.addTest("WhenInitialize_WithExistingInvalidUploaderField_ThenUploaderIsAssigned", DatadogTest__WhenInitialize_WithExistingInvalidUploaderField_ThenUploaderIsAssigned)
 
     this.addTest("WhenGetEndpointStaging_ThenCreateEndpoint", DatadogTest__WhenGetEndpointStaging_ThenCreateEndpoint)
 
@@ -162,6 +169,23 @@ function DatadogTest__WhenGetEndpointAP2_ThenCreateEndpoint() as string
 
     ' Then
     Assert.that(endpoint).isEqualTo("https://browser-intake-ap2-datadoghq.com")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a uk1 site
+'  When: asking for the endpoint
+'  Then: the correct endpoint is returned
+'----------------------------------------------------------------
+function DatadogTest__WhenGetEndpointUK1_ThenCreateEndpoint() as string
+    ' Given
+    site = "uk1"
+
+    ' When
+    endpoint = datadogroku_getEndpoint(site)
+
+    ' Then
+    Assert.that(endpoint).isEqualTo("https://browser-intake-uk1-datadoghq.com")
     return ""
 end function
 
@@ -401,6 +425,173 @@ function DatadogTest__WhenInitialize_WithEmptyIgnoredExitEvents_ThenEmptyListIsS
     actualIgnoredExitEvents = fakeGlobal.getField("datadogIgnoredExitEvents")
     Assert.that(actualIgnoredExitEvents).isNotInvalid()
     Assert.that(actualIgnoredExitEvents).hasSize(0)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: the SDK already initialized on a global
+'  When: initialize is called again on the same global (repeated init)
+'  Then: the existing uploader/RUM/Logs singletons are reused, never duplicated
+'----------------------------------------------------------------
+function DatadogTest__WhenInitializeTwice_ThenSingletonsAreNotDuplicated() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16),
+        service: IG_GetString(16)
+    }
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+
+    ' When: initialize is called twice on the same global
+    datadogroku_initialize(configuration, fakeGlobal)
+    firstUploader = fakeGlobal.getField("datadogUploader")
+    firstRumAgent = fakeGlobal.getField("datadogRumAgent")
+    firstLogsAgent = fakeGlobal.getField("datadogLogsAgent")
+
+    datadogroku_initialize(configuration, fakeGlobal)
+    secondUploader = fakeGlobal.getField("datadogUploader")
+    secondRumAgent = fakeGlobal.getField("datadogRumAgent")
+    secondLogsAgent = fakeGlobal.getField("datadogLogsAgent")
+
+    ' Then: the same singleton instances are kept (no duplicate created)
+    Assert.that(firstUploader.isSameNode(secondUploader)).isEqualTo(true)
+    Assert.that(firstRumAgent.isSameNode(secondRumAgent)).isEqualTo(true)
+    Assert.that(firstLogsAgent.isSameNode(secondLogsAgent)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global that already has an uploader registered
+'  When: initializing the SDK
+'  Then: the pre-existing uploader is kept, not replaced by a new one
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithUploaderAlreadyPresent_ThenExistingIsKept() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    sentinelUploader = CreateObject("roSGNode", "ContentNode")
+    fakeGlobal.addFields({ datadogUploader: sentinelUploader })
+
+    ' When
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then: the slot still holds the exact node that was already there
+    Assert.that(fakeGlobal.getField("datadogUploader").isSameNode(sentinelUploader)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global that already has a RUM agent registered
+'  When: initializing the SDK
+'  Then: the pre-existing RUM agent is kept, not replaced by a new one
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithRumAgentAlreadyPresent_ThenExistingIsKept() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    sentinelRumAgent = CreateObject("roSGNode", "ContentNode")
+    fakeGlobal.addFields({ datadogRumAgent: sentinelRumAgent })
+
+    ' When
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then: the slot still holds the exact node that was already there
+    Assert.that(fakeGlobal.getField("datadogRumAgent").isSameNode(sentinelRumAgent)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global that already has a Logs agent registered
+'  When: initializing the SDK
+'  Then: the pre-existing Logs agent is kept, not replaced by a new one
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithLogsAgentAlreadyPresent_ThenExistingIsKept() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    sentinelLogsAgent = CreateObject("roSGNode", "ContentNode")
+    fakeGlobal.addFields({ datadogLogsAgent: sentinelLogsAgent })
+
+    ' When
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then: the slot still holds the exact node that was already there
+    Assert.that(fakeGlobal.getField("datadogLogsAgent").isSameNode(sentinelLogsAgent)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global node
+'  When: publishGlobalSingleton is called on an empty slot, an occupied slot, and a field
+'        that already exists but holds invalid
+'  Then: it publishes into the empty slot, keeps the occupant of the occupied slot, and
+'        assigns the existing invalid field (addFields alone would not overwrite it)
+'----------------------------------------------------------------
+function DatadogTest__WhenPublishGlobalSingleton_ThenClaimsEmptyKeepsOccupiedAssignsExistingField() as string
+    ' Given
+    nodeA = CreateObject("roSGNode", "ContentNode")
+    nodeB = CreateObject("roSGNode", "ContentNode")
+
+    ' Empty slot (field absent) -> value is published and returned
+    emptyGlobal = CreateObject("roSGNode", "ContentNode")
+    claimed = datadogroku_publishGlobalSingleton(emptyGlobal, "slot", nodeA)
+
+    ' Occupied slot -> existing value kept, candidate ignored
+    kept = datadogroku_publishGlobalSingleton(emptyGlobal, "slot", nodeB)
+
+    ' Field that already exists but holds invalid -> assigned via setField
+    existingFieldGlobal = CreateObject("roSGNode", "ContentNode")
+    existingFieldGlobal.addField("slot", "node", false)
+    assigned = datadogroku_publishGlobalSingleton(existingFieldGlobal, "slot", nodeA)
+
+    ' Then
+    Assert.that(claimed.isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(kept.isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(emptyGlobal.getField("slot").isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(assigned.isSameNode(nodeA)).isEqualTo(true)
+    Assert.that(existingFieldGlobal.getField("slot").isSameNode(nodeA)).isEqualTo(true)
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a global that declares `datadogUploader` as a node field left invalid
+'  When: initializing the SDK
+'  Then: the slot is assigned a real uploader (addFields alone would not overwrite the field)
+'----------------------------------------------------------------
+function DatadogTest__WhenInitialize_WithExistingInvalidUploaderField_ThenUploaderIsAssigned() as string
+    ' Given
+    configuration = {
+        clientToken: IG_GetString(16),
+        applicationId: IG_GetString(16),
+        site: "us1",
+        env: IG_GetString(16)
+    }
+    fakeGlobal = CreateObject("roSGNode", "ContentNode")
+    fakeGlobal.addField("datadogUploader", "node", false)
+
+    ' When
+    datadogroku_initialize(configuration, fakeGlobal)
+
+    ' Then: the previously-invalid slot now holds a real uploader
+    Assert.that(fakeGlobal.getField("datadogUploader")).isNotInvalid()
+    Assert.that(fakeGlobal.getField("datadogUploader").clientToken).isEqualTo(configuration.clientToken)
     return ""
 end function
 

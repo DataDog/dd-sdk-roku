@@ -21,12 +21,15 @@ sub init()
     m.top.observeFieldScoped("addAction", m.port)
     m.top.observeFieldScoped("addError", m.port)
     m.top.observeFieldScoped("addResource", m.port)
+    m.top.observeFieldScoped("addResources", m.port)
+    m.top.observeFieldScoped("reportUserActivity", m.port)
     m.top.observeFieldScoped("addConfigTelemetry", m.port)
     m.top.observeFieldScoped("addErrorTelemetry", m.port)
     m.top.observeFieldScoped("addDebugTelemetry", m.port)
     m.top.observeFieldScoped("startOperation", m.port)
     m.top.observeFieldScoped("succeedOperation", m.port)
     m.top.observeFieldScoped("failOperation", m.port)
+    m.top.observeFieldScoped("reportOperations", m.port)
     m.top.functionName = "rumAgentLoop"
 end sub
 
@@ -51,6 +54,10 @@ sub rumAgentLoop()
                 __onAddError(msg.getData())
             else if (fieldName = "addResource")
                 __onAddResource(msg.getData())
+            else if (fieldName = "addResources")
+                __onAddResources(msg.getData())
+            else if (fieldName = "reportUserActivity")
+                __onReportUserActivity(msg.getData())
             else if (fieldName = "addConfigTelemetry")
                 __onAddConfigTelemetry(msg.getData())
             else if (fieldName = "addErrorTelemetry")
@@ -63,6 +70,8 @@ sub rumAgentLoop()
                 __onSucceedOperation(msg.getData())
             else if (fieldName = "failOperation")
                 __onFailOperation(msg.getData())
+            else if (fieldName = "reportOperations")
+                __onReportOperations(msg.getData())
             end if
         else
             ddLogWarning("Unexpected message " + msgType + ": " + FormatJson(msg))
@@ -251,6 +260,53 @@ sub __onAddResource(event as object)
 end sub
 
 ' ----------------------------------------------------------------
+' Reports a batch of resources in a single rendezvous
+' @param events (dynamic) an array of pre-built resource events, or invalid
+' ----------------------------------------------------------------
+sub __onAddResources(events as dynamic)
+    if (events <> invalid and m.rumScope <> invalid)
+        for each event in events
+            ' The batch path bypasses the typed addResource(resource as object) wrapper,
+            ' so guard that each item carries a resource assocarray before forwarding;
+            ' a missing/invalid resource would otherwise crash the RUM scope.
+            if (type(event) = "roAssociativeArray" and type(event.resource) = "roAssociativeArray")
+                m.rumScope.callfunc("handleEvent", event, m.writer)
+            else
+                ddLogError("RumAgent: addResources received a malformed resource event, ignoring")
+            end if
+        end for
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Reports user activity to keep the current session alive. This
+' refreshes the session's inactivity clock (renewing it if it has
+' already expired) and, when a view is active, emits a view update
+' so the session/view duration is extended in Datadog.
+' Intended for apps with an existing high-frequency engagement
+' signal (e.g. video playback position, GPS fix, sensor reading).
+' @param _ph (dynamic) no-op argument: callFunc always passes one
+'   argument, so a zero-param function would never be invoked
+' ----------------------------------------------------------------
+sub reportUserActivity(_ph = invalid as dynamic)
+    m.top.reportUserActivity = userActivityEvent()
+end sub
+
+' ----------------------------------------------------------------
+' Private: Handles reportUserActivity field change event
+' @param event (object) the reportUserActivity event data
+' ----------------------------------------------------------------
+sub __onReportUserActivity(event as object)
+    nowMs& = event.timestamp
+    if (m.lastUserActivityMs <> invalid and (nowMs& - m.lastUserActivityMs) < m.top.keepAliveDelayMs)
+        ddLogVerbose("Ignoring throttled reportUserActivity")
+        return
+    end if
+    m.lastUserActivityMs = nowMs&
+    m.rumScope.callfunc("handleEvent", event, m.writer)
+end sub
+
+' ----------------------------------------------------------------
 ' Private: Handles sendCrash field change event
 ' @param lastExitOrTerminationReason (string) the last exit or termination reason
 ' ----------------------------------------------------------------
@@ -331,12 +387,25 @@ end sub
 ' ----------------------------------------------------------------
 sub startOperation(name as string, operationKey = invalid as dynamic, context = {} as object)
     if (not __isValidOperationName(name))
+        ' Backend rejects blank/empty names with its own non-empty
+        ' precondition; drop client-side to match.
         ddLogError("RumAgent: startOperation called with blank name, ignoring")
         return
     end if
-    if (not __isValidOperationKey(operationKey))
-        ddLogError("RumAgent: startOperation called with blank operationKey, ignoring")
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit: the backend is the source of truth on the
+        ' character-set policy. Dropping client-side would force a customer
+        ' SDK bump if the rule is ever relaxed.
+        ddLogWarning("RumAgent: startOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
+    if (not __isValidOperationKeyType(operationKey))
+        ddLogError("RumAgent: startOperation called with invalid operationKey, ignoring")
         return
+    end if
+    if (__isOperationKeyBlank(operationKey))
+        ' Warn but still emit: operationKey is optional, so a malformed value
+        ' is never grounds to drop the step (canonical cross-SDK behavior).
+        ddLogWarning("RumAgent: startOperation operationKey cannot be empty or contain only whitespace, but was '" + operationKey + "'. The event will still be sent.")
     end if
     m.top.startOperation = startFeatureOperationEvent(name, operationKey, context)
 end sub
@@ -361,9 +430,17 @@ sub succeedOperation(name as string, operationKey = invalid as dynamic, context 
         ddLogError("RumAgent: succeedOperation called with blank name, ignoring")
         return
     end if
-    if (not __isValidOperationKey(operationKey))
-        ddLogError("RumAgent: succeedOperation called with blank operationKey, ignoring")
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: succeedOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
+    if (not __isValidOperationKeyType(operationKey))
+        ddLogError("RumAgent: succeedOperation called with invalid operationKey, ignoring")
         return
+    end if
+    if (__isOperationKeyBlank(operationKey))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: succeedOperation operationKey cannot be empty or contain only whitespace, but was '" + operationKey + "'. The event will still be sent.")
     end if
     m.top.succeedOperation = succeedFeatureOperationEvent(name, operationKey, context)
 end sub
@@ -389,9 +466,17 @@ sub failOperation(name as string, failureReason as string, operationKey = invali
         ddLogError("RumAgent: failOperation called with blank name, ignoring")
         return
     end if
-    if (not __isValidOperationKey(operationKey))
-        ddLogError("RumAgent: failOperation called with blank operationKey, ignoring")
+    if (not __operationNameMatchesBackendPattern(name))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: failOperation name '" + name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+    end if
+    if (not __isValidOperationKeyType(operationKey))
+        ddLogError("RumAgent: failOperation called with invalid operationKey, ignoring")
         return
+    end if
+    if (__isOperationKeyBlank(operationKey))
+        ' Warn but still emit — see startOperation comment.
+        ddLogWarning("RumAgent: failOperation operationKey cannot be empty or contain only whitespace, but was '" + operationKey + "'. The event will still be sent.")
     end if
     if (not __isValidFailureReason(failureReason))
         ddLogError("RumAgent: failOperation called with invalid failureReason '" + failureReason + "', ignoring")
@@ -409,39 +494,125 @@ sub __onFailOperation(event as object)
 end sub
 
 ' ----------------------------------------------------------------
-' Returns true if the operation name is valid (non-blank after trimming)
-' @param name (string) the operation name to validate
+' Reports a batch of operations in a single rendezvous
+' @param events (dynamic) an array of pre-built operation events, or invalid
+' ----------------------------------------------------------------
+sub __onReportOperations(events as dynamic)
+    if (events <> invalid and m.rumScope <> invalid)
+        for each event in events
+            if (__isValidOperationEvent(event))
+                if (not __operationNameMatchesBackendPattern(event.name))
+                    ddLogWarning("RumAgent: reportOperations name '" + event.name + "' does not match the backend-accepted pattern [\w.@$-]* (letters, digits, _ . @ $ -). The event will still be sent and may be rejected by the backend.")
+                end if
+                if (__isOperationKeyBlank(event.operationKey))
+                    ddLogWarning("RumAgent: reportOperations operationKey cannot be empty or contain only whitespace, but was '" + event.operationKey + "'. The event will still be sent.")
+                end if
+                m.rumScope.callfunc("handleEvent", event, m.writer)
+            else
+                ddLogError("RumAgent: reportOperations received an invalid operation event, ignoring")
+            end if
+        end for
+    end if
+end sub
+
+' ----------------------------------------------------------------
+' Returns true if a batched operation event carries a fundamentally valid
+' name, operationKey type and (for fail events) failureReason. Mirrors only
+' the hard-drop checks the single-item startOperation/succeedOperation/
+' failOperation methods run before dispatching, which the batch path bypasses
+' by taking pre-built events. Without it a bad key (e.g. a non-string) would
+' crash the task in __operationLookupKey. Character-set / blank-key issues
+' are warn-and-emit, not drop, and are handled separately in
+' __onReportOperations after this returns true.
+' @param event (dynamic) the pre-built operation event to validate
+' @return (boolean) whether the event is safe to forward
+' ----------------------------------------------------------------
+function __isValidOperationEvent(event as dynamic) as boolean
+    if (type(event) <> "roAssociativeArray")
+        return false
+    end if
+    if (not __isValidOperationName(event.name))
+        return false
+    end if
+    if (not __isValidOperationKeyType(event.operationKey))
+        return false
+    end if
+    ' start/succeed events carry no failureReason (invalid is fine); fail events do
+    if (event.failureReason <> invalid and not __isValidFailureReason(event.failureReason))
+        return false
+    end if
+    return true
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the operation name is valid (a non-blank string after
+' trimming). Accepts dynamic so it can guard pre-built batch events as well as
+' the typed single-item callers.
+' @param name (dynamic) the operation name to validate
 ' @return (boolean) whether the name is valid
 ' ----------------------------------------------------------------
-function __isValidOperationName(name as string) as boolean
+function __isValidOperationName(name as dynamic) as boolean
+    if (type(name) <> "roString" and type(name) <> "String")
+        return false
+    end if
     return name.Trim().Len() > 0
 end function
 
 ' ----------------------------------------------------------------
-' Returns true if the operationKey is valid:
-'   - invalid is VALID (means unkeyed operation)
-'   - non-empty string after trimming is VALID
-'   - empty or whitespace-only string is INVALID
-'   - non-string, non-invalid values are INVALID
-' @param operationKey (dynamic) the operation key to validate
-' @return (boolean) whether the key is valid
+' Returns true if the operation name matches the backend's server-side
+' `[\w.@$-]*` validation regex. operation_key is a separate parameter
+' and is not subject to this rule. The `*` quantifier means an empty
+' string also matches.
+' @param name (string) the operation name to validate
+' @return (boolean) whether the name matches the backend pattern
 ' ----------------------------------------------------------------
-function __isValidOperationKey(operationKey as dynamic) as boolean
-    if (operationKey = invalid)
-        return true
-    end if
-    if (type(operationKey) = "roString" or type(operationKey) = "String")
-        return operationKey.Trim().Len() > 0
-    end if
-    ' Non-string, non-invalid values are invalid
-    return false
+function __operationNameMatchesBackendPattern(name as string) as boolean
+    regex = CreateObject("roRegex", "^[\w.@$-]*$", "")
+    return regex.IsMatch(name)
 end function
 
 ' ----------------------------------------------------------------
-' Returns true if the failureReason is a known FailureReason value
-' @param failureReason (string) the failure reason to validate
+' Returns true if the operationKey is of an acceptable type:
+'   - invalid is VALID (means unkeyed operation)
+'   - a string (blank or not) is VALID — blankness is checked separately
+'     by __isOperationKeyBlank and only warns, never drops (operationKey
+'     is optional, so a malformed value is never grounds to drop the step)
+'   - non-string, non-invalid values are INVALID
+' @param operationKey (dynamic) the operation key to validate
+' @return (boolean) whether the key's type is acceptable
+' ----------------------------------------------------------------
+function __isValidOperationKeyType(operationKey as dynamic) as boolean
+    if (operationKey = invalid)
+        return true
+    end if
+    return (type(operationKey) = "roString" or type(operationKey) = "String")
+end function
+
+' ----------------------------------------------------------------
+' Returns true if operationKey was provided as a string but is empty or
+' whitespace-only after trimming. Does not flag `invalid` (unkeyed) as
+' blank. Callers should only invoke this after __isValidOperationKeyType
+' has confirmed the key is a string or invalid.
+' @param operationKey (dynamic) the operation key to check
+' @return (boolean) whether the key is a blank/whitespace-only string
+' ----------------------------------------------------------------
+function __isOperationKeyBlank(operationKey as dynamic) as boolean
+    if (type(operationKey) <> "roString" and type(operationKey) <> "String")
+        return false
+    end if
+    return operationKey.Trim().Len() = 0
+end function
+
+' ----------------------------------------------------------------
+' Returns true if the failureReason is a known FailureReason value. Accepts
+' dynamic so it can guard pre-built batch events as well as the typed
+' single-item callers.
+' @param reason (dynamic) the failure reason to validate
 ' @return (boolean) whether the failure reason is valid
 ' ----------------------------------------------------------------
-function __isValidFailureReason(reason as string) as boolean
+function __isValidFailureReason(reason as dynamic) as boolean
+    if (type(reason) <> "roString" and type(reason) <> "String")
+        return false
+    end if
     return (reason = "error" or reason = "abandoned" or reason = "other")
 end function

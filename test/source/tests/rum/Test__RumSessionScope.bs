@@ -33,6 +33,10 @@ function TestSuite__RumSessionScope() as object
     this.addTest("WhenHandleActionEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleActionEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleViewEventAfterTimeout_ThenRenewSession", RumSessionScopeTest__WhenHandleViewEventAfterTimeout_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
 
+    this.addTest("WhenHandleUserActivityEventBeforeExpiration_ThenKeepSessionAlive", RumSessionScopeTest__WhenHandleUserActivityEventBeforeExpiration_ThenKeepSessionAlive, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleUserActivityEventAfterExpiration_ThenRenewSession", RumSessionScopeTest__WhenHandleUserActivityEventAfterExpiration_ThenRenewSession, RumSessionScopeTest__SetUpNoSession, RumSessionScopeTest__TearDown)
+    this.addTest("WhenHandleUserActivityEvent_ThenWriteViewUpdate", RumSessionScopeTest__WhenHandleUserActivityEvent_ThenWriteViewUpdate, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
+
     ' Vital event payload structure tests
     this.addTest("WhenHandleStartVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleStartVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
     this.addTest("WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload", RumSessionScopeTest__WhenHandleSucceedVitalEvent_ThenWriteCorrectPayload, RumSessionScopeTest__SetUpWithView, RumSessionScopeTest__TearDown)
@@ -1333,5 +1337,76 @@ function RumSessionScopeTest__WhenVitalEventWithMergedAttributes_ThenCommandOver
     Assert.that(vitalEvent.context.key_a).isEqualTo("command")
     Assert.that(vitalEvent.context.key_b).isEqualTo("view")
     Assert.that(vitalEvent.context.key_c).isEqualTo("global")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=userActivity) before expiration
+'  Then: keep the current session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleUserActivityEventBeforeExpiration_ThenKeepSessionAlive() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "userActivity" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeEvent = { mock: "event", eventType: "userActivity" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope
+'  When: calling handleEvent (type=userActivity) after expiration
+'  Then: renew the session id
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleUserActivityEventAfterExpiration_ThenRenewSession() as string
+    ' Given
+    m.testedScope@.handleEvent({ mock: "event", eventType: "userActivity" }, { mock: "writer" })
+    initialContext = m.testedScope@.getRumContext()
+    fakeEvent = { mock: "event", eventType: "userActivity" }
+    fakeWriter = { mock: "writer" }
+
+    ' When
+    sleep(100)
+    m.testedScope@.handleEvent(fakeEvent, fakeWriter)
+    updatedContext = m.testedScope@.getRumContext()
+
+    ' Then
+    Assert.that(updatedContext.sessionId).isNotEqualTo(initialContext.sessionId)
+    Assert.that(updatedContext.sessionState).isEqualTo("tracked")
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Given: a RumSessionScope with an active view
+'  When: handling a userActivity event
+'  Then: a view update is written to extend the view/session duration
+'----------------------------------------------------------------
+function RumSessionScopeTest__WhenHandleUserActivityEvent_ThenWriteViewUpdate() as string
+    ' Given
+    fakeEvent = { mock: "event", eventType: "userActivity" }
+
+    ' Count existing writer updates from setUp (startView does NOT write to writer)
+    existingUpdates = m.mockWriter@.getFieldUpdates("writeEvent")
+    existingCount = existingUpdates.count()
+
+    ' When
+    m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
+
+    ' Then
+    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    Assert.that(updates).hasSize(existingCount + 1)
+    viewEvent = ParseJson(updates[updates.count() - 1])
+    Assert.that(viewEvent).isNotInvalid()
+    Assert.that(viewEvent.type).isEqualTo("view")
+    Assert.that(viewEvent.view.url).isEqualTo(m.fakeViewUrl)
     return ""
 end function

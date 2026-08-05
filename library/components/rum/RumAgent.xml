@@ -20,7 +20,9 @@ Copyright 2022-Today Datadog, Inc.
         <field id="deviceModel" type="string" />
         <field id="osVersion" type="string" />
         <field id="osVersionMajor" type="string" />
-        <field id="keepAliveDelayMs" type="integer" value="15000" />
+        <!-- Minimum delay (ms) between accepted reportUserActivity() reports;
+             throttles high-frequency engagement signals to bound view-update volume -->
+        <field id="keepAliveDelayMs" type="integer" value="60000" />
         <field id="sessionSampleRate" type="integer" value="100" />
         <field id="lastExitOrTerminationReason" type="string" value=""/>
         <field id="configuration" type="assocarray" value="{}"/>
@@ -45,6 +47,8 @@ Copyright 2022-Today Datadog, Inc.
         <field id="addAction" type="assocarray" />
         <field id="addError" type="assocarray" />
         <field id="addResource" type="assocarray" />
+        <field id="addResources" type="array" />
+        <field id="reportUserActivity" type="assocarray" />
         <field id="addConfigTelemetry" type="assocarray" />
         <field id="addErrorTelemetry" type="assocarray" />
         <field id="addDebugTelemetry" type="assocarray" />
@@ -53,6 +57,7 @@ Copyright 2022-Today Datadog, Inc.
         <field id="startOperation" type="assocarray" />
         <field id="succeedOperation" type="assocarray" />
         <field id="failOperation" type="assocarray" />
+        <field id="reportOperations" type="array" />
 
         <!-- Dependency Injection -->
         <field id="uploader" type="node" />
@@ -66,6 +71,7 @@ Copyright 2022-Today Datadog, Inc.
         <function name="addAction" />
         <function name="addError" />
         <function name="addResource" />
+        <function name="reportUserActivity" />
 
         <!-- Internal telemetry -->
         <function name="addConfigTelemetry" />

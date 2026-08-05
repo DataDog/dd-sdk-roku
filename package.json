@@ -1,6 +1,6 @@
 {
   "name": "datadog-roku",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Datadog SDK for Roku",
   "keywords": [
     "ropm",
@@ -49,5 +49,9 @@
     "brighterscript": "0.69.13",
     "cspell": "8.17.5",
     "ropm": "0.11.4"
+  },
+  "overrides": {
+    "lodash": "^4.18.1",
+    "qs": "^6.15.3"
   }
 }

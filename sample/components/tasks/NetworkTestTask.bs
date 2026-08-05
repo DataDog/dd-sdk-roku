@@ -3,6 +3,8 @@
 ' Copyright 2022-Today Datadog, Inc.
 
 import "pkg:/source/roku_modules/datadogroku/wrapper/DdUrlTransfer.brs"
+import "pkg:/source/roku_modules/datadogroku/rum/rumRawEvents.brs"
+import "pkg:/source/roku_modules/datadogroku/timeUtils.brs"
 
 sub init()
     m.top.functionName = "performTest"
@@ -25,6 +27,8 @@ sub performTest()
             result = PostFromString()
         else if (operationName = "PostFromFile")
             result = PostFromFile()
+        else if (operationName = "Add Resources Batch")
+            result = AddResourcesBatch()
         else
             result.error = "Operation '" + m.top.operation + "' is not implemented yet"
         end if
@@ -92,5 +96,33 @@ function PostFromFile() as object
     result = ddUrlTransfer.PostFromFile(filename)
     return {
         statusCode: result.toStr()
+    }
+end function
+
+' Builds a batch of pre-built resource events and reports them all in a single
+' cross-thread rendezvous via the addResources field, instead of one set per
+' resource.
+function AddResourcesBatch() as object
+    ' The click that triggered this is what produces the resources, so stamp each
+    ' one just after "now" (staggered 50ms apart) so they render after the
+    ' triggering click, in order. We set startTime explicitly (the field RUM
+    ' prefers); without it, RUM back-dates the start as (now - transferTime),
+    ' which reorders same-instant resources by their transfer duration.
+    now& = datadogroku_getTimestamp()
+    events = []
+    for i = 1 to 3
+        resource = {
+            url: "https://example.com/batch/resource" + i.toStr(),
+            method: "GET",
+            transferTime: 0.05,
+            httpCode: 200,
+            status: "ok",
+            startTime: now& + (i * 50)
+        }
+        events.push(datadogroku_addResourceEvent(resource, { batch_index: i }))
+    end for
+    m.global.datadogRumAgent.addResources = events
+    return {
+        reported: events.count().toStr()
     }
 end function

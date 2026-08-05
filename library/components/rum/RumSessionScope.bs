@@ -88,7 +88,7 @@ sub updateSession(eventType as dynamic)
     ddLogThread("RumSessionScope.updateSession()")
     timestampMs& = getTimestamp()
     isFirstSession = m.sessionId = invalid
-    isInteraction = (eventType = RawEvent.startView) or (eventType = RawEvent.addAction) or (eventType = RawEvent.resetSession)
+    isInteraction = (eventType = RawEvent.startView) or (eventType = RawEvent.addAction) or (eventType = RawEvent.resetSession) or (eventType = RawEvent.userActivity)
     lastInteractionMs& = m.lastInteractionTimestampMs& ?? 0
     sessionStartMs& = m.sessionStartMs ?? 0
     timeSinceLastInteractionMs = timestampMs& - lastInteractionMs&

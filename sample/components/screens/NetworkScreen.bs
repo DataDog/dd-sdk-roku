@@ -14,7 +14,8 @@ sub init()
         "GetToString",
         "GetToFile",
         "PostFromString",
-        "PostFromFile"
+        "PostFromFile",
+        "Add Resources Batch"
     ]
 
     m.networkLabelList = m.top.findNode("networkLabelList")
@@ -69,7 +70,7 @@ sub onOperationResult()
     if (result.error <> invalid)
         m.msgLabel.text = result.error
     else
-        output = "✓ ddUrlTransfer implements " + result.operation
+        output = "✓ " + result.operation
         for each key in result
             output += chr(10) + " - " + key + ": " + result[key]
         end for

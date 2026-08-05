@@ -91,7 +91,7 @@ sub updateSession(eventType as dynamic)
     ddLogThread("RumSessionScope.updateSession()")
     timestampMs& = getTimestamp()
     isFirstSession = m.sessionId = invalid
-    isInteraction = (eventType = "startView") or (eventType = "addAction") or (eventType = "resetSession")
+    isInteraction = (eventType = "startView") or (eventType = "addAction") or (eventType = "resetSession") or (eventType = "userActivity")
     lastInteractionMs& = (function(m)
             __bsConsequent = m.lastInteractionTimestampMs&
             if __bsConsequent <> invalid then

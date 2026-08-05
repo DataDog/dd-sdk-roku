@@ -1,4 +1,18 @@
-# Next release: 1.7.0
+# Next release: 1.8.0
+
+# 1.7.0 / 2026-08-05
+* [FEATURE] Add `addResources`/`reportOperations` batch APIs to `RumAgent`. See [#193](https://github.com/DataDog/dd-sdk-roku/pull/193)
+* [FEATURE] Add `reportUserActivity()` manual activity-report API. See [#200](https://github.com/DataDog/dd-sdk-roku/pull/200)
+* [FEATURE] Add support for the `uk1` Datadog site. See [#205](https://github.com/DataDog/dd-sdk-roku/pull/205)
+* [BUGFIX] Fix duplicate SDK singletons (uploader / RUM / Logs) under concurrent `initialize()`. See [#202](https://github.com/DataDog/dd-sdk-roku/pull/202)
+* [BUGFIX] Enforce schema character set on `vital.name` in Operation APIs. See [#144](https://github.com/DataDog/dd-sdk-roku/pull/144)
+* [IMPROVEMENT] Allow caller-provided timestamp on `LogsAgent` logging APIs. See [#199](https://github.com/DataDog/dd-sdk-roku/pull/199)
+* [MAINTENANCE] Fix and complete `README` configuration documentation. See [#206](https://github.com/DataDog/dd-sdk-roku/pull/206)
+* [MAINTENANCE] Bump `CI_IMAGE_VERSION` to `7`. See [#204](https://github.com/DataDog/dd-sdk-roku/pull/204)
+* [MAINTENANCE] Remove `analysis:woke` CI job. See [#203](https://github.com/DataDog/dd-sdk-roku/pull/203)
+* [MAINTENANCE] Sign the CI image with `ddsign`. See [#208](https://github.com/DataDog/dd-sdk-roku/pull/208)
+* [MAINTENANCE] Pin Node/npm via multi-stage COPY in CI image. See [#209](https://github.com/DataDog/dd-sdk-roku/pull/209)
+* [MAINTENANCE] Vuln minor upgrades — 5 packages (minor: 2 · patch: 3). See [#207](https://github.com/DataDog/dd-sdk-roku/pull/207)
 
 # 1.6.0 / 2026-06-25
 * [FEATURE] Support multiple tracing header types in `DdUrlTransfer`. See [#181](https://github.com/DataDog/dd-sdk-roku/pull/181)

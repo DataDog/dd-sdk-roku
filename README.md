@@ -34,10 +34,10 @@ sub RunUserInterface(args as dynamic)
 
     ' Setup Datadog
     datadogroku_initialize({
-        clientToken: "pub00000000000000000000000000000000, ' replace with your client token
-        applicationId: ""00000000-0000-0000-0000-000000000000", ' replace with your RUM application Id
-        site: "us1", ' replace with the site you're targeting: "us1", "us3", "us5", or "eu1" 
-        env: "prod" ' replace with the environment you're targeting, e.g.: prod, staging, …
+        clientToken: "pub00000000000000000000000000000000", ' replace with your client token
+        applicationId: "00000000-0000-0000-0000-000000000000", ' replace with your RUM application ID
+        site: "us1", ' replace with the site you're targeting, see the table below
+        env: "prod", ' replace with the environment you're targeting, for example: prod, staging, …
         sessionSampleRate: 100, ' the percentage (integer) of sessions to track
         launchArgs: args
     }, globalNode)
@@ -45,6 +45,23 @@ sub RunUserInterface(args as dynamic)
     ' complete your channel setup here
 end sub
 ```
+
+The `configuration` object passed to `datadogroku_initialize` supports the following fields:
+
+| Field                    | Type              | Required | Description                                                                                                                                                                                                                                                            |
+| ------------------------ | ----------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| clientToken              | String            | Yes      | The token used to upload data to Datadog.                                                                                                                                                                                                                              |
+| applicationId            | String            | Yes      | The application ID used in RUM events.                                                                                                                                                                                                                           |
+| site                     | String            | Yes      | The site to send data to: `"us1"`, `"us3"`, `"us5"`, `"eu1"`, `"ap1"`, `"ap2"`, `"uk1"`, or `"staging"`.                                                                                                                                                                |
+| env                      | String            | Yes      | The name of the environment to report in logs and RUM events.                                                                                                                                                                                                          |
+| sessionSampleRate        | Integer           | Yes      | The percentage of sessions to keep and send to Datadog, as an integer between 0 and 100 (default is 100).                                                                                                                                                             |
+| service                  | String            | No       | The name of the service to report in logs and RUM events (defaults to the channel's title from the manifest).                                                                                                                                                        |
+| version                  | String            | No       | The version of the channel to report in logs and RUM events (defaults to the channel's version from the manifest).                                                                                                                                                    |
+| traceSampleRate          | Double            | No       | The rate of traces to keep when instrumenting network requests, as a number between 0 and 100 (default is 100).                                                                                                                                                       |
+| tracingHeaderTypes       | Array             | No       | An array of associative arrays, each with a `host` (string) and a `header` (a single tracing header type, or an array of them: `"b3"`, `"b3multi"`, `"tracecontext"`, or `"datadog"`), used to enable distributed tracing for requests to matching hosts. See [Track RUM Resources](#track-rum-resources). |
+| traceContextInjection    | String            | No       | Whether the trace context should be injected into all requests or only sampled ones: `"all"` or `"sampled"` (default is `"sampled"`).                                                                                                                                 |
+| ignoredExitEvents        | Array             | No       | An array of exit status strings to ignore when detecting crashes. Any exit status **not** in this list is reported as a crash. Defaults to `["EXIT_UNKNOWN", "EXIT_POWER_MODE", "EXIT_IDLE_AUTO_EXIT", "EXIT_DIAL_DELETE", "EXIT_USER_KILL", "EXIT_USER_NAV"]`.      |
+| launchArgs               | Object            | No       | The `args` object passed to your `RunUserInterface()` method.                                                                                                                                                                                                          |
 
 ### Track RUM events manually
 
@@ -75,6 +92,31 @@ RUM Actions represent the interactions your users have with your channel. You ca
     ' optionally you can also attach a context with custom properties
     context = { myProperty: 42 }
     m.global.datadogRumAgent.callfunc("addAction", customAction, context)
+```
+
+#### Track RUM Operations
+
+RUM Operations let you track the lifecycle of a specific feature or user flow (for example, login, checkout, content load) as a named span, independent of Views. Start an operation, then report whether it succeeded or failed:
+
+```brightscript
+    m.global.datadogRumAgent.callfunc("startOperation", "login")
+
+    ' ... perform the login flow ...
+
+    m.global.datadogRumAgent.callfunc("succeedOperation", "login")
+    ' or, if it failed:
+    m.global.datadogRumAgent.callfunc("failOperation", "login", "error") ' failureReason: "error", "abandoned", or "other"
+```
+
+If several instances of the same operation can run concurrently, pass an `operationKey` to tell them apart, and optionally attach a context with custom properties:
+
+```brightscript
+    opKey = "content-42"
+    context = { content_type: "movie" }
+    m.global.datadogRumAgent.callfunc("startOperation", "contentLoad", opKey, context)
+
+    ' ... later, on the matching operationKey ...
+    m.global.datadogRumAgent.callfunc("succeedOperation", "contentLoad", opKey)
 ```
 
 #### Track RUM Errors
@@ -115,18 +157,26 @@ which supports most features of the `roUrlTransfer` component (except anything r
 For example, here's how to do a `GetToString` call:
 
 ```brightscript
-    validHosts = [
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global)
+    ddUrlTransfer.SetUrl(url)
+    ddUrlTransfer.EnablePeerVerification(false)
+    ddUrlTransfer.EnableHostVerification(false)
+    result = ddUrlTransfer.GetToString()
+```
+
+`datadogroku_DdUrlTransfer` only takes the `global` node. It uses the `tracingHeaderTypes` and `traceSampleRate` set on the SDK's configuration (see [Configure Datadog](#configure-datadog)) to decide which requests get distributed tracing headers injected, and at which rate. If you need to override those values for a specific instance, use its `SetTracingHeaderTypes(tracingHeaderTypes as object)` and `SetTraceSampleRate(traceSampleRate as double)` setters before making the request:
+
+```brightscript
+    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global)
+    ddUrlTransfer.SetTracingHeaderTypes([
         ' add tracing for requests to "example.com" URLs using W3C's tracecontext headers
         { host: "example.com", header: "tracecontext" }
         ' a host can be associated with several header types (like the Browser SDK's
         ' allowedTracingUrls). All of them are injected sharing the same trace/span id:
         { host: "api.example.com", header: ["datadog", "tracecontext"] }
-    ]
-    sampleRate = 50.0 ' only trace 50% of requests
-    ddUrlTransfer = datadogroku_DdUrlTransfer(m.global.datadogRumAgent, sampleRate, validHosts)
+    ])
+    ddUrlTransfer.SetTraceSampleRate(50.0) ' only trace 50% of requests
     ddUrlTransfer.SetUrl(url)
-    ddUrlTransfer.EnablePeerVerification(false)
-    ddUrlTransfer.EnableHostVerification(false)
     result = ddUrlTransfer.GetToString()
 ```
 
@@ -193,6 +243,18 @@ Whenever you use a `Video` or an `Audio` node to stream media, you can forward a
     end while
 ```
 
+#### Refresh session activity
+
+If your channel already has a natural signal that proves the user is actively engaged — a video playback position tick, a GPS fix, a sensor reading — you can use that signal to keep the RUM session alive:
+
+```brightscript
+    m.global.datadogRumAgent.callfunc("reportUserActivity")
+```
+
+This is equivalent to a real user action for session-duration purposes. It refreshes the session's inactivity clock, renewing the session if it has already expired. When a view is active, it also emits a view update, extending the session and view duration in Datadog. Use this when users may not touch the remote for long periods while remaining actively engaged, such as when watching a movie.
+
+You can safely call `reportUserActivity` from a high-frequency signal, such as a video position tick that fires once per second. Calls are throttled internally, so no more than one view update is emitted during each `keepAliveDelayMs` window, which defaults to 60000 ms (1 minute). Reports received within the same window are ignored, keeping RUM event volume bounded. To use finer or coarser granularity, configure the RUM agent's `keepAliveDelayMs` field.
+
 ### Identifying your users
 
 Adding user information to your RUM sessions makes it easy to:
@@ -249,7 +311,7 @@ To see internal messages and warnings about how the SDK is behaving,  enable the
 
 ```brightscript
         m.global.addFields({
-        datadogVerbosity: 3 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose; 5 = log threads
+        datadogVerbosity: 3 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose; 5 = internals
     })
 ```
 

@@ -72,3 +72,16 @@ function secToNanos(seconds as double) as longinteger
     result& = seconds * ratio&
     return result&
 end function
+
+' ----------------------------------------------------------------
+' Checks whether a dynamic value can safely be used as a timestamp
+' (i.e. assigned to a longinteger variable)
+' @param value (dynamic) the value to check
+' @return (boolean) true if the value is a numeric type
+' ----------------------------------------------------------------
+function isTimestamp(value as dynamic) as boolean
+    if (value = invalid)
+        return false
+    end if
+    return GetInterface(value, "ifInt") <> invalid or GetInterface(value, "ifLongInt") <> invalid or GetInterface(value, "ifDouble") <> invalid
+end function
