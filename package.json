@@ -52,6 +52,46 @@
   },
   "overrides": {
     "lodash": "^4.18.1",
-    "qs": "^6.16.0"
+    "qs": "^6.16.0",
+    "brighterscript": {
+      "minimatch": {
+        "brace-expansion": "^1.1.21"
+      }
+    },
+    "ropm": {
+      "del": {
+        "rimraf": {
+          "glob": {
+            "minimatch": {
+              "brace-expansion": "^1.1.21"
+            }
+          }
+        }
+      },
+      "glob-all": {
+        "glob": {
+          "minimatch": {
+            "brace-expansion": "^1.1.21"
+          }
+        }
+      },
+      "npm-packlist": {
+        "glob": {
+          "minimatch": {
+            "brace-expansion": "^1.1.21"
+          }
+        },
+        "ignore-walk": {
+          "minimatch": {
+            "brace-expansion": "^1.1.21"
+          }
+        }
+      }
+    },
+    "@rokucommunity/bslint": {
+      "minimatch": {
+        "brace-expansion": "^1.1.21"
+      }
+    }
   }
 }
