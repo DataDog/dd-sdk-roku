@@ -174,7 +174,7 @@ end function
 ' Handles the response code by deleting or keeping the file for retry.
 ' @param requestId (string) the unique identifier for this request
 ' @param responseCode (integer) the HTTP status code of the upload request
-' - 202 Accepted: the request has been accepted for processing
+' - 2xx: successful response, the batch can be removed.
 ' - 400 Bad Request: the server cannot or will not process the request (client error).
 '     The client SHOULD NOT retry this request.
 ' - 401 Unauthorized: the request lacks valid authentication credentials.
@@ -195,7 +195,9 @@ end function
 ' @param trackInfo (object) the configuration for the current track
 ' ----------------------------------------------------------------
 sub handleResponse(requestId as string, responseCode as integer, filePath as string, trackInfo as object)
-    if (responseCode = 202)
+    ' Preserve pending data unless the response explicitly permits removal.
+    ' This includes transport errors (negative codes), unknown responses, and all 5xx.
+    if (responseCode >= 200 and responseCode < 300)
         ddLogInfo("Upload to track " + trackInfo.trackType + " succeeded.")
         retry = false
     else if (responseCode = 400)
@@ -246,15 +248,15 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
     else if (responseCode >= 500 and responseCode < 600)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, we'll retry later;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
-        retry = false
+        retry = true
     else if (responseCode >= 400 and responseCode < 500)
         ddLogWarning("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
         retry = false
     else
-        ddLogWarning("Upload to track " + trackInfo.trackType + " status unknown;")
+        ddLogWarning("Upload to track " + trackInfo.trackType + " status unknown, keeping data for retry;")
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
-        retry = false
+        retry = true
     end if
     if (not retry)
         ddLogVerbose("Deleting file at " + filePath)
