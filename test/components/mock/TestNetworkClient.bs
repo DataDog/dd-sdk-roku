@@ -1,0 +1,33 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' Exercise the inherited production method with real file reads and no network.
+function postWithFakeTransport(filePath as string, prefix as string, postfix as string, responseCode as integer) as object
+    m.urlTransfer = {
+        postCount: 0,
+        body: invalid,
+        responseCode: responseCode,
+        SetUrl: sub(url as string)
+            m.url = url
+        end sub,
+        SetRequest: sub(method as string)
+            m.method = method
+        end sub,
+        SetCertificatesFile: function(path as string) as boolean
+            m.certificates = path
+            return true
+        end function,
+        SetHeaders: function(headers as object) as boolean
+            m.headers = headers
+            return true
+        end function,
+        PostFromString: function(body as string) as integer
+            m.postCount++
+            m.body = body
+            return m.responseCode
+        end function
+    }
+    result = postFromFile("https://example.invalid", filePath, {}, prefix, postfix)
+    return { responseCode: result, postCount: m.urlTransfer.postCount, body: m.urlTransfer.body }
+end function

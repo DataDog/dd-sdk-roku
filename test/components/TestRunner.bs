@@ -17,6 +17,7 @@ import "pkg:/source/tests/Test__timeUtils.bs"
 import "pkg:/source/tests/Test__datadog.bs"
 import "pkg:/source/tests/Test__DdUrlTransfer.bs"
 import "pkg:/source/tests/core/Test__MultitrackUploaderTask.bs"
+import "pkg:/source/tests/core/Test__NetworkClient.bs"
 import "pkg:/source/tests/core/Test__WriterTask.bs"
 import "pkg:/source/tests/logs/Test__LogsAgent.bs"
 import "pkg:/source/tests/rum/Test__RumActionScope.bs"
@@ -59,6 +60,7 @@ sub runTests()
         TestSuite__InternalLogger,
         TestSuite__TimeUtils,
         TestSuite__MultiTrackUploaderTask,
+        TestSuite__NetworkClient,
         TestSuite__WriterTask,
         ' RUM
         TestSuite__RumAgent,

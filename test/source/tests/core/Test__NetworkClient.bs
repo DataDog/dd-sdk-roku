@@ -1,0 +1,52 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function TestSuite__NetworkClient() as object
+    this = BaseTestSuite()
+    this.Name = "NetworkClient"
+    this.addTest("WhenBatchMissing_ThenDoNotPost", NetworkClientTest__WhenBatchMissing_ThenDoNotPost)
+    this.addTest("WhenBatchEmpty_ThenDoNotPostOrDelete", NetworkClientTest__WhenBatchEmpty_ThenDoNotPostOrDelete)
+    this.addTest("WhenBatchReadable_ThenPostExactPayload", NetworkClientTest__WhenBatchReadable_ThenPostExactPayload)
+    return this
+end function
+
+function NetworkClientTest__WhenBatchMissing_ThenDoNotPost() as string
+    path = "tmp:/" + CreateObject("roDeviceInfo").GetRandomUUID()
+    Assume.that(path).doesNotExist()
+    client = CreateObject("roSGNode", "TestNetworkClient")
+    result = client@.postWithFakeTransport(path, "[", "]", 202)
+    Assert.that(result.responseCode).isEqualTo(-26)
+    Assert.that(result.postCount).isEqualTo(0)
+    Assert.that(path).doesNotExist()
+    return ""
+end function
+
+function NetworkClientTest__WhenBatchEmpty_ThenDoNotPostOrDelete() as string
+    path = "tmp:/" + CreateObject("roDeviceInfo").GetRandomUUID()
+    Assume.that(WriteAsciiFile(path, "")).isTrue()
+    client = CreateObject("roSGNode", "TestNetworkClient")
+    result = client@.postWithFakeTransport(path, "[", "]", 202)
+    Assert.that(result.responseCode).isEqualTo(-26)
+    Assert.that(result.postCount).isEqualTo(0)
+    Assert.that(path).exists()
+    DeleteFile(path)
+    return ""
+end function
+
+function NetworkClientTest__WhenBatchReadable_ThenPostExactPayload() as string
+    path = "tmp:/" + CreateObject("roDeviceInfo").GetRandomUUID()
+    ' Include a UTF-8 character encoded with more than one byte.
+    content = FormatJson({ message: Chr(233), count: 1 })
+    Assume.that(WriteAsciiFile(path, content)).isTrue()
+    client = CreateObject("roSGNode", "TestNetworkClient")
+    for each responseCode in [202, 503]
+        result = client@.postWithFakeTransport(path, "[", "]", responseCode)
+        Assert.that(result.responseCode).isEqualTo(responseCode)
+        Assert.that(result.postCount).isEqualTo(1)
+        Assert.that(result.body).isEqualTo("[" + content + "]")
+        Assert.that(ReadAsciiFile(path)).isEqualTo(content)
+    end for
+    DeleteFile(path)
+    return ""
+end function
