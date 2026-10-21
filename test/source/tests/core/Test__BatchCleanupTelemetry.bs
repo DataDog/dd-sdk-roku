@@ -1,0 +1,71 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/batchCleanupTelemetry.brs"
+
+function TestSuite__BatchCleanupTelemetry() as object
+    this = BaseTestSuite()
+    this.Name = "BatchCleanupTelemetry"
+    this.addTest("WhenManyFilesFail_ThenShareOneBudget", BatchCleanupTelemetryTest__WhenManyFilesFail_ThenShareOneBudget)
+    this.addTest("WhenTimerWraps_ThenResumeReporting", BatchCleanupTelemetryTest__WhenTimerWraps_ThenResumeReporting)
+    this.addTest("WhenCounterSaturates_ThenKeepBounded", BatchCleanupTelemetryTest__WhenCounterSaturates_ThenKeepBounded)
+    return this
+end function
+
+function BatchCleanupTelemetryTest__WhenManyFilesFail_ThenShareOneBudget() as string
+    uploader = CreateObject("roSGNode", "TestCleanupUploader")
+    first = uploader@.cleanupErrorAtElapsedTime("cachefs:/datadog/v1/rum/1", 0)
+    Assert.that(first.message).isEqualTo("Unable to delete batch file at cachefs:/datadog/v1/rum/1")
+    for i = 1 to 100
+        ' Different paths (and a different track) must not create new budgets.
+        result = uploader@.cleanupErrorAtElapsedTime("cachefs:/datadog/v1/logs/" + i.toStr(), 59999)
+        Assert.that(result).isInvalid()
+    end for
+    nextReport = uploader@.cleanupErrorAtElapsedTime("cachefs:/datadog/v1/rum/2", 60000)
+    Assert.that(nextReport.message).hasSubstring("suppressed at least 100 additional cleanup errors")
+    Assert.that(nextReport.number).isEqualTo(0)
+    Assert.that(nextReport.backtrace).isEmpty()
+    result = uploader@.cleanupErrorAtElapsedTime("cachefs:/datadog/v1/rum/3", 0)
+    Assert.that(result).isInvalid()
+    nextReport = uploader@.cleanupErrorAtElapsedTime("cachefs:/datadog/v1/rum/4", 60000)
+    Assert.that(nextReport.message).hasSubstring("suppressed at least 1 additional cleanup errors")
+    ' Quiet intervals do not retain the old suppressed count.
+    nextReport = uploader@.cleanupErrorAtElapsedTime("cachefs:/datadog/v1/rum/5", 120000)
+    Assert.that(nextReport.message).isEqualTo("Unable to delete batch file at cachefs:/datadog/v1/rum/5")
+    return ""
+end function
+
+function BatchCleanupTelemetryTest__WhenTimerWraps_ThenResumeReporting() as string
+    uploader = CreateObject("roSGNode", "TestCleanupUploader")
+    first = uploader@.cleanupErrorAtElapsedTime("first", 0)
+    Assert.that(first).isNotInvalid()
+    result = uploader@.cleanupErrorAtElapsedTime("second", 10)
+    Assert.that(result).isInvalid()
+    afterWrap = uploader@.cleanupErrorAtElapsedTime("third", -1)
+    Assert.that(afterWrap.message).hasSubstring("suppressed at least 1 additional cleanup errors")
+    result = uploader@.cleanupErrorAtElapsedTime("fourth", 0)
+    Assert.that(result).isInvalid()
+    return ""
+end function
+
+function BatchCleanupTelemetryTest__WhenCounterSaturates_ThenKeepBounded() as string
+    clock = {
+        elapsedMs: 0,
+        TotalMilliseconds: function() as integer
+            return m.elapsedMs
+        end function,
+        Mark: sub()
+            m.elapsedMs = 0
+        end sub
+    }
+    budget = datadogroku_newBatchCleanupTelemetryBudget(clock)
+    Assert.that(budget.nextReport()).isEqualTo(0)
+    budget.suppressedCount = 2147483647
+    Assert.that(budget.nextReport()).isEqualTo(-1)
+    Assert.that(budget.suppressedCount).isEqualTo(2147483647)
+    clock.elapsedMs = 60000
+    Assert.that(budget.nextReport()).isEqualTo(2147483647)
+    Assert.that(budget.suppressedCount).isEqualTo(0)
+    return ""
+end function
