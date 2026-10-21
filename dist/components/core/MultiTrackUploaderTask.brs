@@ -260,7 +260,7 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
     end if
     if (not retry)
         ddLogVerbose("Deleting file at " + filePath)
-        if (not DeleteFile(filePath))
+        if (not deleteFileIfPresent(filePath))
             message = "Unable to delete batch file at " + filePath
             ddLogWarning(message)
             datadogRumAgent = m.global.datadogRumAgent
