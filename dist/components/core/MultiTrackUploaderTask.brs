@@ -118,11 +118,12 @@ end sub
 ' @return (boolean) if the file is valid for upload
 ' ----------------------------------------------------------------
 function isFileValidForUpload(filename as string) as boolean
-    if (filename.Left(1) = "_")
+    timestamp = parseLegacyBatchTimestamp(filename)
+    if (timestamp = invalid)
         ddLogVerbose("File " + filename + " is not uploadable")
         return false
     end if
-    fileTimestamp& = strToLong(filename)
+    fileTimestamp& = timestamp
     uploadTimestamp& = fileTimestamp& + 30000
     currentTimestamp& = getTimestamp()
     if (uploadTimestamp& > currentTimestamp&)

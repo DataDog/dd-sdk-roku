@@ -23,6 +23,8 @@ function TestSuite__WriterTask() as object
     this.addTest("WhenEmptyEvent_ThenDoNothing", WriterTaskTest__WhenEmptyEvent_ThenDoNothing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
     this.addTest("WhenEmptyEventWithPreviousFile_ThenDoNothing", WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
 
+    this.addTest("WhenUnknownFilename_ThenAppendOnlyKnownBatch", WriterTaskTest__UnknownFilename, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+
     return this
 end function
 
@@ -343,5 +345,23 @@ function WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing() as strin
     content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
     Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
     Assert.that(content).isEqualTo(previousData)
+    return ""
+end function
+
+function WriterTaskTest__UnknownFilename() as string
+    timestamp& = datadogroku_getTimestamp()
+    validPath = m.folderPath + "/" + timestamp&.toStr()
+    unknownPath = m.folderPath + "/" + timestamp&.toStr() + "x"
+    Assert.that(WriteAsciiFile(validPath, "first-event")).isTrue()
+    Assert.that(WriteAsciiFile(unknownPath, "preserve-unknown")).isTrue()
+    m.testedTask.writeEvent = "second-event"
+    expected = "first-event" + m.fakeSeparator + "second-event"
+    timer = CreateObject("roTimespan")
+    while (ReadAsciiFile(validPath) <> expected and timer.TotalMilliseconds() < 5000)
+        sleep(10)
+    end while
+    Assert.that(ReadAsciiFile(validPath)).isEqualTo(expected)
+    Assert.that(ReadAsciiFile(unknownPath)).isEqualTo("preserve-unknown")
+    Assert.that(ListDir(m.folderPath)).hasSize(2)
     return ""
 end function

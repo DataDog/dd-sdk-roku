@@ -92,27 +92,31 @@ function getWriteableFile(eventSize as integer) as string
     filenames.Sort("r")
     if (filenames.count() > 0)
         lastFilename = ""
+        timestamp = invalid
         for each filename in filenames
-            ' ignore last known view file
-            if (filename.Left(1) <> "_")
+            ' Ignore snapshots and all names outside the legacy batch format.
+            timestamp = parseLegacyBatchTimestamp(filename)
+            if (timestamp <> invalid)
                 lastFilename = filename
                 exit for
             end if
         end for
-        fileTimestamp& = strToLong(lastFilename)
-        uploadTimestamp& = fileTimestamp& + 25000
-        if ((uploadTimestamp& > currentTimestamp&))
-            lastFilePath = folderPath + "/" + lastFilename
-            lastFileSize = (function(lastFilePath, m)
-                    __bsConsequent = m.fileSystem.Stat(lastFilePath).size
-                    if __bsConsequent <> invalid then
-                        return __bsConsequent
-                    else
-                        return m.maxBatchSize
-                    end if
-                end function)(lastFilePath, m)
-            if (lastFileSize + m.payloadSeparator.Len() + eventSize < m.maxBatchSize)
-                return folderPath + "/" + lastFilename
+        if (timestamp <> invalid)
+            fileTimestamp& = timestamp
+            uploadTimestamp& = fileTimestamp& + 25000
+            if (uploadTimestamp& > currentTimestamp&)
+                lastFilePath = folderPath + "/" + lastFilename
+                lastFileSize = (function(lastFilePath, m)
+                        __bsConsequent = m.fileSystem.Stat(lastFilePath).size
+                        if __bsConsequent <> invalid then
+                            return __bsConsequent
+                        else
+                            return m.maxBatchSize
+                        end if
+                    end function)(lastFilePath, m)
+                if (lastFileSize + m.payloadSeparator.Len() + eventSize < m.maxBatchSize)
+                    return folderPath + "/" + lastFilename
+                end if
             end if
         end if
     end if
