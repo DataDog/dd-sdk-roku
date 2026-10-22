@@ -59,12 +59,15 @@ function TestSuite__RumAgent() as object
     this.addTest("WhenStartOperationWithNonStringKey_ThenDoNotDispatch", RumAgentTest__WhenStartOperationWithNonStringKey_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
     this.addTest("WhenFailOperationWithInvalidReason_ThenDoNotDispatch", RumAgentTest__WhenFailOperationWithInvalidReason_ThenDoNotDispatch, RumAgentTest__SetUp, RumAgentTest__TearDown)
 
+    this.addTest("WhenConfigured_ThenShareStorageScope", RumAgentTest__StorageScope, RumAgentTest__SetUp, RumAgentTest__TearDown)
+
     return this
 end function
 
 sub RumAgentTest__SetUp()
     ' Mocks
     m.testSuite.mockUploader = CreateObject("roSGNode", "MockUploaderTask")
+    m.testSuite.mockUploader.clientToken = "test-uploader-token"
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
     m.testSuite.mockRumScope = CreateObject("roSGNode", "MockRumScope")
     m.testSuite.mockTelemetryScope = CreateObject("roSGNode", "MockRumScope")
@@ -1107,4 +1110,20 @@ function RumAgentTest__WhenReportUserActivityTwiceAfterDelay_ThenBothDelegated()
     ' Then
     expectedArgs = { event: { eventType: "userActivity" }, writer: m.mockWriter }
     return m.mockRumScope@.assertFunctionCalled("handleEvent", expectedArgs, 2)
+end function
+
+function RumAgentTest__StorageScope() as string
+    timer = CreateObject("roTimespan")
+    while (m.mockWriter.storageScope = "" and timer.TotalMilliseconds() < 5000)
+        sleep(10)
+    end while
+    expected = datadogroku_immutableRecordScope(CreateObject("roAppInfo").GetID(), datadogroku_getIntakeUrl(m.fakeSite, "rum"), m.mockUploader.clientToken, m.fakeApplicationId)
+    Assert.that(m.mockWriter.storageScope).isEqualTo(expected)
+    tracks = m.mockUploader.tracks
+    Assert.that(tracks).hasSize(1)
+    for each key in tracks
+        Assert.that(tracks[key].storageScope).isEqualTo(expected)
+        Assert.that(tracks[key].payloadSeparator).isEqualTo(chr(10))
+    end for
+    return ""
 end function
