@@ -1,0 +1,29 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+sub configureCleanup(_unused as dynamic)
+    clock = {
+        owner: m.top,
+        TotalMilliseconds: function() as integer
+            return m.owner.elapsedMs
+        end function
+    }
+    m.recordCompletion = datadogroku_newRecordCompletionState(2, clock)
+    m.recordCompletion.originalCleanupResult = m.recordCompletion.cleanupResult
+    m.recordCompletion.fixtureOwner = m.top
+    m.recordCompletion.cleanupResult = sub(path as string, removed as boolean)
+        m.originalCleanupResult(path, removed)
+        m.fixtureOwner.cleanupResultCount = m.fixtureOwner.cleanupResultCount + 1
+    end sub
+    m.recordCleanupIO = {
+        owner: m.top,
+        remove: function(path as string) as boolean
+            m.owner.deleteCount = m.owner.deleteCount + 1
+            if (m.owner.allowCleanup)
+                return datadogroku_deleteFileIfPresent(path)
+            end if
+            return false
+        end function
+    }
+end sub

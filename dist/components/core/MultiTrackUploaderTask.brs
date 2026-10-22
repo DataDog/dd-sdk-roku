@@ -7,6 +7,7 @@
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/batchCleanupTelemetry.bs"
 'import "pkg:/source/immutableRecords.bs"
+'import "pkg:/source/recordCompletion.bs"
 ' *****************************************************************
 ' * MultiTrackUploaderTask: a background loop checking for files available for upload;
 ' * When a file is ready, it is uploaded, and upon success deleted from disk.
@@ -80,6 +81,8 @@ end sub
 ' Looks for all uploadable files, and upload them one by one
 ' ----------------------------------------------------------------
 sub uploadAvailableFiles()
+    ensureRecordCompletion()
+    cleanupCompletedRecords()
     tracks = m.tracks
     if (tracks <> invalid and GetInterface(tracks, "ifAssociativeArray") <> invalid)
         for each track in tracks
@@ -289,14 +292,18 @@ end sub
 sub cleanupUploadedFile(filePath as string)
     ddLogVerbose("Deleting file at " + filePath)
     if (not deleteFileIfPresent(filePath))
-        message = "Unable to delete batch file at " + filePath
-        ddLogWarning(message)
-        datadogRumAgent = m.global.datadogRumAgent
-        if (datadogRumAgent <> invalid)
-            error = nextBatchCleanupError(filePath)
-            if (error <> invalid)
-                datadogRumAgent.callfunc("addErrorTelemetry", error)
-            end if
+        reportBatchCleanupFailure(filePath)
+    end if
+end sub
+
+sub reportBatchCleanupFailure(filePath as string)
+    message = "Unable to delete batch file at " + filePath
+    ddLogWarning(message)
+    datadogRumAgent = m.global.datadogRumAgent
+    if (datadogRumAgent <> invalid)
+        error = nextBatchCleanupError(filePath)
+        if (error <> invalid)
+            datadogRumAgent.callfunc("addErrorTelemetry", error)
         end if
     end if
 end sub
@@ -349,6 +356,7 @@ end function
 ' Group only verified snapshots for this destination. An oversized single event
 ' is sent alone, matching the existing soft batch-size policy rather than stalling.
 sub uploadImmutableRecords(folderPath as string, filenames as object, trackInfo as object)
+    ensureRecordCompletion()
     scope = trackInfo.storageScope
     if (scope = invalid)
         return
@@ -370,7 +378,19 @@ sub uploadImmutableRecords(folderPath as string, filenames as object, trackInfo 
     payload = ""
     byteCount = 0
     for each filename in filenames
-        record = readImmutableRecord(folderPath, filename, scope)
+        if (records.Count() > 0 and records.Count() >= m.recordCompletion.remaining())
+            uploadImmutableGroup(folderPath, records, payload, trackInfo)
+            records = []
+            payload = ""
+            byteCount = 0
+        end if
+        if (m.recordCompletion.remaining() = 0)
+            return
+        end if
+        record = invalid
+        if (not m.recordCompletion.isKnown(folderPath + "/" + filename))
+            record = readImmutableRecord(folderPath, filename, scope)
+        end if
         if (record <> invalid)
             nextSize = byteCount + record.byteCount
             if (records.Count() > 0)
@@ -381,6 +401,9 @@ sub uploadImmutableRecords(folderPath as string, filenames as object, trackInfo 
                 records = []
                 payload = ""
                 byteCount = 0
+                if (m.recordCompletion.remaining() = 0)
+                    return
+                end if
             end if
             if (records.Count() > 0)
                 payload += separator
@@ -397,14 +420,47 @@ sub uploadImmutableRecords(folderPath as string, filenames as object, trackInfo 
 end sub
 
 sub uploadImmutableGroup(folderPath as string, records as object, payload as string, trackInfo as object)
+    ensureRecordCompletion()
+    paths = []
+    for each filename in records
+        paths.Push(folderPath + "/" + filename)
+    end for
+    if (not m.recordCompletion.reserve(paths))
+        return
+    end if
     ensureNetworkClient()
     requestId = m.deviceInfo.GetRandomUUID()
     headers = getUploadHeaders(trackInfo.contentType, requestId)
     body = trackInfo.payloadPrefix + payload + trackInfo.payloadPostfix
     response = m.networkClient.callfunc("postPayload", getUploadUrl(trackInfo), body, headers)
-    if (not shouldRetryUploadResponse(requestId, response, "", trackInfo))
-        for each filename in records
-            cleanupUploadedFile(folderPath + "/" + filename)
-        end for
+    if (shouldRetryUploadResponse(requestId, response, "", trackInfo))
+        m.recordCompletion.release(paths)
+    else
+        ' Remember ALL terminal records before the first deletion can fail.
+        m.recordCompletion.complete(paths)
+        cleanupCompletedRecords()
     end if
+end sub
+
+sub ensureRecordCompletion()
+    if (m.recordCompletion = invalid)
+        m.recordCompletion = newRecordCompletionState()
+    end if
+    if (m.recordCleanupIO = invalid)
+        m.recordCleanupIO = {
+            remove: function(path as string) as boolean
+                return deleteFileIfPresent(path)
+            end function
+        }
+    end if
+end sub
+
+sub cleanupCompletedRecords()
+    for each path in m.recordCompletion.cleanupDue()
+        removed = m.recordCleanupIO.remove(path)
+        m.recordCompletion.cleanupResult(path, removed)
+        if (not removed)
+            reportBatchCleanupFailure(path)
+        end if
+    end for
 end sub

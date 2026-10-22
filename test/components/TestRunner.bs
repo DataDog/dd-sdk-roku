@@ -24,6 +24,7 @@ import "pkg:/source/tests/core/Test__SingletonPublication.bs"
 import "pkg:/source/tests/core/Test__TrackRegistration.bs"
 import "pkg:/source/tests/core/Test__ImmutableRecords.bs"
 import "pkg:/source/tests/core/Test__ImmutableUploads.bs"
+import "pkg:/source/tests/core/Test__RecordCompletion.bs"
 import "pkg:/source/tests/logs/Test__LogsAgent.bs"
 import "pkg:/source/tests/rum/Test__RumActionScope.bs"
 import "pkg:/source/tests/rum/Test__RumAgent.bs"
@@ -72,6 +73,7 @@ sub runTests()
         TestSuite__TrackRegistration,
         TestSuite__ImmutableRecords,
         TestSuite__ImmutableUploads,
+        TestSuite__RecordCompletion,
         ' RUM
         TestSuite__RumAgent,
         TestSuite__RumApplicationScope,
