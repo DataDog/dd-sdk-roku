@@ -4,6 +4,7 @@
 'import "pkg:/source/fileUtils.bs"
 'import "pkg:/source/immutableRecords.bs"
 'import "pkg:/source/rum/crashStorage.bs"
+'import "pkg:/source/rum/viewSnapshots.bs"
 ' *****************************************************************
 ' * RumCrashReporterTask : a node capable of writing data to a file on disk
 ' *****************************************************************
@@ -66,6 +67,7 @@ sub sendCrashReport()
             end if
         end if
     end for
+    recoverViewSnapshots(folderPath, keep)
     ddLogVerbose("RumCrashReporterTask, all checks done")
 end sub
 
@@ -178,3 +180,44 @@ function persistCrashReportFromView(lastViewEvent as object) as boolean
     second = writeImmutableRecord(folder, scope, FormatJson(lastViewEvent), m.crashRecordIO)
     return second.status = "verified"
 end function
+
+sub recoverViewSnapshots(folder as string, keep as boolean)
+    if (m.top.writer = invalid)
+        return
+    end if
+    scope = m.top.writer.storageScope
+    if (not isRecordHex(scope, 64))
+        return
+    end if
+    io = (function(m, newViewSnapshotIO)
+            __bsConsequent = m.snapshotIO
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return newViewSnapshotIO()
+            end if
+        end function)(m, newViewSnapshotIO)
+    currentOwner = viewSnapshotOwner(m.top.instanceId)
+    owners = {}
+    for each entry in listViewSnapshots(folder, scope, "", io)
+        if (entry.owner <> currentOwner)
+            if (not owners.DoesExist(entry.owner))
+                owners[entry.owner] = []
+            end if
+            owners[entry.owner].Push(entry)
+        end if
+    end for
+    for each owner in owners
+        entries = owners[owner]
+        latest = latestViewSnapshot(entries)
+        if (latest <> invalid)
+            completed = not keep or isViewSnapshotClear(latest.value)
+            if (not completed)
+                completed = persistCrashReportFromView(latest.value)
+            end if
+            if (completed)
+                pruneViewSnapshots(folder, entries, latest, true, io)
+            end if
+        end if
+    end for
+end sub

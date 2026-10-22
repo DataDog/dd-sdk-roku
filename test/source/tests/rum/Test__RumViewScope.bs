@@ -755,10 +755,9 @@ function RumViewScopeTest__WhenHandleViewUpdate_ThenKeepLastKnownViewEvent() as 
     m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    lastKnownFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
-    Assert.that(lastKnownFilePath).exists()
-
-    viewEvent = ParseJson(ReadAsciiFile(lastKnownFilePath))
+    snapshots = m.mockWriter@.getFieldUpdates("snapshotEvent")
+    Assert.that(snapshots).hasSize(1)
+    viewEvent = snapshots[0]
     Assert.that(viewEvent).isNotInvalid()
     Assert.that(viewEvent._dd.document_version).isEqualTo(1)
     Assert.that(viewEvent.application.id).isEqualTo(fakeApplicationId)
@@ -817,8 +816,9 @@ function RumViewScopeTest__WhenHandleViewUpdateNotTracked_ThenDiscardLastKnownVi
     m.testedScope@.handleEvent(fakeEvent, m.mockWriter)
 
     ' Then
-    lastKnownFilePath = datadogroku_lastViewEventFilePath(m.fakeInstanceId)
-    Assert.that(lastKnownFilePath).doesNotExist()
+    snapshots = m.mockWriter@.getFieldUpdates("snapshotEvent")
+    Assert.that(snapshots).hasSize(1)
+    Assert.that(snapshots[0]).isEqualTo({ cleared: true })
     return ""
 end function
 

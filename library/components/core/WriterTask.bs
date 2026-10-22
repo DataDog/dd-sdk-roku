@@ -6,14 +6,18 @@ import "pkg:/source/datadogSdk.bs"
 import "pkg:/source/fileUtils.bs"
 import "pkg:/source/internalLogger.bs"
 import "pkg:/source/immutableRecords.bs"
+import "pkg:/source/rum/viewSnapshots.bs"
 
 sub init()
     m.port = CreateObject("roMessagePort")
     m.top.observeFieldScoped("writeEvent", m.port)
     m.top.observeFieldScoped("trackType", m.port)
     m.top.observeFieldScoped("storageScope", m.port)
+    m.top.observeFieldScoped("instanceId", m.port)
+    m.top.observeFieldScoped("snapshotEvent", m.port)
     m.trackType = m.top.trackType
     m.storageScope = m.top.storageScope
+    m.instanceId = m.top.instanceId
     m.top.functionName = "writerLoop"
     m.top.control = "RUN"
 end sub
@@ -25,6 +29,10 @@ sub writerLoop()
             fieldName = msg.getField()
             if (fieldName = "writeEvent")
                 onWriteEvent(msg.getData())
+            else if (fieldName = "snapshotEvent")
+                onSnapshotEvent(msg.getData())
+            else if (fieldName = "instanceId")
+                m.instanceId = msg.getData()
             else if (fieldName = "trackType")
                 m.trackType = msg.getData()
             else if (fieldName = "storageScope")
@@ -51,5 +59,17 @@ sub onWriteEvent(event as string)
     if (result.status <> "verified")
         ' A partial/uncertain file is retained; do not retry into the same path.
         ddLogWarning("Unable to verify event write: " + result.status)
+    end if
+end sub
+
+sub onSnapshotEvent(event as object)
+    if (m.trackType <> TrackType.rum)
+        return
+    end if
+    folder = trackFolderPath(m.trackType)
+    mkDirs(folder)
+    result = writeViewSnapshot(folder, m.storageScope, m.instanceId, event)
+    if (result.status <> "verified")
+        ddLogWarning("Unable to update view snapshot: " + result.status)
     end if
 end sub
