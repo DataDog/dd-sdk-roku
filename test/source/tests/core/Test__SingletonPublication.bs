@@ -1,0 +1,99 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function TestSuite__SingletonPublication() as object
+    this = BaseTestSuite()
+    this.Name = "SingletonPublication"
+    this.addTest("WhenAbsentField_ThenOnlyOneOwnerStarts", SingletonPublicationTest__Absent, SingletonPublicationTest__SetUp, SingletonPublicationTest__TearDown)
+    this.addTest("WhenInvalidField_ThenOnlyOneOwnerStarts", SingletonPublicationTest__Invalid, SingletonPublicationTest__SetUp, SingletonPublicationTest__TearDown)
+    this.addTest("WhenOccupiedField_ThenNoCandidateStarts", SingletonPublicationTest__Occupied, SingletonPublicationTest__SetUp, SingletonPublicationTest__TearDown)
+    this.runContenders = SingletonPublicationTest__RunContenders
+    this.waitForFlag = SingletonPublicationTest__WaitForFlag
+    return this
+end function
+
+sub SingletonPublicationTest__SetUp()
+    m.testSuite.contenders = []
+    m.testSuite.candidates = []
+    m.testSuite.port = CreateObject("roMessagePort")
+    ' Task nodes are render-owned even though the suite itself runs in a Task.
+    m.testSuite.scope = CreateObject("roSGNode", "Task")
+    m.testSuite.gate = CreateObject("roSGNode", "Task")
+    m.testSuite.gate.addField("released", "boolean", false)
+end sub
+
+sub SingletonPublicationTest__TearDown()
+    for each contender in m.testSuite.contenders
+        contender.control = "STOP"
+    end for
+    for each candidate in m.testSuite.candidates
+        candidate.control = "STOP"
+    end for
+end sub
+
+function SingletonPublicationTest__Absent() as string
+    return m.runContenders(false)
+end function
+
+function SingletonPublicationTest__Invalid() as string
+    m.scope.addField("owner", "node", false)
+    return m.runContenders(false)
+end function
+
+function SingletonPublicationTest__Occupied() as string
+    m.scope.addFields({ owner: CreateObject("roSGNode", "Node") })
+    return m.runContenders(true)
+end function
+
+' Bound every wait and release all ready contenders with one shared field update.
+' This exercises real Tasks; scheduling remains a device-runtime stress test.
+sub SingletonPublicationTest__WaitForFlag(node as object, fieldName as string)
+    timer = CreateObject("roTimespan")
+    while (not node.getField(fieldName) and timer.TotalMilliseconds() < 5000)
+        wait(50, m.port)
+    end while
+    Assert.that(node.getField(fieldName)).isEqualTo(true, "Timed out waiting for " + fieldName)
+end sub
+
+function SingletonPublicationTest__RunContenders(occupied as boolean) as string
+    original = m.scope.getField("owner")
+    for i = 0 to 7
+        candidate = CreateObject("roSGNode", "TestSingletonCandidate")
+        m.candidates.Push(candidate)
+        contender = CreateObject("roSGNode", "TestSingletonContender")
+        m.contenders.Push(contender)
+        contender.setFields({ scope: m.scope, gate: m.gate, candidate: candidate })
+        contender.observeFieldScoped("ready", m.port)
+        contender.observeFieldScoped("done", m.port)
+        contender.control = "RUN"
+    end for
+    for each contender in m.contenders
+        m.waitForFlag(contender, "ready")
+    end for
+    m.gate.released = true
+    for each contender in m.contenders
+        m.waitForFlag(contender, "done")
+        Assert.that(contender.failure).isEqualTo("")
+    end for
+
+    owner = m.scope.getField("owner")
+    Assert.that(owner).isNotInvalid()
+    starts = 0
+    for each candidate in m.candidates
+        if (candidate.started)
+            starts++
+            Assert.that(candidate.isSameNode(owner)).isEqualTo(true)
+        end if
+    end for
+    for each contender in m.contenders
+        Assert.that(contender.published.isSameNode(owner)).isEqualTo(true)
+    end for
+    if (occupied)
+        Assert.that(owner.isSameNode(original)).isEqualTo(true)
+        Assert.that(starts).isEqualTo(0)
+    else
+        Assert.that(starts).isEqualTo(1, "Exactly one candidate must enter its Task function")
+    end if
+    return ""
+end function
