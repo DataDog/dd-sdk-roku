@@ -5,6 +5,7 @@
         <field id="waitPeriodMs" type="integer" value="5000" />
         <field id="networkClient" type="node" />
         <field id="clientToken" type="string" />
+        <function name="registerTrack" />
     </interface>
     <script type="text/brightscript" uri="pkg:/components/core/MultiTrackUploaderTask.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />

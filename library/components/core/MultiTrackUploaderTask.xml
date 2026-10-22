@@ -9,6 +9,7 @@ Copyright 2022-Today Datadog, Inc.
     <script type="text/brightscript" uri="pkg:/components/core/MultiTrackUploaderTask.bs" />
 
     <interface>
+        <function name="registerTrack" />
         <field id="tracks" type="assocarray" />
         <field id="waitPeriodMs" type="integer" value="5000" />
         <field id="networkClient" type="node" />
