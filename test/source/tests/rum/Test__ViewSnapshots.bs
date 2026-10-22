@@ -1,0 +1,163 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/rum/viewSnapshots.brs"
+
+function TestSuite__ViewSnapshots() as object
+    this = BaseTestSuite()
+    this.Name = "ViewSnapshots"
+    this.addTest("WhenReplacementPartial_ThenRecoverPreviousSnapshot", ViewSnapshotsTest__Partial)
+    this.addTest("WhenClearCleanupFails_ThenDoNotResurrectPreviousView", ViewSnapshotsTest__Clear)
+    this.addTest("WhenCapacityReached_ThenPreserveBytesAndResumeAfterCleanup", ViewSnapshotsTest__Capacity)
+    this.addTest("WhenOtherOwnerOrScope_ThenPreserveFiles", ViewSnapshotsTest__Isolation)
+    this.addTest("WhenGenerationInvalidOrExhausted_ThenDoNotWrite", ViewSnapshotsTest__Generation)
+    this.addTest("WhenRealFiles_ThenReplaceOnlyAfterVerification", ViewSnapshotsTest__Disk)
+    return this
+end function
+
+function ViewSnapshotsTest__Event() as object
+    return { _dd: { document_version: 1 }, application: { id: "app" }, session: { id: "session" }, date: 1000, view: { id: "view", time_spent: 1000000 } }
+end function
+
+function ViewSnapshotsTest__IO() as object
+    return {
+        files: {}, writes: 0, partial: false, failDelete: false,
+        exists: function(path as string) as boolean
+            return m.files.DoesExist(path)
+        end function,
+        write: function(path as string, bytes as object) as boolean
+            m.writes++
+            copy = CreateObject("roByteArray")
+            copy.Append(bytes)
+            if (m.partial)
+                copy.Pop()
+            end if
+            m.files[path] = copy
+            return true
+        end function,
+        read: function(path as string, _count as integer) as dynamic
+            return m.files[path]
+        end function,
+        list: function(folder as string) as object
+            names = []
+            for each path in m.files
+                names.Push(path.Mid(folder.Len() + 1))
+            end for
+            return names
+        end function,
+        remove: function(path as string) as boolean
+            if (m.failDelete)
+                return false
+            end if
+            m.files.Delete(path)
+            return true
+        end function
+    }
+end function
+
+function ViewSnapshotsTest__Partial() as string
+    io = ViewSnapshotsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    first = datadogroku_writeViewSnapshot("tmp:", scope, "instance", ViewSnapshotsTest__Event(), io)
+    original = io.files["tmp:/" + first.filename].ToAsciiString()
+    io.partial = true
+    second = datadogroku_writeViewSnapshot("tmp:", scope, "instance", ViewSnapshotsTest__Event(), io)
+    Assert.that(second.status).isEqualTo("verification_failed")
+    entries = datadogroku_listViewSnapshots("tmp:", scope, datadogroku_viewSnapshotOwner("instance"), io)
+    latest = datadogroku_latestViewSnapshot(entries)
+    Assert.that(latest.filename).isEqualTo(first.filename)
+    Assert.that(io.files["tmp:/" + first.filename].ToAsciiString()).isEqualTo(original)
+    Assert.that(io.files).hasSize(2)
+    ' After recovery persists its events, a newer partial must not force replay.
+    Assert.that(datadogroku_pruneViewSnapshots("tmp:", entries, latest, true, io)).isEqualTo(1)
+    Assert.that(io.files.DoesExist("tmp:/" + first.filename)).isFalse()
+    Assert.that(io.files.DoesExist("tmp:/" + second.filename)).isTrue()
+    return ""
+end function
+
+function ViewSnapshotsTest__Clear() as string
+    io = ViewSnapshotsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    datadogroku_writeViewSnapshot("tmp:", scope, "instance", ViewSnapshotsTest__Event(), io)
+    io.failDelete = true
+    cleared = datadogroku_writeViewSnapshot("tmp:", scope, "instance", { cleared: true }, io)
+    Assert.that(cleared.status).isEqualTo("verified")
+    entries = datadogroku_listViewSnapshots("tmp:", scope, datadogroku_viewSnapshotOwner("instance"), io)
+    latest = datadogroku_latestViewSnapshot(entries)
+    Assert.that(datadogroku_isViewSnapshotClear(latest.value)).isTrue()
+    Assert.that(datadogroku_pruneViewSnapshots("tmp:", entries, latest, true, io)).isEqualTo(2)
+    Assert.that(io.files.DoesExist("tmp:/" + cleared.filename)).isTrue()
+    return ""
+end function
+
+function ViewSnapshotsTest__Capacity() as string
+    io = ViewSnapshotsTest__IO()
+    io.failDelete = true
+    scope = ImmutableRecordsTest__Scope()
+    for i = 1 to 4
+        result = datadogroku_writeViewSnapshot("tmp:", scope, "instance", ViewSnapshotsTest__Event(), io)
+        Assert.that(result.status).isEqualTo("verified")
+    end for
+    blocked = datadogroku_writeViewSnapshot("tmp:", scope, "instance", { cleared: true }, io)
+    Assert.that(blocked.status).isEqualTo("capacity")
+    Assert.that(io.writes).isEqualTo(4)
+    Assert.that(io.files).hasSize(4)
+    io.failDelete = false
+    resumed = datadogroku_writeViewSnapshot("tmp:", scope, "instance", { cleared: true }, io)
+    Assert.that(resumed.status).isEqualTo("verified")
+    Assert.that(io.files).hasSize(1)
+    return ""
+end function
+
+function ViewSnapshotsTest__Isolation() as string
+    io = ViewSnapshotsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    otherScope = datadogroku_immutableRecordScope("other", "url", "token", "app")
+    other = datadogroku_writeViewSnapshot("tmp:", scope, "other-instance", ViewSnapshotsTest__Event(), io)
+    foreign = datadogroku_writeViewSnapshot("tmp:", otherScope, "instance", ViewSnapshotsTest__Event(), io)
+    datadogroku_writeViewSnapshot("tmp:", scope, "instance", ViewSnapshotsTest__Event(), io)
+    datadogroku_writeViewSnapshot("tmp:", scope, "instance", { cleared: true }, io)
+    Assert.that(io.files).hasSize(3)
+    Assert.that(io.files.DoesExist("tmp:/" + other.filename)).isTrue()
+    Assert.that(io.files.DoesExist("tmp:/" + foreign.filename)).isTrue()
+    ownEntries = datadogroku_listViewSnapshots("tmp:", scope, datadogroku_viewSnapshotOwner("instance"), io)
+    latest = datadogroku_latestViewSnapshot(ownEntries)
+    mixed = datadogroku_listViewSnapshots("tmp:", scope, "", io)
+    mixed.Append(datadogroku_listViewSnapshots("tmp:", otherScope, "", io))
+    Assert.that(datadogroku_pruneViewSnapshots("tmp:", mixed, latest, true, io)).isEqualTo(2)
+    Assert.that(io.files.DoesExist("tmp:/" + other.filename)).isTrue()
+    Assert.that(io.files.DoesExist("tmp:/" + foreign.filename)).isTrue()
+    return ""
+end function
+
+function ViewSnapshotsTest__Generation() as string
+    io = ViewSnapshotsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    first = datadogroku_writeViewSnapshot("tmp:", scope, "instance", ViewSnapshotsTest__Event(), io)
+    for each number in ["0", "01", "-1", "2147483647", "x"]
+        Assert.that(datadogroku_parseViewSnapshotName(first.filename.Replace("_1_", "_" + number + "_"))).isInvalid()
+    end for
+    path = "tmp:/" + first.filename
+    maxPath = path.Replace("_1_", "_2147483646_")
+    io.files[maxPath] = io.files[path]
+    io.files.Delete(path)
+    blocked = datadogroku_writeViewSnapshot("tmp:", scope, "instance", { cleared: true }, io)
+    Assert.that(blocked.status).isEqualTo("capacity")
+    Assert.that(io.writes).isEqualTo(1)
+    return ""
+end function
+
+function ViewSnapshotsTest__Disk() as string
+    folder = "tmp:/snapshot_" + CreateObject("roDeviceInfo").GetRandomUUID()
+    datadogroku_mkDirs(folder)
+    scope = ImmutableRecordsTest__Scope()
+    first = datadogroku_writeViewSnapshot(folder, scope, "instance", ViewSnapshotsTest__Event())
+    second = datadogroku_writeViewSnapshot(folder, scope, "instance", { cleared: true })
+    Assert.that(first.status).isEqualTo("verified")
+    Assert.that(second.status).isEqualTo("verified")
+    Assert.that(ListDir(folder)).hasSize(1)
+    Assert.that(ReadAsciiFile(folder + "/" + second.filename)).isEqualTo(FormatJson({ cleared: true }))
+    CreateObject("roFileSystem").Delete(folder)
+    return ""
+end function
