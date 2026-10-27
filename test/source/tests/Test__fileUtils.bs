@@ -30,6 +30,8 @@ function TestSuite__FileUtils() as object
 
     this.addTest("WhenParseLegacyBatchTimestamp_ThenValidateWholeName", FileUtilsTest__ParseLegacyBatchTimestamp)
 
+    this.addTest("WhenDirectoryCreationFails_ThenDoNotEnqueueTelemetry", FileUtilsTest__DirectoryFailureDoesNotEnqueueTelemetry)
+
     return this
 end function
 
@@ -278,4 +280,20 @@ function FileUtilsTest__ParseLegacyBatchTimestamp() as string
         Assert.that(datadogroku_parseLegacyBatchTimestamp(filename)).isInvalid(filename)
     end for
     return ""
+end function
+
+function FileUtilsTest__DirectoryFailureDoesNotEnqueueTelemetry() as string
+    agent = CreateObject("roSGNode", "TestDirectoryErrorAgent")
+    fakeGlobal = CreateObject("roSGNode", "Node")
+    fakeGlobal.addFields({ datadogRumAgent: agent })
+    ' Bind the real helper to an isolated context, without changing app globals.
+    context = { global: fakeGlobal, makeDirectory: datadogroku_mkDirs }
+    readOnlyPath = "pkg:/directory_failure_" + CreateObject("roDeviceInfo").GetRandomUUID()
+    for each path in ["invalid:/<>invalid", readOnlyPath]
+        for i = 1 to 10
+            Assert.that(context.makeDirectory(path)).isFalse()
+            Assert.that(path).doesNotExist()
+        end for
+    end for
+    return agent@.assertFunctionCalled("addErrorTelemetry", {}, 0)
 end function
