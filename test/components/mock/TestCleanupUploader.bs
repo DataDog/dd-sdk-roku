@@ -1,0 +1,21 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' Do not start the uploader Task; exercise the inherited reporting method only.
+function cleanupErrorAtElapsedTime(path as string, elapsedMs as integer) as dynamic
+    if (m.cleanupTelemetryBudget = invalid)
+        clock = {
+            elapsedMs: 0,
+            TotalMilliseconds: function() as integer
+                return m.elapsedMs
+            end function,
+            Mark: sub()
+                m.elapsedMs = 0
+            end sub
+        }
+        m.cleanupTelemetryBudget = datadogroku_newBatchCleanupTelemetryBudget(clock)
+    end if
+    m.cleanupTelemetryBudget.clock.elapsedMs = elapsedMs
+    return datadogroku_nextBatchCleanupError(path)
+end function
