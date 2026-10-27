@@ -92,6 +92,28 @@ function deleteFileIfPresent(filepath as string) as boolean
 end function
 
 ' ----------------------------------------------------------------
+' Parse only decimal legacy batch names, leaving room for the upload age offset.
+' Unknown names must never become uploadable through permissive numeric parsing.
+' @return (dynamic) the timestamp, or invalid for an unrecognized filename
+' ----------------------------------------------------------------
+function parseLegacyBatchTimestamp(filename as string) as dynamic
+    if (filename.Len() = 0 or filename.Len() > 19)
+        return invalid
+    end if
+    for i = 1 to filename.Len()
+        digit = Asc(Mid(filename, i, 1))
+        if (digit < 48 or digit > 57)
+            return invalid
+        end if
+    end for
+    ' Maximum signed long minus 30000; compare digits before numeric conversion.
+    if (filename.Len() = 19 and filename > "9223372036854745807")
+        return invalid
+    end if
+    return strToLong(filename)
+end function
+
+' ----------------------------------------------------------------
 ' Converts the given string into a long value
 ' @param s (string) a string with only a number in decimal format
 ' @return (longinteger) the value as a long integer
