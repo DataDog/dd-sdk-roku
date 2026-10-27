@@ -82,6 +82,16 @@ function AppendAsciiFile(filepath as string, text as string) as boolean
     return byteArray.AppendFile(filepath)
 end function
 
+' Cleanup is complete when deletion succeeds or the file is already absent.
+' Check after deletion, since cache eviction can race with the delete itself.
+' Use file-only DeleteFile: never recursively remove a directory here.
+function deleteFileIfPresent(filepath as string) as boolean
+    if (DeleteFile(filepath))
+        return true
+    end if
+    return not CreateObject("roFileSystem").Exists(filepath)
+end function
+
 ' ----------------------------------------------------------------
 ' Converts the given string into a long value
 ' @param s (string) a string with only a number in decimal format
