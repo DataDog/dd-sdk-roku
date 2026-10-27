@@ -24,12 +24,15 @@ function TestSuite__RumCrashReporterTask() as object
     this.addTest("WhenLastViewIsMissing_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsMissing_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
     this.addTest("WhenLastViewIsInvalid_ThenDoNothing", RumCrashReporterTaskTest__WhenLastViewIsInvalid_ThenDoNothing, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
 
+    this.addTest("WhenCrashWriteFails_ThenKeepRecoverySnapshot", RumCrashReporterTaskTest__FailedPersistence, RumCrashReporterTaskTest__SetUp, RumCrashReporterTaskTest__TearDown)
+
     return this
 end function
 
 sub RumCrashReporterTaskTest__SetUp()
     ' Mocks
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
+    m.testSuite.mockWriter.storageScope = ImmutableRecordsTest__Scope()
 
     ' Fake data
     m.testSuite.fakeInstanceId = IG_GetString(32)
@@ -78,6 +81,7 @@ sub RumCrashReporterTaskTest__SetUp()
 end sub
 
 sub RumCrashReporterTaskTest__TearDown()
+    m.testSuite.testedTask.control = "STOP"
     m.testSuite.Delete("mockWriter")
     m.testSuite.Delete("testedTask")
     createObject("roFileSystem").Delete(datadogroku_trackFolderPath("rum"))
@@ -137,10 +141,10 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorAndViewEvents
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(2)
     errorEvent = ParseJson(updates[0])
     Assert.that(errorEvent).isNotInvalid()
@@ -249,10 +253,10 @@ function RumCrashReporterTaskTest__WhenReasonIsValid_ThenWriteErrorWithStackAndV
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(2)
     errorEvent = ParseJson(updates[0])
     Assert.that(errorEvent).isNotInvalid()
@@ -350,10 +354,10 @@ function RumCrashReporterTaskTest__WhenReasonIsUnknown_ThenWriteErrorAndViewEven
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(2)
     errorEvent = ParseJson(updates[0])
     Assert.that(errorEvent).isNotInvalid()
@@ -420,10 +424,10 @@ function RumCrashReporterTaskTest__WhenLastViewIsCurrentSession_ThenDoNothing() 
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(0)
     Assert.that(lastViewFilePath).exists()
     return ""
@@ -482,10 +486,10 @@ function RumCrashReporterTaskTest__WhenExitreasonIsIgnored_ThenDoNothing() as st
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(0)
     Assert.that(lastViewFilePath).doesNotExist()
     return ""
@@ -538,10 +542,10 @@ function RumCrashReporterTaskTest__WhenExitreasonIsCustomIgnored_ThenDoNothing()
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(0)
     Assert.that(lastViewFilePath).doesNotExist()
     return ""
@@ -592,10 +596,10 @@ function RumCrashReporterTaskTest__WhenExitreasonIsEmpty_ThenDoNothing() as stri
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(0)
     Assert.that(lastViewFilePath).doesNotExist()
     return ""
@@ -625,10 +629,10 @@ function RumCrashReporterTaskTest__WhenLastViewIsMissing_ThenDoNothing() as stri
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(0)
     Assert.that(lastViewFilePath).doesNotExist()
     return ""
@@ -661,11 +665,63 @@ function RumCrashReporterTaskTest__WhenLastViewIsInvalid_ThenDoNothing() as stri
 
     ' When
     m.testedTask.control = "RUN"
-    sleep(100)
+    RumCrashReporterTaskTest__WaitForCompletion(m.testedTask)
 
     ' Then
-    updates = m.mockWriter@.getFieldUpdates("writeEvent")
+    updates = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
     Assert.that(updates).hasSize(0)
-    Assert.that(lastViewFilePath).doesNotExist()
+    Assert.that(lastViewFilePath).exists()
+    return ""
+end function
+
+sub RumCrashReporterTaskTest__WaitForCompletion(task as object)
+    timer = CreateObject("roTimespan")
+    while (task.state <> "done" and timer.TotalMilliseconds() < 5000)
+        sleep(10)
+    end while
+    Assert.that(task.state).isEqualTo("done")
+end sub
+
+function RumCrashReporterTaskTest__StoredEvents(scope as string) as object
+    errors = []
+    views = []
+    folder = datadogroku_trackFolderPath("rum")
+    for each filename in ListDir(folder)
+        record = datadogroku_readImmutableRecord(folder, filename, scope)
+        if (record <> invalid)
+            event = ParseJson(record.payload)
+            if (event.type = "error")
+                errors.Push(record.payload)
+            else
+                views.Push(record.payload)
+            end if
+        end if
+    end for
+    errors.Append(views)
+    return errors
+end function
+
+function RumCrashReporterTaskTest__FailedPersistence() as string
+    for each failWrite in [1, 2]
+        folder = datadogroku_trackFolderPath("rum")
+        CreateObject("roFileSystem").Delete(folder)
+        datadogroku_mkDirs(folder)
+        source = FormatJson({
+            _dd: { document_version: 1 }, application: { id: "app" },
+            session: { id: "session" }, date: 1000,
+            view: { id: "view", time_spent: 1000000, error: { count: 0 } }
+        })
+        path = datadogroku_lastViewEventFilePath("previous")
+        WriteAsciiFile(path, source)
+        task = CreateObject("roSGNode", "TestCrashPersistence")
+        m.testedTask = task
+        task@.configureFailure(failWrite)
+        task.setFields({ writer: m.mockWriter, instanceId: m.fakeInstanceId, lastExitOrTerminationReason: "EXIT_OUT_OF_MEMORY" })
+        task.control = "RUN"
+        RumCrashReporterTaskTest__WaitForCompletion(task)
+        Assert.that(ReadAsciiFile(path)).isEqualTo(source)
+        events = RumCrashReporterTaskTest__StoredEvents(m.mockWriter.storageScope)
+        Assert.that(events).hasSize(failWrite - 1)
+    end for
     return ""
 end function

@@ -1,0 +1,58 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+function isRecoverableCrashView(event as dynamic) as boolean
+    if (GetInterface(event, "ifAssociativeArray") = invalid)
+        return false
+    end if
+    for each key in [
+        "_dd"
+        "application"
+        "session"
+        "view"
+    ]
+        if (GetInterface(event[key], "ifAssociativeArray") = invalid)
+            return false
+        end if
+    end for
+    for each value in [
+        event.application.id
+        event.session.id
+        event.view.id
+    ]
+        if (GetInterface(value, "ifString") = invalid)
+            return false
+        end if
+        if (value = "")
+            return false
+        end if
+    end for
+    if (not isCrashTimestamp(event.date))
+        return false
+    end if
+    for each value in [
+        event.view.time_spent
+        event._dd.document_version
+    ]
+        if (value <> invalid)
+            if (not isCrashTimestamp(value))
+                return false
+            end if
+        end if
+    end for
+    if (event.view.error <> invalid)
+        if (GetInterface(event.view.error, "ifAssociativeArray") = invalid)
+            return false
+        end if
+        if (event.view.error.count <> invalid)
+            if (not isCrashTimestamp(event.view.error.count))
+                return false
+            end if
+        end if
+    end if
+    return true
+end function
+
+function isCrashTimestamp(value as dynamic) as boolean
+    return GetInterface(value, "ifInt") <> invalid or GetInterface(value, "ifLongInt") <> invalid or GetInterface(value, "ifFloat") <> invalid or GetInterface(value, "ifDouble") <> invalid
+end function
