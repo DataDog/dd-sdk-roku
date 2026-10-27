@@ -1,0 +1,84 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/recordCompletion.brs"
+
+function TestSuite__RecordCompletion() as object
+    this = BaseTestSuite()
+    this.Name = "RecordCompletion"
+    this.addTest("WhenFull_ThenPreserveCompletionsAndPause", RecordCompletionTest__Capacity)
+    this.addTest("WhenTransient_ThenReleaseOnlyReservations", RecordCompletionTest__Transient)
+    this.addTest("WhenCleanupFails_ThenBackOffWithoutForgetting", RecordCompletionTest__Backoff)
+    return this
+end function
+
+function RecordCompletionTest__Clock() as object
+    return {
+        elapsed: 0,
+        TotalMilliseconds: function() as integer
+            return m.elapsed
+        end function
+    }
+end function
+
+function RecordCompletionTest__Capacity() as string
+    state = datadogroku_newRecordCompletionState(2, RecordCompletionTest__Clock())
+    Assert.that(state.reserve(["a", "b"])).isTrue()
+    state.complete(["a", "b"])
+    Assert.that(state.cleanupDue()).hasSize(2)
+    Assert.that(state.reserve(["c"])).isFalse()
+    state.release(["a", "b"])
+    Assert.that(state.isKnown("a")).isTrue()
+    Assert.that(state.isKnown("b")).isTrue()
+    state.cleanupResult("a", true)
+    Assert.that(state.reserve(["c", "d"])).isFalse()
+    Assert.that(state.isKnown("c")).isFalse()
+    Assert.that(state.reserve(["c"])).isTrue()
+    return ""
+end function
+
+function RecordCompletionTest__Transient() as string
+    state = datadogroku_newRecordCompletionState(2, RecordCompletionTest__Clock())
+    Assert.that(state.reserve(["a", "a"])).isFalse()
+    Assert.that(state.remaining()).isEqualTo(2)
+    Assert.that(state.reserve(["a", "b"])).isTrue()
+    state.release(["a", "b"])
+    Assert.that(state.remaining()).isEqualTo(2)
+    Assert.that(state.reserve(["a", "b"])).isTrue()
+    return ""
+end function
+
+function RecordCompletionTest__Backoff() as string
+    clock = RecordCompletionTest__Clock()
+    state = datadogroku_newRecordCompletionState(1, clock)
+    state.reserve(["a"])
+    state.complete(["a"])
+    Assert.that(state.cleanupDue()).hasSize(1)
+    state.cleanupResult("a", false)
+    clock.elapsed = 999
+    Assert.that(state.cleanupDue()).isEmpty()
+    clock.elapsed = 1000
+    Assert.that(state.cleanupDue()).hasSize(1)
+    state.cleanupResult("a", false)
+    clock.elapsed = 2999
+    Assert.that(state.cleanupDue()).isEmpty()
+    clock.elapsed = 3000
+    Assert.that(state.cleanupDue()).hasSize(1)
+    for i = 1 to 10
+        state.cleanupResult("a", false)
+        clock.elapsed += 60000
+        Assert.that(state.cleanupDue()).hasSize(1)
+    end for
+    state.cleanupResult("a", false)
+    clock.elapsed += 59999
+    Assert.that(state.cleanupDue()).isEmpty()
+    clock.elapsed += 1
+    Assert.that(state.cleanupDue()).hasSize(1)
+    clock.elapsed = -1
+    Assert.that(state.cleanupDue()).hasSize(1)
+    Assert.that(state.isKnown("a")).isTrue()
+    state.cleanupResult("a", true)
+    Assert.that(state.remaining()).isEqualTo(1)
+    return ""
+end function
