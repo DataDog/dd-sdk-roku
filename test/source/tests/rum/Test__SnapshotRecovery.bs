@@ -1,0 +1,151 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function TestSuite__SnapshotRecovery() as object
+    this = BaseTestSuite()
+    this.Name = "SnapshotRecovery"
+    this.addTest("WhenWriterReceivesSnapshots_ThenSerializeVerifiedGenerations", SnapshotRecoveryTest__Writer, SnapshotRecoveryTest__SetUp, SnapshotRecoveryTest__TearDown)
+    this.addTest("WhenRecovering_ThenUseLatestAndPreserveCurrentAndForeign", SnapshotRecoveryTest__Latest, SnapshotRecoveryTest__SetUp, SnapshotRecoveryTest__TearDown)
+    this.addTest("WhenClearCleanupFails_ThenNeverRecoverOlderView", SnapshotRecoveryTest__Clear, SnapshotRecoveryTest__SetUp, SnapshotRecoveryTest__TearDown)
+    this.addTest("WhenNewestPartial_ThenRecoverPreviousWithoutRepeatingIt", SnapshotRecoveryTest__Partial, SnapshotRecoveryTest__SetUp, SnapshotRecoveryTest__TearDown)
+    this.addTest("WhenRecoveryWriteFails_ThenRetainGeneration", SnapshotRecoveryTest__WriteFailure, SnapshotRecoveryTest__SetUp, SnapshotRecoveryTest__TearDown)
+    this.addTest("WhenRecoveredSnapshotCleanupFails_ThenDocumentRestartDuplicates", SnapshotRecoveryTest__CleanupFailure, SnapshotRecoveryTest__SetUp, SnapshotRecoveryTest__TearDown)
+    this.recover = SnapshotRecoveryTest__Recover
+    return this
+end function
+
+sub SnapshotRecoveryTest__SetUp()
+    m.testSuite.folder = datadogroku_trackFolderPath("rum")
+    datadogroku_mkDirs(m.testSuite.folder)
+    m.testSuite.scope = ImmutableRecordsTest__Scope()
+    m.testSuite.instanceId = CreateObject("roDeviceInfo").GetRandomUUID()
+    m.testSuite.writer = CreateObject("roSGNode", "MockWriterTask")
+    m.testSuite.writer.storageScope = m.testSuite.scope
+    m.testSuite.reporter = CreateObject("roSGNode", "TestCrashPersistence")
+end sub
+
+sub SnapshotRecoveryTest__TearDown()
+    m.testSuite.writer.control = "STOP"
+    m.testSuite.reporter.control = "STOP"
+    CreateObject("roFileSystem").Delete(m.testSuite.folder)
+end sub
+
+sub SnapshotRecoveryTest__Recover()
+    m.reporter.setFields({ writer: m.writer, instanceId: m.instanceId, lastExitOrTerminationReason: "EXIT_OUT_OF_MEMORY" })
+    m.reporter.control = "RUN"
+    RumCrashReporterTaskTest__WaitForCompletion(m.reporter)
+end sub
+
+function SnapshotRecoveryTest__RetainingIO() as object
+    io = datadogroku_newViewSnapshotIO()
+    io.remove = function(_path as string) as boolean
+        return false
+    end function
+    return io
+end function
+
+function SnapshotRecoveryTest__Writer() as string
+    legacy = m.folder + "/_last_view_untouched"
+    WriteAsciiFile(legacy, "preserve")
+    m.writer = CreateObject("roSGNode", "datadogroku_WriterTask")
+    m.writer.setFields({ trackType: "rum", storageScope: m.scope, instanceId: m.instanceId })
+    event = ViewSnapshotsTest__Event()
+    m.writer.snapshotEvent = event
+    m.writer.snapshotEvent = event
+    m.writer.snapshotEvent = { cleared: true }
+    timer = CreateObject("roTimespan")
+    latest = invalid
+    while (timer.TotalMilliseconds() < 5000)
+        entries = datadogroku_listViewSnapshots(m.folder, m.scope, datadogroku_viewSnapshotOwner(m.instanceId), datadogroku_newViewSnapshotIO())
+        latest = datadogroku_latestViewSnapshot(entries)
+        if (latest <> invalid)
+            if (latest.generation = 3)
+                exit while
+            end if
+        end if
+        sleep(10)
+    end while
+    Assert.that(latest).isNotInvalid()
+    Assert.that(latest.generation).isEqualTo(3)
+    Assert.that(datadogroku_isViewSnapshotClear(latest.value)).isTrue()
+    Assert.that(ReadAsciiFile(legacy)).isEqualTo("preserve")
+    return ""
+end function
+
+function SnapshotRecoveryTest__Latest() as string
+    io = SnapshotRecoveryTest__RetainingIO()
+    event = ViewSnapshotsTest__Event()
+    datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", event, io)
+    event._dd.document_version = 2
+    datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", event, io)
+    datadogroku_writeViewSnapshot(m.folder, m.scope, m.instanceId, event, io)
+    datadogroku_writeViewSnapshot(m.folder, m.scope, m.instanceId, event, io)
+    foreign = datadogroku_immutableRecordScope("other", "url", "token", "app")
+    datadogroku_writeViewSnapshot(m.folder, foreign, "previous", event, io)
+    m.recover()
+    events = RumCrashReporterTaskTest__StoredEvents(m.scope)
+    Assert.that(events).hasSize(2)
+    Assert.that(ParseJson(events[1])._dd.document_version).isEqualTo(3)
+    Assert.that(datadogroku_listViewSnapshots(m.folder, m.scope, datadogroku_viewSnapshotOwner("previous"), io)).hasSize(0)
+    Assert.that(datadogroku_listViewSnapshots(m.folder, m.scope, datadogroku_viewSnapshotOwner(m.instanceId), io)).hasSize(2)
+    Assert.that(datadogroku_listViewSnapshots(m.folder, foreign, "", io)).hasSize(1)
+    return ""
+end function
+
+function SnapshotRecoveryTest__Clear() as string
+    io = SnapshotRecoveryTest__RetainingIO()
+    datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", ViewSnapshotsTest__Event(), io)
+    datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", { cleared: true }, io)
+    m.reporter@.configureSnapshotCleanupFailure(0)
+    m.recover()
+    Assert.that(RumCrashReporterTaskTest__StoredEvents(m.scope)).hasSize(0)
+    entries = datadogroku_listViewSnapshots(m.folder, m.scope, "", io)
+    Assert.that(entries).hasSize(2)
+    Assert.that(datadogroku_isViewSnapshotClear(datadogroku_latestViewSnapshot(entries).value)).isTrue()
+    return ""
+end function
+
+function SnapshotRecoveryTest__Partial() as string
+    io = datadogroku_newViewSnapshotIO()
+    datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", ViewSnapshotsTest__Event(), io)
+    io.write = function(path as string, bytes as object) as boolean
+        bytes.Pop()
+        return bytes.WriteFile(path)
+    end function
+    failed = datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", ViewSnapshotsTest__Event(), io)
+    Assert.that(failed.status).isEqualTo("verification_failed")
+    m.recover()
+    Assert.that(RumCrashReporterTaskTest__StoredEvents(m.scope)).hasSize(2)
+    entries = datadogroku_listViewSnapshots(m.folder, m.scope, "", io)
+    Assert.that(entries).hasSize(1)
+    Assert.that(datadogroku_latestViewSnapshot(entries)).isInvalid()
+    m.reporter = CreateObject("roSGNode", "TestCrashPersistence")
+    m.recover()
+    Assert.that(RumCrashReporterTaskTest__StoredEvents(m.scope)).hasSize(2)
+    return ""
+end function
+
+function SnapshotRecoveryTest__WriteFailure() as string
+    saved = datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", ViewSnapshotsTest__Event())
+    m.reporter@.configureFailure(2)
+    m.recover()
+    Assert.that(RumCrashReporterTaskTest__StoredEvents(m.scope)).hasSize(1)
+    Assert.that(m.folder + "/" + saved.filename).exists()
+    return ""
+end function
+
+function SnapshotRecoveryTest__CleanupFailure() as string
+    saved = datadogroku_writeViewSnapshot(m.folder, m.scope, "previous", ViewSnapshotsTest__Event())
+    m.reporter@.configureSnapshotCleanupFailure(0)
+    m.recover()
+    Assert.that(RumCrashReporterTaskTest__StoredEvents(m.scope)).hasSize(2)
+    Assert.that(m.folder + "/" + saved.filename).exists()
+    ' No durable recovery-completion journal exists yet: a fresh recovery repeats.
+    m.reporter = CreateObject("roSGNode", "TestCrashPersistence")
+    m.reporter@.configureSnapshotCleanupFailure(0)
+    m.recover()
+    Assert.that(RumCrashReporterTaskTest__StoredEvents(m.scope)).hasSize(4)
+    Assert.that(m.folder + "/" + saved.filename).exists()
+    return ""
+end function
