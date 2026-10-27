@@ -6,6 +6,7 @@
 'import "pkg:/source/fileUtils.bs"
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/batchCleanupTelemetry.bs"
+'import "pkg:/source/immutableRecords.bs"
 ' *****************************************************************
 ' * MultiTrackUploaderTask: a background loop checking for files available for upload;
 ' * When a file is ready, it is uploaded, and upon success deleted from disk.
@@ -108,6 +109,7 @@ sub uploadAvailableFilesForTrack(trackInfo as object)
                 ddLogVerbose("Ignoring file " + filename)
             end if
         end for
+        uploadImmutableRecords(folderPath, filenames, trackInfo)
     end if
 end sub
 
@@ -179,19 +181,14 @@ end function
 function uploadFile(path as string, trackInfo as object, requestId as string) as integer
     ensureNetworkClient()
     url = getUploadUrl(trackInfo)
-    headers = {}
-    headers["Content-Type"] = trackInfo.contentType
-    headers["DD-API-KEY"] = m.clientToken
-    headers["DD-EVP-ORIGIN"] = agentSource()
-    headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
-    headers["DD-REQUEST-ID"] = requestId
+    headers = getUploadHeaders(trackInfo.contentType, requestId)
     ddLogVerbose("Network request " + requestId + " from " + path + " to " + url)
     result = m.networkClient.callfunc("postFromFile", url, path, headers, trackInfo.payloadPrefix, trackInfo.payloadPostfix)
     return result
 end function
 
 ' ----------------------------------------------------------------
-' Handles the response code by deleting or keeping the file for retry.
+' Logs and classifies the response; true means retain the payload for retry.
 ' @param requestId (string) the unique identifier for this request
 ' @param responseCode (integer) the HTTP status code of the upload request
 ' - 2xx: successful response, the batch can be removed.
@@ -214,7 +211,7 @@ end function
 ' @param filePath (string) the path of the file that was uploaded
 ' @param trackInfo (object) the configuration for the current track
 ' ----------------------------------------------------------------
-sub handleResponse(requestId as string, responseCode as integer, filePath as string, trackInfo as object)
+function shouldRetryUploadResponse(requestId as string, responseCode as integer, filePath as string, trackInfo as object) as boolean
     ' Preserve pending data unless the response explicitly permits removal.
     ' This includes transport errors (negative codes), unknown responses, and all 5xx.
     if (responseCode >= 200 and responseCode < 300)
@@ -224,7 +221,9 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
         ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
         ddLogError("The intake server returned status code 400 Bad Request, try updating the SDK to the latest version, or contact the support.")
         ddLogError("DD-REQUEST-ID:" + requestId)
-        ddLogError("Uploaded data was:" + chr(10) + ReadAsciiFile(filePath))
+        if (filePath <> "")
+            ddLogError("Uploaded data was:" + chr(10) + ReadAsciiFile(filePath))
+        end if
         retry = false
     else if (responseCode = 401)
         ddLogError("Upload to track " + trackInfo.trackType + " failed, data will be discarded;")
@@ -278,17 +277,25 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
         ddLogWarning("The intake server returned status code " + responseCode.toStr() + "; if the issue persists, please contact the support.")
         retry = true
     end if
-    if (not retry)
-        ddLogVerbose("Deleting file at " + filePath)
-        if (not deleteFileIfPresent(filePath))
-            message = "Unable to delete batch file at " + filePath
-            ddLogWarning(message)
-            datadogRumAgent = m.global.datadogRumAgent
-            if (datadogRumAgent <> invalid)
-                error = nextBatchCleanupError(filePath)
-                if (error <> invalid)
-                    datadogRumAgent.callfunc("addErrorTelemetry", error)
-                end if
+    return retry
+end function
+
+sub handleResponse(requestId as string, responseCode as integer, filePath as string, trackInfo as object)
+    if (not shouldRetryUploadResponse(requestId, responseCode, filePath, trackInfo))
+        cleanupUploadedFile(filePath)
+    end if
+end sub
+
+sub cleanupUploadedFile(filePath as string)
+    ddLogVerbose("Deleting file at " + filePath)
+    if (not deleteFileIfPresent(filePath))
+        message = "Unable to delete batch file at " + filePath
+        ddLogWarning(message)
+        datadogRumAgent = m.global.datadogRumAgent
+        if (datadogRumAgent <> invalid)
+            error = nextBatchCleanupError(filePath)
+            if (error <> invalid)
+                datadogRumAgent.callfunc("addErrorTelemetry", error)
             end if
         end if
     end if
@@ -326,5 +333,78 @@ sub ensureNetworkClient()
         else
             m.networkClient = CreateObject("roSGNode", "NetworkClient")
         end if
+    end if
+end sub
+
+function getUploadHeaders(contentType as string, requestId as string) as object
+    headers = {}
+    headers["Content-Type"] = contentType
+    headers["DD-API-KEY"] = m.clientToken
+    headers["DD-EVP-ORIGIN"] = agentSource()
+    headers["DD-EVP-ORIGIN-VERSION"] = sdkVersion()
+    headers["DD-REQUEST-ID"] = requestId
+    return headers
+end function
+
+' Group only verified snapshots for this destination. An oversized single event
+' is sent alone, matching the existing soft batch-size policy rather than stalling.
+sub uploadImmutableRecords(folderPath as string, filenames as object, trackInfo as object)
+    scope = trackInfo.storageScope
+    if (scope = invalid)
+        return
+    end if
+    if (not isRecordHex(scope, 64))
+        return
+    end if
+    separator = (function(chr, trackInfo)
+            __bsConsequent = trackInfo.payloadSeparator
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return chr(10)
+            end if
+        end function)(chr, trackInfo)
+    separatorBytes = CreateObject("roByteArray")
+    separatorBytes.FromAsciiString(separator)
+    records = []
+    payload = ""
+    byteCount = 0
+    for each filename in filenames
+        record = readImmutableRecord(folderPath, filename, scope)
+        if (record <> invalid)
+            nextSize = byteCount + record.byteCount
+            if (records.Count() > 0)
+                nextSize += separatorBytes.Count()
+            end if
+            if (records.Count() > 0 and (nextSize > 16384 or records.Count() >= 64))
+                uploadImmutableGroup(folderPath, records, payload, trackInfo)
+                records = []
+                payload = ""
+                byteCount = 0
+            end if
+            if (records.Count() > 0)
+                payload += separator
+                byteCount += separatorBytes.Count()
+            end if
+            payload += record.payload
+            byteCount += record.byteCount
+            records.Push(record.filename)
+        end if
+    end for
+    if (records.Count() > 0)
+        uploadImmutableGroup(folderPath, records, payload, trackInfo)
+    end if
+end sub
+
+sub uploadImmutableGroup(folderPath as string, records as object, payload as string, trackInfo as object)
+    ensureNetworkClient()
+    requestId = m.deviceInfo.GetRandomUUID()
+    headers = getUploadHeaders(trackInfo.contentType, requestId)
+    body = trackInfo.payloadPrefix + payload + trackInfo.payloadPostfix
+    response = m.networkClient.callfunc("postPayload", getUploadUrl(trackInfo), body, headers)
+    if (not shouldRetryUploadResponse(requestId, response, "", trackInfo))
+        for each filename in records
+            cleanupUploadedFile(folderPath + "/" + filename)
+        end for
     end if
 end sub

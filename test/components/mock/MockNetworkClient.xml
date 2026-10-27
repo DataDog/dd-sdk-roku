@@ -9,5 +9,6 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <function name="postFromFile" />
+        <function name="postPayload" />
     </interface>
 </component>

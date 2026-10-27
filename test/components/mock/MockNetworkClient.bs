@@ -21,3 +21,9 @@ function postFromFile(url as string, filePath as string, headers as object, payl
 
     return returnValue ?? - 1
 end function
+
+function postPayload(url as string, payload as string, headers as object) as integer
+    recordFunctionCall("postPayload", { url: url, payload: payload, headers: headers })
+    result = getStubReturnValue("postPayload", { url: url, payload: payload, headers: headers })
+    return result ?? -1
+end function

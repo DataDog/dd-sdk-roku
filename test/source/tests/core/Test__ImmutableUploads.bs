@@ -1,0 +1,142 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function TestSuite__ImmutableUploads() as object
+    this = BaseTestSuite()
+    this.Name = "ImmutableUploads"
+    this.addTest("WhenGroupedRecords_ThenSendValidatedPayloadAndRetainOn503", ImmutableUploadsTest__Retry, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
+    this.addTest("WhenAccepted_ThenRemoveOnlyIncludedRecords", ImmutableUploadsTest__Accepted, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
+    this.addTest("WhenEventExceedsTarget_ThenSendItAlone", ImmutableUploadsTest__Oversized, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
+    this.addTest("WhenRecordCountLimit_ThenSplitWithoutLosingRecords", ImmutableUploadsTest__CountLimit, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
+    this.addTest("WhenByteLimit_ThenSplitWithoutLosingRecords", ImmutableUploadsTest__ByteLimit, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
+    this.waitForCalls = ImmutableUploadsTest__WaitForCalls
+    return this
+end function
+
+sub ImmutableUploadsTest__SetUp()
+    m.testSuite.trackType = "immutable_" + CreateObject("roDeviceInfo").GetRandomUUID()
+    m.testSuite.folder = datadogroku_trackFolderPath(m.testSuite.trackType)
+    datadogroku_mkDirs(m.testSuite.folder)
+    m.testSuite.scope = ImmutableRecordsTest__Scope()
+    m.testSuite.network = CreateObject("roSGNode", "MockNetworkClient")
+    m.testSuite.uploader = CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask")
+    m.testSuite.uploader.setFields({ waitPeriodMs: 10, networkClient: m.testSuite.network, clientToken: "test" })
+    m.testSuite.uploader@.registerTrack("test", {
+        trackType: m.testSuite.trackType, url: "https://example.invalid", contentType: "application/json",
+        payloadPrefix: "[", payloadPostfix: "]", payloadSeparator: ",", storageScope: m.testSuite.scope
+    })
+end sub
+
+sub ImmutableUploadsTest__TearDown()
+    m.testSuite.uploader.control = "STOP"
+    CreateObject("roFileSystem").Delete(m.testSuite.folder)
+end sub
+
+function ImmutableUploadsTest__WaitForCalls(minimum as integer) as object
+    timer = CreateObject("roTimespan")
+    calls = []
+    while (timer.TotalMilliseconds() < 5000)
+        calls = m.network@.captureFunctionCalls("postPayload", {})
+        if (calls <> invalid and calls.Count() >= minimum)
+            return calls
+        end if
+        sleep(10)
+    end while
+    Assert.that(false).isTrue("Timed out waiting for immutable upload")
+    return calls
+end function
+
+function ImmutableUploadsTest__Retry() as string
+    m.network@.stubCall("postPayload", {}, 503)
+    first = datadogroku_writeImmutableRecord(m.folder, m.scope, "{""id"":1}")
+    second = datadogroku_writeImmutableRecord(m.folder, m.scope, "{""id"":2}")
+    m.uploader.control = "RUN"
+    calls = m.waitForCalls(2)
+    for each call in calls
+        events = ParseJson(call.payload)
+        Assert.that(events).hasSize(2)
+        Assert.that(events[0].id + events[1].id).isEqualTo(3)
+    end for
+    Assert.that(ReadAsciiFile(m.folder + "/" + first.filename)).isEqualTo("{""id"":1}")
+    Assert.that(ReadAsciiFile(m.folder + "/" + second.filename)).isEqualTo("{""id"":2}")
+    return m.network@.assertFunctionCalled("postFromFile", {}, 0)
+end function
+
+function ImmutableUploadsTest__Accepted() as string
+    m.network@.stubCall("postPayload", {}, 202)
+    record = datadogroku_writeImmutableRecord(m.folder, m.scope, "{""id"":1}")
+    other = datadogroku_writeImmutableRecord(m.folder, datadogroku_immutableRecordScope("other", "url", "token", "app"), "other-scope")
+    damaged = datadogroku_writeImmutableRecord(m.folder, m.scope, "damaged-record")
+    WriteAsciiFile(m.folder + "/" + damaged.filename, "partial")
+    m.uploader.control = "RUN"
+    m.waitForCalls(1)
+    timer = CreateObject("roTimespan")
+    fs = CreateObject("roFileSystem")
+    while (fs.Exists(m.folder + "/" + record.filename) and timer.TotalMilliseconds() < 5000)
+        sleep(10)
+    end while
+    Assert.that(m.folder + "/" + record.filename).doesNotExist()
+    Assert.that(ReadAsciiFile(m.folder + "/" + other.filename)).isEqualTo("other-scope")
+    Assert.that(ReadAsciiFile(m.folder + "/" + damaged.filename)).isEqualTo("partial")
+    return ""
+end function
+
+function ImmutableUploadsTest__Oversized() as string
+    m.network@.stubCall("postPayload", {}, 503)
+    message = "a"
+    while (message.Len() < 17000)
+        message += message
+    end while
+    payload = FormatJson({ id: 1, message: message.Left(17000) })
+    datadogroku_writeImmutableRecord(m.folder, m.scope, payload)
+    m.uploader.control = "RUN"
+    calls = m.waitForCalls(1)
+    Assert.that(calls[0].payload).isEqualTo("[" + payload + "]")
+    return ""
+end function
+
+function ImmutableUploadsTest__CountLimit() as string
+    m.network@.stubCall("postPayload", {}, 503)
+    for i = 0 to 64
+        result = datadogroku_writeImmutableRecord(m.folder, m.scope, FormatJson({ id: i }))
+        Assert.that(result.status).isEqualTo("verified")
+    end for
+    m.uploader.control = "RUN"
+    calls = m.waitForCalls(2)
+    first = ParseJson(calls[0].payload)
+    second = ParseJson(calls[1].payload)
+    Assert.that(first).hasSize(64)
+    Assert.that(second).hasSize(1)
+    ids = {}
+    for each event in first
+        ids[event.id.toStr()] = true
+    end for
+    ids[second[0].id.toStr()] = true
+    Assert.that(ids).hasSize(65)
+    Assert.that(ListDir(m.folder)).hasSize(65)
+    return ""
+end function
+
+function ImmutableUploadsTest__ByteLimit() as string
+    m.network@.stubCall("postPayload", {}, 503)
+    message = "a"
+    while (message.Len() < 9000)
+        message += message
+    end while
+    for i = 1 to 2
+        result = datadogroku_writeImmutableRecord(m.folder, m.scope, FormatJson({ id: i, message: message.Left(9000) }))
+        Assert.that(result.status).isEqualTo("verified")
+    end for
+    m.uploader.control = "RUN"
+    calls = m.waitForCalls(2)
+    first = ParseJson(calls[0].payload)
+    second = ParseJson(calls[1].payload)
+    Assert.that(first).hasSize(1)
+    Assert.that(second).hasSize(1)
+    Assert.that(first[0].id + second[0].id).isEqualTo(3)
+    Assert.that(first[0].message).isEqualTo(message.Left(9000))
+    Assert.that(second[0].message).isEqualTo(message.Left(9000))
+    Assert.that(ListDir(m.folder)).hasSize(2)
+    return ""
+end function

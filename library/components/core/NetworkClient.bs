@@ -37,6 +37,11 @@ function postFromFile(url as string, filePath as string, headers as object, payl
         return -26 ' Never turn an empty batch into a prefix/postfix-only request.
     end if
     payload = payloadPrefix + payloadBytes.ToAsciiString() + payloadPostfix
+    return postPayload(url, payload, headers)
+end function
+
+' POST a previously validated immutable snapshot without another filesystem read.
+function postPayload(url as string, payload as string, headers as object) as integer
 
     m.urlTransfer.SetUrl(url)
     m.urlTransfer.SetRequest("POST")
