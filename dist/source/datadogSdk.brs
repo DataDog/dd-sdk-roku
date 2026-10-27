@@ -205,25 +205,14 @@ sub initialize(configuration as object, global as object)
 end sub
 
 ' ----------------------------------------------------------------
-' Publishes `value` into `global.<fieldName>` only if the slot is empty, using `setField` when
-' the field already exists (`addFields` won't overwrite). Returns the current occupant, so the
-' caller can check via `isSameNode` whether its own value won the slot.
-' @param global (object) the global node
-' @param fieldName (string) the name of the singleton field
-' @param value (dynamic) the candidate value to publish
-' @return (dynamic) the value currently held in the slot
+' Publishes a candidate only when the global slot is empty. The entire decision
+' runs in one render-thread call, including for fields already declared as invalid.
+' The helper is never started: extending Task gives it render-thread ownership.
+' @return (dynamic) the published value, used by the caller to decide who starts
 ' ----------------------------------------------------------------
 function publishGlobalSingleton(global as object, fieldName as string, value as dynamic) as dynamic
-    if (global.getField(fieldName) = invalid)
-        if (global.hasField(fieldName))
-            global.setField(fieldName, value)
-        else
-            fields = {}
-            fields[fieldName] = value
-            global.addFields(fields)
-        end if
-    end if
-    return global.getField(fieldName)
+    publisher = CreateObject("roSGNode", "GlobalPublisherTask")
+    return publisher.callfunc("publish", global, fieldName, value)
 end function
 ' ----------------------------------------------------------------
 ' The available tracing header types that can be injected into http requests.

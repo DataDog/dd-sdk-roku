@@ -1,0 +1,19 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' Keep this function short: callFunc executes on the render thread. A single call
+' serializes the decision across all publishers without a shared-helper race.
+' No file access, network access, waits, or Task activation belongs here.
+function publish(global as object, fieldName as string, value as dynamic) as dynamic
+    if (global.getField(fieldName) = invalid)
+        if (global.hasField(fieldName))
+            global.setField(fieldName, value)
+        else
+            fields = {}
+            fields[fieldName] = value
+            global.addFields(fields)
+        end if
+    end if
+    return global.getField(fieldName)
+end function
