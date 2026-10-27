@@ -2,366 +2,116 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 
-'----------------------------------------------------------------
-' Main setup function.
-' @return (object) a configured TestSuite object.
-'----------------------------------------------------------------
 function TestSuite__WriterTask() as object
     this = BaseTestSuite()
     this.Name = "WriterTask"
-
-    this.addTest("WhenFirstWriteEvent_ThenCreateNewFile", WriterTaskTest__WhenFirstWriteEvent_ThenCreateNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenEvent_ThenAppendEmptyFile", WriterTaskTest__WhenEvent_ThenAppendEmptyFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenEvent_ThenAppendNonEmptyFile", WriterTaskTest__WhenEvent_ThenAppendNonEmptyFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenMultipleEvents_ThenAppendFile", WriterTaskTest__WhenMultipleEvents_ThenAppendFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-
-    this.addTest("WhenFileTooLarge_ThenWriteInNewFile", WriterTaskTest__WhenFileTooLarge_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenFileTooOld_ThenWriteInNewFile", WriterTaskTest__WhenFileTooOld_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenFolderExists_ThenWriteInNewFile", WriterTaskTest__WhenFolderExists_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenIgnoredFileExists_ThenWriteInNewFile", WriterTaskTest__WhenIgnoredFileExists_ThenWriteInNewFile, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-
-    this.addTest("WhenEmptyEvent_ThenDoNothing", WriterTaskTest__WhenEmptyEvent_ThenDoNothing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-    this.addTest("WhenEmptyEventWithPreviousFile_ThenDoNothing", WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-
-    this.addTest("WhenUnknownFilename_ThenAppendOnlyKnownBatch", WriterTaskTest__UnknownFilename, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
-
+    this.addTest("WhenRepeatedEvents_ThenWriteDistinctVerifiedRecords", WriterTaskTest__Repeated, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+    this.addTest("WhenExistingFiles_ThenPreserveTheirBytes", WriterTaskTest__Existing, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+    this.addTest("WhenUnicodeAndOversized_ThenKeepExactPayload", WriterTaskTest__Unicode, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+    this.addTest("WhenEmptyEvent_ThenSkipIt", WriterTaskTest__Empty, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+    this.addTest("WhenRestarted_ThenPreserveEarlierRecords", WriterTaskTest__Restart, WriterTaskTest__SetUp, WriterTaskTest__TearDown)
+    this.waitForRecords = WriterTaskTest__WaitForRecords
     return this
 end function
 
 sub WriterTaskTest__SetUp()
-    ' Mocks
-
-    ' Fake data
-    fakeTrackType = IG_GetString(10)
-    m.testSuite.fakeSeparator = IG_GetString(2)
-
-    m.testSuite.folderPath = datadogroku_trackFolderPath(fakeTrackType)
-    datadogroku_mkDirs(m.testSuite.folderPath)
-
-    ' Tested Node
-    m.testSuite.testedTask = CreateObject("roSGNode", "datadogroku_WriterTask")
-    m.testSuite.testedTask.trackType = fakeTrackType
-    m.testSuite.testedTask.payloadSeparator = m.testSuite.fakeSeparator
-
+    m.testSuite.trackType = "writer_" + CreateObject("roDeviceInfo").GetRandomUUID()
+    m.testSuite.folderPath = datadogroku_trackFolderPath(m.testSuite.trackType)
+    m.testSuite.scope = ImmutableRecordsTest__Scope()
+    m.testSuite.testedTask = WriterTaskTest__NewWriter(m.testSuite.trackType, m.testSuite.scope)
 end sub
+
+function WriterTaskTest__NewWriter(trackType as string, scope as string) as object
+    writer = CreateObject("roSGNode", "datadogroku_WriterTask")
+    writer.setFields({ trackType: trackType, storageScope: scope })
+    return writer
+end function
 
 sub WriterTaskTest__TearDown()
     m.testSuite.testedTask.control = "STOP"
-    m.testSuite.Delete("testedTask")
-    createObject("roFileSystem").Delete(m.testSuite.folderPath)
+    CreateObject("roFileSystem").Delete(m.testSuite.folderPath)
 end sub
 
-'----------------------------------------------------------------
-' Given: a writer node, no existing file
-'  When: sending an event (as string)
-'  Then: a file is created with the given data
-'----------------------------------------------------------------
-function WriterTaskTest__WhenFirstWriteEvent_ThenCreateNewFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    fakeEvent = IG_GetString(128)
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    datadogroku_ddLogWarning("rolling assertions")
-    filenames = ListDir(m.folderPath)
-    if (filenames.count() = 0)
-        return "Expected writer to create a file in folder " + m.folderPath
-    else if (filenames.count() > 1)
-        return "Expected writer to create only one file in folder " + m.folderPath
-    end if
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(content).isEqualTo(fakeEvent)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing empty file
-'  When: sending an event (as string)
-'  Then: the file is appended with the given data
-'----------------------------------------------------------------
-function WriterTaskTest__WhenEvent_ThenAppendEmptyFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    fakeEvent = IG_GetString(128)
-    timestamp& = datadogroku_getTimestamp()
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    WriteAsciiFile(filePath, "")
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    if (filenames.count() <> 1)
-        return "Expected writer to reuse the existing file"
-    end if
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
-    Assert.that(content).isEqualTo(fakeEvent)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing non-empty file
-'  When: sending an event (as string)
-'  Then: the file is appended with a separator and the given data
-'----------------------------------------------------------------
-function WriterTaskTest__WhenEvent_ThenAppendNonEmptyFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    previousData = IG_GetString(128)
-    fakeEvent = IG_GetString(128)
-    timestamp& = datadogroku_getTimestamp()
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    WriteAsciiFile(filePath, previousData)
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    if (filenames.count() <> 1)
-        return "Expected writer to reuse the existing file"
-    end if
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
-    Assert.that(content).isEqualTo(previousData + m.fakeSeparator + fakeEvent)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing non-empty file
-'  When: sending multiple event (as string)
-'  Then: the file is appended with a separator between each events
-'----------------------------------------------------------------
-function WriterTaskTest__WhenMultipleEvents_ThenAppendFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    fakeEvents = []
-    expectedString = ""
-    for i = 1 to 5 :
-        fakeContent = IG_GetString(128)
-        fakeEvents.Push(fakeContent)
-        if (i > 1)
-            expectedString = expectedString + m.fakeSeparator
-        end if
-        expectedString = expectedString + fakeContent
-    end for
-    timestamp& = datadogroku_getTimestamp()
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    WriteAsciiFile(filePath, "")
-
-    ' When
-    for each fakeEvent in fakeEvents
-        m.testedTask.writeEvent = fakeEvent
-    end for
-    sleep(50)
-
-    ' Then
-    datadogroku_ddLogWarning("rolling assertions")
-    filenames = ListDir(m.folderPath)
-    if (filenames.count() <> 1)
-        return "Expected writer to reuse the existing file"
-    end if
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
-    Assert.that(content).isEqualTo(expectedString)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing non-empty large file
-'  When: sending an event (as string)
-'  Then: the file is appended in a new file
-'----------------------------------------------------------------
-function WriterTaskTest__WhenFileTooLarge_ThenWriteInNewFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    fakePreviousEvent = IG_GetString(128)
-    while (fakePreviousEvent.Len() < 16384)
-        fakePreviousEvent += IG_GetString(128)
-    end while
-    fakeEvent = IG_GetString(128)
-    timestamp& = datadogroku_getTimestamp()
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    WriteAsciiFile(filePath, fakePreviousEvent)
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    Assert.that(filenames).hasSize(2)
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames).contains(timestamp&.toStr())
-    Assert.that(content).isEqualTo(fakeEvent)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing "old"" file
-'  When: sending an event (as string)
-'  Then: the file is appended in a new file
-'----------------------------------------------------------------
-function WriterTaskTest__WhenFileTooOld_ThenWriteInNewFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    previousData = IG_GetString(128)
-    fakeEvent = IG_GetString(128)
-    timestamp& = datadogroku_getTimestamp() - 30000
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    WriteAsciiFile(filePath, previousData)
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    Assert.that(filenames).hasSize(2)
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames).contains(timestamp&.toStr())
-    Assert.that(content).isEqualTo(fakeEvent)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing folder that matches the file names
-'  When: sending an event (as string)
-'  Then: the file is appended in a new file
-'----------------------------------------------------------------
-function WriterTaskTest__WhenFolderExists_ThenWriteInNewFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    fakeEvent = IG_GetString(128)
-    timestamp& = datadogroku_getTimestamp() - 1000
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    datadogroku_mkDirs(filePath)
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    Assert.that(filenames).hasSize(2)
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames).contains(timestamp&.toStr())
-    Assert.that(content).isEqualTo(fakeEvent)
-    return ""
-end function
-'----------------------------------------------------------------
-' Given: a writer node, an existing file that should be ignored
-'  When: sending an event (as string)
-'  Then: the file is appended in a new file
-'----------------------------------------------------------------
-function WriterTaskTest__WhenIgnoredFileExists_ThenWriteInNewFile() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    previousData = IG_GetString(128)
-    fakeEvent = IG_GetString(128)
-    timestamp& = datadogroku_getTimestamp() - 1000
-    ignoredFileName = "_" + timestamp&.toStr()
-    ignoredFilePath = m.folderPath + "/" + ignoredFileName
-    WriteAsciiFile(ignoredFilePath, previousData)
-
-    ' When
-    m.testedTask.writeEvent = fakeEvent
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    writtenFileName = ""
-    Assert.that(filenames).hasSize(2)
-    for each fileName in filenames
-        if (fileName <> ignoredFileName)
-            writtenFileName = fileName
-            exit for
-        end if
-    end for
-    content = ReadAsciiFile(m.folderPath + "/" + writtenFileName)
-    Assert.that(content).isEqualTo(fakeEvent)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, no previous file
-'  When: sending an empty event (as string)
-'  Then: the file is appended in a new file
-'----------------------------------------------------------------
-function WriterTaskTest__WhenEmptyEvent_ThenDoNothing() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-
-    ' When
-    m.testedTask.writeEvent = ""
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    Assert.that(filenames).hasSize(0)
-    return ""
-end function
-
-'----------------------------------------------------------------
-' Given: a writer node, an existing file
-'  When: sending an empty event (as string)
-'  Then: the file is appended in a new file
-'----------------------------------------------------------------
-function WriterTaskTest__WhenEmptyEventWithPreviousFile_ThenDoNothing() as string
-    ' Given
-    filenames = ListDir(m.folderPath)
-    Assume.that(filenames).isEmpty()
-    timestamp& = datadogroku_getTimestamp()
-    filePath = m.folderPath + "/" + timestamp&.toStr()
-    previousData = IG_GetString(128)
-    WriteAsciiFile(filePath, previousData)
-
-    ' When
-    m.testedTask.writeEvent = ""
-    sleep(15)
-
-    ' Then
-    filenames = ListDir(m.folderPath)
-    if (filenames.count() <> 1)
-        return "Expected writer to ignore empty"
-    end if
-    content = ReadAsciiFile(m.folderPath + "/" + filenames[0])
-    Assert.that(filenames[0]).isEqualTo(timestamp&.toStr())
-    Assert.that(content).isEqualTo(previousData)
-    return ""
-end function
-
-function WriterTaskTest__UnknownFilename() as string
-    timestamp& = datadogroku_getTimestamp()
-    validPath = m.folderPath + "/" + timestamp&.toStr()
-    unknownPath = m.folderPath + "/" + timestamp&.toStr() + "x"
-    Assert.that(WriteAsciiFile(validPath, "first-event")).isTrue()
-    Assert.that(WriteAsciiFile(unknownPath, "preserve-unknown")).isTrue()
-    m.testedTask.writeEvent = "second-event"
-    expected = "first-event" + m.fakeSeparator + "second-event"
+function WriterTaskTest__WaitForRecords(count as integer) as object
     timer = CreateObject("roTimespan")
-    while (ReadAsciiFile(validPath) <> expected and timer.TotalMilliseconds() < 5000)
+    records = []
+    while (timer.TotalMilliseconds() < 5000)
+        records = []
+        for each filename in ListDir(m.folderPath)
+            record = datadogroku_readImmutableRecord(m.folderPath, filename, m.scope)
+            if (record <> invalid)
+                records.Push(record)
+            end if
+        end for
+        if (records.Count() >= count)
+            return records
+        end if
         sleep(10)
     end while
-    Assert.that(ReadAsciiFile(validPath)).isEqualTo(expected)
-    Assert.that(ReadAsciiFile(unknownPath)).isEqualTo("preserve-unknown")
-    Assert.that(ListDir(m.folderPath)).hasSize(2)
+    Assert.that(false).isTrue("Timed out waiting for verified writer records")
+    return records
+end function
+
+function WriterTaskTest__Repeated() as string
+    for i = 1 to 3
+        m.testedTask.writeEvent = "same event"
+    end for
+    records = m.waitForRecords(3)
+    Assert.that(records).hasSize(3)
+    for each record in records
+        Assert.that(record.payload).isEqualTo("same event")
+    end for
+    return ""
+end function
+
+function WriterTaskTest__Existing() as string
+    datadogroku_mkDirs(m.folderPath)
+    names = ["0", "9999999999999", "_last_view_test", "unknown", "_dd2_partial"]
+    for each filename in names
+        WriteAsciiFile(m.folderPath + "/" + filename, "preserve " + filename)
+    end for
+    m.testedTask.writeEvent = "new event"
+    records = m.waitForRecords(1)
+    Assert.that(records[0].payload).isEqualTo("new event")
+    for each filename in names
+        Assert.that(ReadAsciiFile(m.folderPath + "/" + filename)).isEqualTo("preserve " + filename)
+    end for
+    Assert.that(ListDir(m.folderPath)).hasSize(6)
+    return ""
+end function
+
+function WriterTaskTest__Unicode() as string
+    payload = "café " + Chr(128512)
+    while (payload.Len() < 20000)
+        payload += payload
+    end while
+    m.testedTask.writeEvent = payload
+    records = m.waitForRecords(1)
+    Assert.that(records[0].payload).isEqualTo(payload)
+    bytes = CreateObject("roByteArray")
+    bytes.FromAsciiString(payload)
+    Assert.that(records[0].byteCount).isEqualTo(bytes.Count())
+    return ""
+end function
+
+function WriterTaskTest__Empty() as string
+    ' A later nonempty event acts as the queue barrier; no timing-only assertion.
+    m.testedTask.writeEvent = ""
+    m.testedTask.writeEvent = "after empty"
+    records = m.waitForRecords(1)
+    Assert.that(records).hasSize(1)
+    Assert.that(records[0].payload).isEqualTo("after empty")
+    return ""
+end function
+
+function WriterTaskTest__Restart() as string
+    m.testedTask.writeEvent = "before restart"
+    first = m.waitForRecords(1)[0]
+    m.testedTask.control = "STOP"
+    m.testedTask = WriterTaskTest__NewWriter(m.trackType, m.scope)
+    m.testedTask.writeEvent = "after restart"
+    records = m.waitForRecords(2)
+    Assert.that(records).hasSize(2)
+    Assert.that(ReadAsciiFile(m.folderPath + "/" + first.filename)).isEqualTo("before restart")
     return ""
 end function

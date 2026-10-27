@@ -68,12 +68,15 @@ function TestSuite__LogsAgent() as object
     this.addTest("WhenLogErrorWithTimestamp_ThenWriteLogWithGivenTimestamp", LogsAgentTest__WhenLogErrorWithTimestamp_ThenWriteLogWithGivenTimestamp, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
     this.addTest("WhenLogOkWithNonNumericTimestamp_ThenWriteLogWithCurrentTimestamp", LogsAgentTest__WhenLogOkWithNonNumericTimestamp_ThenWriteLogWithCurrentTimestamp, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
 
+    this.addTest("WhenConfigured_ThenShareStorageScope", LogsAgentTest__StorageScope, LogsAgentTest__SetUp, LogsAgentTest__TearDown)
+
     return this
 end function
 
 sub LogsAgentTest__SetUp()
     ' Mocks
     m.testSuite.mockUploader = CreateObject("roSGNode", "MockUploaderTask")
+    m.testSuite.mockUploader.clientToken = "test-uploader-token"
     m.testSuite.mockWriter = CreateObject("roSGNode", "MockWriterTask")
 
     ' Fake data
@@ -2108,5 +2111,22 @@ function LogsAgentTest__WhenLogEmergencyWithRumContext_ThenWriteLog() as string
     Assert.that(logEvent.session_id).isEqualTo(m.fakeRumContext.sessionId)
     Assert.that(logEvent.view.id).isEqualTo(m.fakeRumContext.viewId)
     Assert.that(logEvent.user_action.id).isEqualTo(m.fakeRumContext.actionId)
+    return ""
+end function
+
+function LogsAgentTest__StorageScope() as string
+    m.testedNode@.logInfo("configure storage", {})
+    timer = CreateObject("roTimespan")
+    while (m.mockWriter.storageScope = "" and timer.TotalMilliseconds() < 5000)
+        sleep(10)
+    end while
+    expected = datadogroku_immutableRecordScope(CreateObject("roAppInfo").GetID(), datadogroku_getIntakeUrl(m.fakeSite, "logs"), m.mockUploader.clientToken, "")
+    Assert.that(m.mockWriter.storageScope).isEqualTo(expected)
+    tracks = m.mockUploader.tracks
+    Assert.that(tracks).hasSize(1)
+    for each key in tracks
+        Assert.that(tracks[key].storageScope).isEqualTo(expected)
+        Assert.that(tracks[key].payloadSeparator).isEqualTo(",")
+    end for
     return ""
 end function
