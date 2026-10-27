@@ -23,10 +23,19 @@ end sub
 ' @param payloadPrefix (string) a prefix to append before the payload
 ' @param payloadPostfix (string) a postfix to append after the payload
 ' @return (integer) the HTTP response code (any response body is
-'     discarded)
+'     discarded), or -26 for an unreadable/empty local batch.
 ' ----------------------------------------------------------------
 function postFromFile(url as string, filePath as string, headers as object, payloadPrefix as string, payloadPostfix as string) as integer
-    payload = payloadPrefix + ReadAsciiFile(filePath) + payloadPostfix
+    ' cachefs can evict a batch after the uploader lists it. Check the read
+    ' itself; an existence check followed by ReadAsciiFile would still race.
+    payloadBytes = CreateObject("roByteArray")
+    if (not payloadBytes.ReadFile(filePath))
+        return -26 ' Read error: the uploader must retain the batch for retry.
+    end if
+    if (payloadBytes.Count() = 0)
+        return -26 ' Never turn an empty batch into a prefix/postfix-only request.
+    end if
+    payload = payloadPrefix + payloadBytes.ToAsciiString() + payloadPostfix
     m.urlTransfer.SetUrl(url)
     m.urlTransfer.SetRequest("POST")
     if (not m.urlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt")) ' required for SSL

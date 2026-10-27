@@ -237,7 +237,7 @@ end function
 ' Cover DNS, connection, timeout, certificate, and absent response codes.
 '----------------------------------------------------------------
 function MultiTrackUploaderTaskTest__WhenTransportFails_ThenPreserveBatch() as string
-    for each responseCode in [-6, -7, -28, -60, 0]
+    for each responseCode in [-6, -7, -26, -28, -60, 0]
         result = m.testUploader(responseCode, true)
         if (result <> "")
             return result
