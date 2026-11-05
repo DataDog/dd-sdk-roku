@@ -10,21 +10,513 @@
 ' * Note: this class can only wrap synchronous network calls.
 ' * Async calls will require manual instrumentation for now
 ' *****************************************************************
+sub __DdUrlTransfer_method_new(global as object)
+    m.roUrlTransfer = CreateObject("roUrlTransfer")
+    m.global = global
+    m.datadogRumAgent = global.datadogRumAgent
+    m.traceSampleRate = global.datadogTraceAgent.traceSampleRate
+    m.tracingHeaderTypes = global.datadogTraceAgent.tracingHeaderTypes
+    m.traceContextInjection = global.datadogTraceAgent.traceContextInjection
+    m.headers = {}
+end sub
+sub __DdUrlTransfer_method_SetTracingHeaderTypes(tracingHeaderTypes = [] as object)
+    m.tracingHeaderTypes = tracingHeaderTypes
+end sub
+sub __DdUrlTransfer_method_SetTraceSampleRate(traceSampleRate as double)
+    m.traceSampleRate = traceSampleRate
+end sub
+function __DdUrlTransfer_method_GetIdentity() as integer
+    return m.roUrlTransfer.GetIdentity()
+end function
+sub __DdUrlTransfer_method_SetUrl(url as string)
+    m.roUrlTransfer.SetUrl(url)
+end sub
+function __DdUrlTransfer_method_GetUrl() as string
+    return m.roUrlTransfer.GetUrl()
+end function
+sub __DdUrlTransfer_method_SetRequest(req as string)
+    m.roUrlTransfer.SetRequest(req)
+end sub
+function __DdUrlTransfer_method_GetRequest() as string
+    return m.roUrlTransfer.GetRequest()
+end function
+function __DdUrlTransfer_method_GetToString() as string
+    timer = CreateObject("roTimespan")
+    port = CreateObject("roMessagePort")
+    m.roUrlTransfer.SetMessagePort(port)
+    url = m.roUrlTransfer.GetUrl()
+    m._traceRequest()
+    startTime& = getTimestamp()
+    timer.Mark()
+    result = m.roUrlTransfer.AsyncGetToString()
+    if (not result)
+        return ""
+    end if
+    while (true)
+        msg = wait(5000, port)
+        if (msg <> invalid)
+            msgType = type(msg)
+            if (msgType = "roUrlEvent")
+                if (msg.GetInt() = 1) ' transfer complete
+                    durationMs& = timer.TotalMilliseconds()
+                    transferTime# = millisToSec(durationMs&)
+                    response = msg.GetString()
+                    bytesDownloaded = Len(response)
+                    httpCode = msg.GetResponseCode()
+                    status = "ok"
+                    if (httpCode < 0)
+                        status = msg.GetFailureReason()
+                    end if
+                    resource = {
+                        url: url
+                        method: "GET"
+                        transferTime: transferTime#
+                        startTime: startTime&
+                        httpCode: httpCode
+                        status: status
+                        bytesDownloaded: bytesDownloaded
+                        traceId: m.traceId
+                        spanId: m.spanId
+                    }
+                    m.datadogRumAgent.callfunc("addResource", resource)
+                    return response
+                else
+                    ddLogWarning("Got roUrlEvent " + FormatJson(msg))
+                end if
+            else
+                ddLogWarning("Got unexpected msg " + FormatJson(msg))
+            end if
+        end if
+    end while
+    return ""
+end function
+function __DdUrlTransfer_method_GetToFile(filename as string) as integer
+    timer = CreateObject("roTimespan")
+    port = CreateObject("roMessagePort")
+    m.roUrlTransfer.SetMessagePort(port)
+    url = m.roUrlTransfer.GetUrl()
+    m._traceRequest()
+    startTime& = getTimestamp()
+    timer.Mark()
+    result = m.roUrlTransfer.AsyncGetToFile(filename)
+    if (not result)
+        return -1
+    end if
+    while (true)
+        msg = wait(5000, port)
+        if (msg <> invalid)
+            msgType = type(msg)
+            if (msgType = "roUrlEvent")
+                if (msg.GetInt() = 1) ' transfer complete
+                    durationMs& = timer.TotalMilliseconds()
+                    transferTime# = millisToSec(durationMs&)
+                    httpCode = msg.GetResponseCode()
+                    status = "ok"
+                    bytesDownloaded = CreateObject("roFileSystem").Stat(filename).size
+                    if (httpCode < 0)
+                        status = msg.GetFailureReason()
+                        bytesDownloaded = invalid
+                    end if
+                    resource = {
+                        url: url
+                        method: "GET"
+                        transferTime: transferTime#
+                        startTime: startTime&
+                        httpCode: httpCode
+                        status: status
+                        bytesDownloaded: bytesDownloaded
+                        traceId: m.traceId
+                        spanId: m.spanId
+                    }
+                    m.datadogRumAgent.callfunc("addResource", resource)
+                    return httpCode
+                else
+                    ddLogWarning("Got roUrlEvent " + FormatJson(msg))
+                end if
+            else
+                ddLogWarning("Got unexpected msg " + FormatJson(msg))
+            end if
+        end if
+    end while
+    return -1
+end function
+function __DdUrlTransfer_method_PostFromString(request as string) as integer
+    timer = CreateObject("roTimespan")
+    port = CreateObject("roMessagePort")
+    m.roUrlTransfer.SetMessagePort(port)
+    url = m.roUrlTransfer.GetUrl()
+    m._traceRequest()
+    startTime& = getTimestamp()
+    timer.Mark()
+    result = m.roUrlTransfer.AsyncPostFromString(request)
+    if (not result)
+        return -1
+    end if
+    while (true)
+        msg = wait(5000, port)
+        if (msg <> invalid)
+            msgType = type(msg)
+            if (msgType = "roUrlEvent")
+                if (msg.GetInt() = 1) ' transfer complete
+                    durationMs& = timer.TotalMilliseconds()
+                    transferTime# = millisToSec(durationMs&)
+                    httpCode = msg.GetResponseCode()
+                    status = "ok"
+                    if (httpCode < 0)
+                        status = msg.GetFailureReason()
+                    end if
+                    resource = {
+                        url: url
+                        method: "POST"
+                        transferTime: transferTime#
+                        startTime: startTime&
+                        httpCode: httpCode
+                        status: status
+                        traceId: m.traceId
+                        spanId: m.spanId
+                    }
+                    m.datadogRumAgent.callfunc("addResource", resource)
+                    return httpCode
+                else
+                    ddLogWarning("Got roUrlEvent " + FormatJson(msg))
+                end if
+            else
+                ddLogWarning("Got unexpected msg " + FormatJson(msg))
+            end if
+        end if
+    end while
+    return -1
+end function
+function __DdUrlTransfer_method_PostFromFile(filename as string) as integer
+    timer = CreateObject("roTimespan")
+    port = CreateObject("roMessagePort")
+    m.roUrlTransfer.SetMessagePort(port)
+    url = m.roUrlTransfer.GetUrl()
+    m._traceRequest()
+    startTime& = getTimestamp()
+    timer.Mark()
+    result = m.roUrlTransfer.AsyncPostFromFile(filename)
+    if (not result)
+        return -1
+    end if
+    while (true)
+        msg = wait(5000, port)
+        if (msg <> invalid)
+            msgType = type(msg)
+            if (msgType = "roUrlEvent")
+                if (msg.GetInt() = 1) ' transfer complete
+                    durationMs& = timer.TotalMilliseconds()
+                    transferTime# = millisToSec(durationMs&)
+                    httpCode = msg.GetResponseCode()
+                    status = "ok"
+                    if (httpCode < 0)
+                        status = msg.GetFailureReason()
+                    end if
+                    resource = {
+                        url: url
+                        method: "POST"
+                        transferTime: transferTime#
+                        startTime: startTime&
+                        httpCode: httpCode
+                        status: status
+                        traceId: m.traceId
+                        spanId: m.spanId
+                    }
+                    m.datadogRumAgent.callfunc("addResource", resource)
+                    return httpCode
+                else
+                    ddLogWarning("Got roUrlEvent " + FormatJson(msg))
+                end if
+            else
+                ddLogWarning("Got unexpected msg " + FormatJson(msg))
+            end if
+        end if
+    end while
+    return -1
+end function
+function __DdUrlTransfer_method_RetainBodyOnError(retain as boolean) as boolean
+    return m.roUrlTransfer.RetainBodyOnError(retain)
+end function
+function __DdUrlTransfer_method_SetUserAndPassword(user as string, password as string) as boolean
+    return m.roUrlTransfer.SetUserAndPassword(user, password)
+end function
+function __DdUrlTransfer_method_SetMinimumTransferRate(bytes_per_second as integer, period_in_seconds as integer) as boolean
+    return m.roUrlTransfer.SetMinimumTransferRate(bytes_per_second, period_in_seconds)
+end function
+function __DdUrlTransfer_method_GetFailureReason() as string
+    return m.roUrlTransfer.GetFailureReason()
+end function
+function __DdUrlTransfer_method_EnableEncodings(enable as boolean) as boolean
+    return m.roUrlTransfer.EnableEncodings(enable)
+end function
+function __DdUrlTransfer_method_Escape(text as string) as string
+    return m.roUrlTransfer.Escape(text)
+end function
+function __DdUrlTransfer_method_Unescape(text as string) as string
+    return m.roUrlTransfer.Unescape(text)
+end function
+function __DdUrlTransfer_method_EnableResume(enable as boolean) as boolean
+    return m.roUrlTransfer.EnableResume(enable)
+end function
+function __DdUrlTransfer_method_EnablePeerVerification(enable as boolean) as boolean
+    return m.roUrlTransfer.EnablePeerVerification(enable)
+end function
+function __DdUrlTransfer_method_EnableHostVerification(enable as boolean) as boolean
+    return m.roUrlTransfer.EnableHostVerification(enable)
+end function
+sub __DdUrlTransfer_method_SetHttpVersion(version as string)
+    m.roUrlTransfer.SetHttpVersion(version)
+end sub
+function __DdUrlTransfer_method_AddHeader(name as string, value as string) as boolean
+    headerValues = (function(m, name)
+            __bsConsequent = m.headers[name]
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return []
+            end if
+        end function)(m, name)
+    headerValues.Push(value)
+    m.headers[name] = headerValues
+    return m.roUrlTransfer.AddHeader(name, value)
+end function
+function __DdUrlTransfer_method_GetHeader(name as string) as dynamic
+    return (function(m, name)
+            __bsConsequent = m.headers[name]
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return []
+            end if
+        end function)(m, name)
+end function
+function __DdUrlTransfer_method_SetHeaders(nameValueMap as object) as boolean
+    m.headers = {}
+    for each key in nameValueMap
+        m.headers[key] = nameValueMap[key]
+    end for
+    return m.roUrlTransfer.SetHeaders(nameValueMap)
+end function
+function __DdUrlTransfer_method_InitClientCertificates() as boolean
+    return m.roUrlTransfer.InitClientCertificates()
+end function
+function __DdUrlTransfer_method_SetCertificatesFile(path as string) as boolean
+    return m.roUrlTransfer.SetCertificatesFile(path)
+end function
+sub __DdUrlTransfer_method_SetCertificatesDepth(depth as integer)
+    m.roUrlTransfer.SetCertificatesDepth(depth)
+end sub
+sub __DdUrlTransfer_method_EnableCookies()
+    m.roUrlTransfer.EnableCookies()
+end sub
+function __DdUrlTransfer_method_GetCookies(domain as string, path as string) as object
+    return m.roUrlTransfer.GetCookies(domain, path)
+end function
+function __DdUrlTransfer_method_AddCookies(cookies as object) as boolean
+    return m.roUrlTransfer.AddCookies(cookies)
+end function
+sub __DdUrlTransfer_method_ClearCookies()
+    m.roUrlTransfer.ClearCookies()
+end sub
+sub __DdUrlTransfer_method__traceRequest()
+    sessionId = m.global.datadogRumContext?.sessionId
+    isSampledIn = m._isSampledIn(sessionId)
+    headerTypes = getTracedHeaderTypes(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
+    if (headerTypes.count() > 0)
+        ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + FormatJson(headerTypes))
+        if (isSampledIn)
+            ddLogInfo("Request trace is sampled in")
+            m._addSampledInHeaders(headerTypes, sessionId)
+        else if (m.traceContextInjection = "all")
+            ddLogInfo("Request trace is sampled out")
+            m._addSampledOutHeaders(headerTypes)
+        else
+            ddLogInfo("Request trace is sampled out, but no header is added.")
+        end if
+    else
+        ddLogInfo("Not tracing request to " + m.roUrlTransfer.GetUrl() + ", no tracing header for that host")
+        m.traceId = invalid
+        m.spanId = invalid
+        m._deleteTracingHeaders()
+    end if
+    m._applyHeaders()
+end sub
+function __DdUrlTransfer_method__isSampledIn(sessionId as dynamic) as boolean
+    if (m.traceSampleRate >= 100)
+        return true
+    end if
+    if (m.traceSampleRate <= 0)
+        return false
+    end if
+    if (sessionId <> invalid and sessionId.len() > 0)
+        seed& = m._parseUuidLastSegment(sessionId)
+        return m._isDeterministicSampledIn(seed&, m.traceSampleRate)
+    end if
+    ' Fallback: no session — use random (same as legacy behavior)
+    return Rnd(100) <= m.traceSampleRate
+end function
+function __DdUrlTransfer_method__parseUuidLastSegment(uuid as string) as longinteger
+    parts = uuid.split("-")
+    if (parts.count() < 5)
+        return 0&
+    end if
+    seg = parts[4] ' 12 hex chars
+    highBits& = val(Left(seg, 6), 16) ' upper 24 bits
+    lowBits& = val(Right(seg, 6), 16) ' lower 24 bits
+    return highBits& * 16777216& + lowBits& ' 16^6 = 0x1000000
+end function
+function __DdUrlTransfer_method__isDeterministicSampledIn(seed& as longinteger, sampleRate as double) as boolean
+    ' Knuth multiplicative hash — matches Android DeterministicSampler / iOS DeterministicSampler.
+    ' KNUTH = 1111111111111111111 split into 16-bit chunks to avoid BrightScript's
+    ' LongInteger * LongInteger overflow: large products use double arithmetic
+    ' instead of wrapping at 64 bits, producing wrong results.
+    ' Each partial product s_i * k_j <= 65535^2 < 2^32 — no overflow.
+    k0& = 29127& ' bits  0-15 of 1111111111111111111
+    k1& = 11204& ' bits 16-31
+    k2& = 30123& ' bits 32-47
+    k3& = 3947& ' bits 48-63
+    s0& = seed& AND 65535&
+    s1& = (seed& >> 16&) AND 65535&
+    s2& = (seed& >> 32&) AND 65535&
+    s3& = (seed& >> 48&) AND 65535&
+    c0& = s0& * k0&
+    c1& = s0& * k1& + s1& * k0&
+    c2& = s0& * k2& + s1& * k1& + s2& * k0&
+    c3& = s0& * k3& + s1& * k2& + s2& * k1& + s3& * k0&
+    carry& = c0& >> 16&
+    r0& = c0& AND 65535&
+    sum1& = c1& + carry&
+    r1& = sum1& AND 65535&
+    carry& = sum1& >> 16&
+    sum2& = c2& + carry&
+    r2& = sum2& AND 65535&
+    carry& = sum2& >> 16&
+    r3& = (c3& + carry&) AND 65535&
+    ' Build the unsigned 64-bit hash as a double directly from the 16-bit digits.
+    ' All inputs are non-negative, so no sign correction is needed.
+    hashDouble# = CDbl(r3&) * 281474976710656.0 + CDbl(r2&) * 4294967296.0 + CDbl(r1&) * 65536.0 + CDbl(r0&)
+    MAX_UINT64# = 1.8446744073709552e+19 ' 2^64
+    threshold# = MAX_UINT64# * sampleRate / 100.0#
+    return hashDouble# < threshold#
+end function
+sub __DdUrlTransfer_method__addSampledInHeaders(headerTypes as object, sessionId as dynamic)
+    m._deleteTracingHeaders()
+    if (sessionId <> invalid and sessionId.len() > 0)
+        m.AddHeader("baggage", "session.id=" + sessionId)
+    end if
+    ' A single trace context is shared by every propagation format.
+    traceContext = generateTraceContext()
+    m.traceId = invalid
+    m.spanId = invalid
+    for each headerType in headerTypes
+        m._addSampledInHeadersForType(headerType, traceContext)
+    end for
+end sub
+sub __DdUrlTransfer_method__addSampledInHeadersForType(headerType as object, traceContext as object)
+    if (headerType = "datadog")
+        m.traceId = traceContext.traceIdFullHex
+        m.spanId = traceContext.spanIdDec
+        ' Datadog uses a complex system for compatibility purposes
+        m.AddHeader("x-datadog-trace-id", traceContext.traceIdLowDec)
+        m.AddHeader("x-datadog-tags", "_dd.p.tid=" + traceContext.traceIdHighHex)
+        m.AddHeader("x-datadog-parent-id", traceContext.spanIdDec)
+        m.AddHeader("x-datadog-sampling-priority", "1")
+        m.AddHeader("x-datadog-origin", "rum")
+    else if (headerType = "b3")
+        m.traceId = traceContext.traceIdFullHex
+        m.spanId = traceContext.spanIdDec
+        hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
+        hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
+        b3 = hexTraceId + "-" + hexSpanId + "-1"
+        m.AddHeader("b3", b3)
+    else if (headerType = "b3multi")
+        m.traceId = traceContext.traceIdFullHex
+        m.spanId = traceContext.spanIdDec
+        m.AddHeader("X-B3-TraceId", padLeft(traceContext.traceIdFullHex, 32, "0"))
+        m.AddHeader("X-B3-SpanId", padLeft(traceContext.spanIdHex, 16, "0"))
+        m.AddHeader("X-B3-Sampled", "1")
+    else if (headerType = "tracecontext")
+        m.traceId = traceContext.traceIdFullHex
+        m.spanId = traceContext.spanIdDec
+        hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
+        hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
+        traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
+        m.AddHeader("traceparent", traceparent)
+        usrId = m.global.datadogUserInfo.id
+        if (usrId <> invalid)
+            usrIdByteArray = CreateObject("roByteArray")
+            usrIdByteArray.FromAsciiString(usrId)
+            usrIdBase64 = usrIdByteArray.ToBase64String().Replace("=", "~")
+            tracestate = "dd=s:1;o:rum;p:" + hexSpanId + ";t.usr.id:" + usrIdBase64
+        else
+            tracestate = "dd=s:1;o:rum;p:" + hexSpanId
+        end if
+        m.AddHeader("tracestate", tracestate)
+    else
+        ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
+    end if
+end sub
+sub __DdUrlTransfer_method__addSampledOutHeaders(headerTypes as object)
+    m._deleteTracingHeaders()
+    m.traceId = invalid
+    m.spanId = invalid
+    for each headerType in headerTypes
+        if (headerType = "datadog")
+            m.AddHeader("x-datadog-sampling-priority", "0")
+        else if (headerType = "b3")
+            m.AddHeader("b3", "0")
+        else if (headerType = "b3multi")
+            m.AddHeader("X-B3-Sampled", "0")
+        else if (headerType = "tracecontext")
+            m.AddHeader("traceparent", "00-" + padLeft("", 32, "0") + "-" + padLeft("", 16, "0") + "-00")
+        else
+            ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
+        end if
+    end for
+end sub
+sub __DdUrlTransfer_method__deleteTracingHeaders()
+    baggageHeader = m.GetHeader("baggage")
+    m.headers.Delete("baggage")
+    for each item in baggageHeader
+        if (Left(item, 11) <> "session.id=")
+            m.AddHeader("baggage", item)
+        end if
+    end for
+    m.headers.Delete("x-datadog-trace-id")
+    m.headers.Delete("x-datadog-parent-id")
+    m.headers.Delete("x-datadog-sampling-priority")
+    m.headers.Delete("x-datadog-origin")
+    m.headers.Delete("x-datadog-tags")
+    m.headers.Delete("b3")
+    m.headers.Delete("X-B3-TraceId")
+    m.headers.Delete("X-B3-SpanId")
+    m.headers.Delete("X-B3-Sampled")
+    m.headers.Delete("traceparent")
+    m.headers.Delete("tracestate")
+end sub
+sub __DdUrlTransfer_method__applyHeaders()
+    currentHeaders = m.headers
+    headerMap = {}
+    for each key in currentHeaders
+        value = ""
+        for each headerValue in currentHeaders[key]
+            if (value.Len() > 0)
+                value = value + "," + headerValue
+            else
+                value = headerValue
+            end if
+        end for
+        headerMap[key] = value
+    end for
+    m.roUrlTransfer.SetHeaders(headerMap)
+end sub
 function __DdUrlTransfer_builder()
     instance = {}
     ' ----------------------------------------------------------------
     ' Constructor
     ' @param global (object) the global node available from any node in the scenegraph
     ' ----------------------------------------------------------------
-    instance.new = sub(global as object)
-        m.roUrlTransfer = CreateObject("roUrlTransfer")
-        m.global = global
-        m.datadogRumAgent = global.datadogRumAgent
-        m.traceSampleRate = global.datadogTraceAgent.traceSampleRate
-        m.tracingHeaderTypes = global.datadogTraceAgent.tracingHeaderTypes
-        m.traceContextInjection = global.datadogTraceAgent.traceContextInjection
-        m.headers = {}
-    end sub
+    instance.new = __DdUrlTransfer_method_new
     ' ----------------------------------------------------------------
     ' Sets the traced hosts.
     '
@@ -38,9 +530,7 @@ function __DdUrlTransfer_builder()
     '       - "tracecontext": W3C Trace Context header (cf: https://www.w3.org/TR/trace-context/)
     '       - "datadog": Datadog's `x-datadog-*` headers (cf: https://docs.datadoghq.com/real_user_monitoring/connect_rum_and_traces)
     ' ----------------------------------------------------------------
-    instance.SetTracingHeaderTypes = sub(tracingHeaderTypes = [] as object)
-        m.tracingHeaderTypes = tracingHeaderTypes
-    end sub
+    instance.SetTracingHeaderTypes = __DdUrlTransfer_method_SetTracingHeaderTypes
     ' ----------------------------------------------------------------
     ' Sets the trace sample rate.
     '
@@ -48,9 +538,7 @@ function __DdUrlTransfer_builder()
     ' for the requests (and add trace headers if the host is configured),
     ' between 0 and 100
     ' ----------------------------------------------------------------
-    instance.SetTraceSampleRate = sub(traceSampleRate as double)
-        m.traceSampleRate = traceSampleRate
-    end sub
+    instance.SetTraceSampleRate = __DdUrlTransfer_method_SetTraceSampleRate
     ' *****************************************************************
     ' * ifUrlTransfer: interface that transfers data to or from remote
     ' * servers specified by URLs
@@ -61,41 +549,31 @@ function __DdUrlTransfer_builder()
     '
     ' @return (integer) A unique number for the object
     ' ----------------------------------------------------------------
-    instance.GetIdentity = function() as integer
-        return m.roUrlTransfer.GetIdentity()
-    end function
+    instance.GetIdentity = __DdUrlTransfer_method_GetIdentity
     ' ----------------------------------------------------------------
     ' Sets the URL to use for the transfer request.
     '
     ' @param url (string) The URL to be used for the transfer request
     ' ----------------------------------------------------------------
-    instance.SetUrl = sub(url as string)
-        m.roUrlTransfer.SetUrl(url)
-    end sub
+    instance.SetUrl = __DdUrlTransfer_method_SetUrl
     ' ----------------------------------------------------------------
     ' Returns the current URL.
     '
     ' @return (string) The Url
     ' ----------------------------------------------------------------
-    instance.GetUrl = function() as string
-        return m.roUrlTransfer.GetUrl()
-    end function
+    instance.GetUrl = __DdUrlTransfer_method_GetUrl
     ' ----------------------------------------------------------------
     ' Changes the request method from the normal GET, HEAD or POST to the value passed as a string.
     '
     ' @param req (string) The request method to be used
     ' ----------------------------------------------------------------
-    instance.SetRequest = sub(req as string)
-        m.roUrlTransfer.SetRequest(req)
-    end sub
+    instance.SetRequest = __DdUrlTransfer_method_SetRequest
     ' ----------------------------------------------------------------
     ' Returns the current request method.
     '
     ' @return (string) The request method
     ' ----------------------------------------------------------------
-    instance.GetRequest = function() as string
-        return m.roUrlTransfer.GetRequest()
-    end function
+    instance.GetRequest = __DdUrlTransfer_method_GetRequest
     ' ----------------------------------------------------------------
     ' Connects to the remote service as specified in the URL and returns
     ' the response body as a string. This function waits for the transfer
@@ -105,56 +583,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (string) The response body
     ' ----------------------------------------------------------------
-    instance.GetToString = function() as string
-        timer = CreateObject("roTimespan")
-        port = CreateObject("roMessagePort")
-        m.roUrlTransfer.SetMessagePort(port)
-        url = m.roUrlTransfer.GetUrl()
-        m._traceRequest()
-        startTime& = getTimestamp()
-        timer.Mark()
-        result = m.roUrlTransfer.AsyncGetToString()
-        if (not result)
-            return ""
-        end if
-        while (true)
-            msg = wait(5000, port)
-            if (msg <> invalid)
-                msgType = type(msg)
-                if (msgType = "roUrlEvent")
-                    if (msg.GetInt() = 1) ' transfer complete
-                        durationMs& = timer.TotalMilliseconds()
-                        transferTime# = millisToSec(durationMs&)
-                        response = msg.GetString()
-                        bytesDownloaded = Len(response)
-                        httpCode = msg.GetResponseCode()
-                        status = "ok"
-                        if (httpCode < 0)
-                            status = msg.GetFailureReason()
-                        end if
-                        resource = {
-                            url: url
-                            method: "GET"
-                            transferTime: transferTime#
-                            startTime: startTime&
-                            httpCode: httpCode
-                            status: status
-                            bytesDownloaded: bytesDownloaded
-                            traceId: m.traceId
-                            spanId: m.spanId
-                        }
-                        m.datadogRumAgent.callfunc("addResource", resource)
-                        return response
-                    else
-                        ddLogWarning("Got roUrlEvent " + FormatJson(msg))
-                    end if
-                else
-                    ddLogWarning("Got unexpected msg " + FormatJson(msg))
-                end if
-            end if
-        end while
-        return ""
-    end function
+    instance.GetToString = __DdUrlTransfer_method_GetToString
     ' ----------------------------------------------------------------
     ' Connect to the remote service as specified in the URL and write
     ' the response body to a file on the Roku device's filesystem. This
@@ -168,56 +597,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (string) The HTTP response code
     ' ----------------------------------------------------------------
-    instance.GetToFile = function(filename as string) as integer
-        timer = CreateObject("roTimespan")
-        port = CreateObject("roMessagePort")
-        m.roUrlTransfer.SetMessagePort(port)
-        url = m.roUrlTransfer.GetUrl()
-        m._traceRequest()
-        startTime& = getTimestamp()
-        timer.Mark()
-        result = m.roUrlTransfer.AsyncGetToFile(filename)
-        if (not result)
-            return -1
-        end if
-        while (true)
-            msg = wait(5000, port)
-            if (msg <> invalid)
-                msgType = type(msg)
-                if (msgType = "roUrlEvent")
-                    if (msg.GetInt() = 1) ' transfer complete
-                        durationMs& = timer.TotalMilliseconds()
-                        transferTime# = millisToSec(durationMs&)
-                        httpCode = msg.GetResponseCode()
-                        status = "ok"
-                        bytesDownloaded = CreateObject("roFileSystem").Stat(filename).size
-                        if (httpCode < 0)
-                            status = msg.GetFailureReason()
-                            bytesDownloaded = invalid
-                        end if
-                        resource = {
-                            url: url
-                            method: "GET"
-                            transferTime: transferTime#
-                            startTime: startTime&
-                            httpCode: httpCode
-                            status: status
-                            bytesDownloaded: bytesDownloaded
-                            traceId: m.traceId
-                            spanId: m.spanId
-                        }
-                        m.datadogRumAgent.callfunc("addResource", resource)
-                        return httpCode
-                    else
-                        ddLogWarning("Got roUrlEvent " + FormatJson(msg))
-                    end if
-                else
-                    ddLogWarning("Got unexpected msg " + FormatJson(msg))
-                end if
-            end if
-        end while
-        return -1
-    end function
+    instance.GetToFile = __DdUrlTransfer_method_GetToFile
     ' ----------------------------------------------------------------
     ' Uses the HTTP POST method to send the supplied string to the current
     ' URL. The HTTP response code is returned. Any response body is discarded
@@ -226,53 +606,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (integer) The HTTP response code.
     ' ----------------------------------------------------------------
-    instance.PostFromString = function(request as string) as integer
-        timer = CreateObject("roTimespan")
-        port = CreateObject("roMessagePort")
-        m.roUrlTransfer.SetMessagePort(port)
-        url = m.roUrlTransfer.GetUrl()
-        m._traceRequest()
-        startTime& = getTimestamp()
-        timer.Mark()
-        result = m.roUrlTransfer.AsyncPostFromString(request)
-        if (not result)
-            return -1
-        end if
-        while (true)
-            msg = wait(5000, port)
-            if (msg <> invalid)
-                msgType = type(msg)
-                if (msgType = "roUrlEvent")
-                    if (msg.GetInt() = 1) ' transfer complete
-                        durationMs& = timer.TotalMilliseconds()
-                        transferTime# = millisToSec(durationMs&)
-                        httpCode = msg.GetResponseCode()
-                        status = "ok"
-                        if (httpCode < 0)
-                            status = msg.GetFailureReason()
-                        end if
-                        resource = {
-                            url: url
-                            method: "POST"
-                            transferTime: transferTime#
-                            startTime: startTime&
-                            httpCode: httpCode
-                            status: status
-                            traceId: m.traceId
-                            spanId: m.spanId
-                        }
-                        m.datadogRumAgent.callfunc("addResource", resource)
-                        return httpCode
-                    else
-                        ddLogWarning("Got roUrlEvent " + FormatJson(msg))
-                    end if
-                else
-                    ddLogWarning("Got unexpected msg " + FormatJson(msg))
-                end if
-            end if
-        end while
-        return -1
-    end function
+    instance.PostFromString = __DdUrlTransfer_method_PostFromString
     ' ----------------------------------------------------------------
     ' Uses the HTTP POST method to send the contents of the specified
     ' file to the current URL. The HTTP response code is returned. Any
@@ -282,53 +616,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (integer) The HTTP response code.
     ' ----------------------------------------------------------------
-    instance.PostFromFile = function(filename as string) as integer
-        timer = CreateObject("roTimespan")
-        port = CreateObject("roMessagePort")
-        m.roUrlTransfer.SetMessagePort(port)
-        url = m.roUrlTransfer.GetUrl()
-        m._traceRequest()
-        startTime& = getTimestamp()
-        timer.Mark()
-        result = m.roUrlTransfer.AsyncPostFromFile(filename)
-        if (not result)
-            return -1
-        end if
-        while (true)
-            msg = wait(5000, port)
-            if (msg <> invalid)
-                msgType = type(msg)
-                if (msgType = "roUrlEvent")
-                    if (msg.GetInt() = 1) ' transfer complete
-                        durationMs& = timer.TotalMilliseconds()
-                        transferTime# = millisToSec(durationMs&)
-                        httpCode = msg.GetResponseCode()
-                        status = "ok"
-                        if (httpCode < 0)
-                            status = msg.GetFailureReason()
-                        end if
-                        resource = {
-                            url: url
-                            method: "POST"
-                            transferTime: transferTime#
-                            startTime: startTime&
-                            httpCode: httpCode
-                            status: status
-                            traceId: m.traceId
-                            spanId: m.spanId
-                        }
-                        m.datadogRumAgent.callfunc("addResource", resource)
-                        return httpCode
-                    else
-                        ddLogWarning("Got roUrlEvent " + FormatJson(msg))
-                    end if
-                else
-                    ddLogWarning("Got unexpected msg " + FormatJson(msg))
-                end if
-            end if
-        end while
-        return -1
-    end function
+    instance.PostFromFile = __DdUrlTransfer_method_PostFromFile
     ' ----------------------------------------------------------------
     ' Returns the body of the response even if the HTTP status code indicates
     ' that an error occurred.
@@ -338,9 +626,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (boolean) A flag indicating whether the operation was successful
     ' ----------------------------------------------------------------
-    instance.RetainBodyOnError = function(retain as boolean) as boolean
-        return m.roUrlTransfer.RetainBodyOnError(retain)
-    end function
+    instance.RetainBodyOnError = __DdUrlTransfer_method_RetainBodyOnError
     ' ----------------------------------------------------------------
     ' Enables HTTP authentication using the specified user name and password.
     '
@@ -352,9 +638,7 @@ function __DdUrlTransfer_builder()
     ' @param password string The password to be authenticated
     ' @return (boolean) A flag indicating whether the operation was successful
     ' ----------------------------------------------------------------
-    instance.SetUserAndPassword = function(user as string, password as string) as boolean
-        return m.roUrlTransfer.SetUserAndPassword(user, password)
-    end function
+    instance.SetUserAndPassword = __DdUrlTransfer_method_SetUserAndPassword
     ' ----------------------------------------------------------------
     ' Terminates the transfer automatically if the transfer rate drops
     ' below the specified rate (bytes_per_second) over a specific interval
@@ -371,18 +655,14 @@ function __DdUrlTransfer_builder()
     '
     ' @return (boolean) A flag indicating whether the operation was successful
     ' ----------------------------------------------------------------
-    instance.SetMinimumTransferRate = function(bytes_per_second as integer, period_in_seconds as integer) as boolean
-        return m.roUrlTransfer.SetMinimumTransferRate(bytes_per_second, period_in_seconds)
-    end function
+    instance.SetMinimumTransferRate = __DdUrlTransfer_method_SetMinimumTransferRate
     ' ----------------------------------------------------------------
     ' If any of the roUrlEvent functions indicate failure then this function
     ' may provide more information regarding the failure.
     '
     ' @return (string) Failure reason.
     ' ----------------------------------------------------------------
-    instance.GetFailureReason = function() as string
-        return m.roUrlTransfer.GetFailureReason()
-    end function
+    instance.GetFailureReason = __DdUrlTransfer_method_GetFailureReason
     ' ----------------------------------------------------------------
     ' Enables gzip encoding of transfers
     '
@@ -391,9 +671,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (boolean) A flag indicating whether this operation was successful.
     ' ----------------------------------------------------------------
-    instance.EnableEncodings = function(enable as boolean) as boolean
-        return m.roUrlTransfer.EnableEncodings(enable)
-    end function
+    instance.EnableEncodings = __DdUrlTransfer_method_EnableEncodings
     ' ----------------------------------------------------------------
     ' URL encodes the specified string per RFC 3986 and return the encoded string
     '
@@ -401,9 +679,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (string) The URL - encoded string.
     ' ----------------------------------------------------------------
-    instance.Escape = function(text as string) as string
-        return m.roUrlTransfer.Escape(text)
-    end function
+    instance.Escape = __DdUrlTransfer_method_Escape
     ' ----------------------------------------------------------------
     ' Decodes the specified string per RFC 3986 and returns the unencoded string.
     '
@@ -411,9 +687,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (string) The decoded string.
     ' ----------------------------------------------------------------
-    instance.Unescape = function(text as string) as string
-        return m.roUrlTransfer.Unescape(text)
-    end function
+    instance.Unescape = __DdUrlTransfer_method_Unescape
     ' ----------------------------------------------------------------
     ' Enables automatic resumption of AsyncGetToFile and GetToFile requests
     '
@@ -422,9 +696,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (boolean) A flag indicating whether the operation was successful
     ' ----------------------------------------------------------------
-    instance.EnableResume = function(enable as boolean) as boolean
-        return m.roUrlTransfer.EnableResume(enable)
-    end function
+    instance.EnableResume = __DdUrlTransfer_method_EnableResume
     ' ----------------------------------------------------------------
     ' Verifies that the certificate has a chain of trust up to a valid
     ' root certificate using CURLOPT_SSL_VERIFYPEER.
@@ -432,9 +704,7 @@ function __DdUrlTransfer_builder()
     ' @param enable (boolean) A flag specifying whether to verify a certificate has a chain - of - trust up to a valid root certificate
     ' @return (boolean) A flag indicating whether the operation was successful
     ' ----------------------------------------------------------------
-    instance.EnablePeerVerification = function(enable as boolean) as boolean
-        return m.roUrlTransfer.EnablePeerVerification(enable)
-    end function
+    instance.EnablePeerVerification = __DdUrlTransfer_method_EnablePeerVerification
     ' ----------------------------------------------------------------
     ' Verifies that the certificate belongs to the host using CURLOPT_SSL_VERIFYHOST.
     '
@@ -442,9 +712,7 @@ function __DdUrlTransfer_builder()
     '
     ' @return (boolean) A flag indicating whether the operation was successful
     ' ----------------------------------------------------------------
-    instance.EnableHostVerification = function(enable as boolean) as boolean
-        return m.roUrlTransfer.EnableHostVerification(enable)
-    end function
+    instance.EnableHostVerification = __DdUrlTransfer_method_EnableHostVerification
     ' ----------------------------------------------------------------
     ' An optional function that enables HTTP/2 support. If version is
     ' set to "http2", HTTP/2 will be used for all underlying transfers.
@@ -464,9 +732,7 @@ function __DdUrlTransfer_builder()
     ' underlying roUrlTransfer connection to auto-negotiate HTTP/1.x or
     ' HTTP/2, depending on the agreement reached by client and server.
     ' ----------------------------------------------------------------
-    instance.SetHttpVersion = sub(version as string)
-        m.roUrlTransfer.SetHttpVersion(version)
-    end sub
+    instance.SetHttpVersion = __DdUrlTransfer_method_SetHttpVersion
     ' *****************************************************************
     ' * ifHttpAgent: interface to modify the way that URLs are accessed
     ' *****************************************************************
@@ -491,29 +757,8 @@ function __DdUrlTransfer_builder()
     ' @return (boolean) A flag indicating whether the HTTP header was
     ' successfully added.
     ' ----------------------------------------------------------------
-    instance.AddHeader = function(name as string, value as string) as boolean
-        headerValues = (function(m, name)
-                __bsConsequent = m.headers[name]
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return []
-                end if
-            end function)(m, name)
-        headerValues.Push(value)
-        m.headers[name] = headerValues
-        return m.roUrlTransfer.AddHeader(name, value)
-    end function
-    instance.GetHeader = function(name as string) as dynamic
-        return (function(m, name)
-                __bsConsequent = m.headers[name]
-                if __bsConsequent <> invalid then
-                    return __bsConsequent
-                else
-                    return []
-                end if
-            end function)(m, name)
-    end function
+    instance.AddHeader = __DdUrlTransfer_method_AddHeader
+    instance.GetHeader = __DdUrlTransfer_method_GetHeader
     ' ----------------------------------------------------------------
     ' Sets the HTTP headers to be sent in the HTTP request.
     '
@@ -530,13 +775,7 @@ function __DdUrlTransfer_builder()
     ' @return (boolean) A flag indicating whether the HTTP header was
     ' successfully set.
     ' ----------------------------------------------------------------
-    instance.SetHeaders = function(nameValueMap as object) as boolean
-        m.headers = {}
-        for each key in nameValueMap
-            m.headers[key] = nameValueMap[key]
-        end for
-        return m.roUrlTransfer.SetHeaders(nameValueMap)
-    end function
+    instance.SetHeaders = __DdUrlTransfer_method_SetHeaders
     ' ----------------------------------------------------------------
     ' Initializes the object to be sent to the Roku client certificate.
     '
@@ -547,9 +786,7 @@ function __DdUrlTransfer_builder()
     ' @return (boolean) A flag indicating whether the object sent to to
     ' the Roku client certificate was successfully initialized.
     ' ----------------------------------------------------------------
-    instance.InitClientCertificates = function() as boolean
-        return m.roUrlTransfer.InitClientCertificates()
-    end function
+    instance.InitClientCertificates = __DdUrlTransfer_method_InitClientCertificates
     ' ----------------------------------------------------------------
     ' Set the certificates file used for SSL to the specified .pem file.
     '
@@ -558,24 +795,18 @@ function __DdUrlTransfer_builder()
     ' @return (boolean) A flag indicating whether the certificate was
     ' successfully set.
     ' ----------------------------------------------------------------
-    instance.SetCertificatesFile = function(path as string) as boolean
-        return m.roUrlTransfer.SetCertificatesFile(path)
-    end function
+    instance.SetCertificatesFile = __DdUrlTransfer_method_SetCertificatesFile
     ' ----------------------------------------------------------------
     ' Sets the maximum depth of the certificate chain that will be accepted.
     '
     ' @param depth (integer) The maximum depth to be used.
     ' ----------------------------------------------------------------
-    instance.SetCertificatesDepth = sub(depth as integer)
-        m.roUrlTransfer.SetCertificatesDepth(depth)
-    end sub
+    instance.SetCertificatesDepth = __DdUrlTransfer_method_SetCertificatesDepth
     ' ----------------------------------------------------------------
     ' Enables any Set-Cookie headers returned from the request to be
     ' interpreted and the resulting cookies to be added to the cookie cache.
     ' ----------------------------------------------------------------
-    instance.EnableCookies = sub()
-        m.roUrlTransfer.EnableCookies()
-    end sub
+    instance.EnableCookies = __DdUrlTransfer_method_EnableCookies
     ' ----------------------------------------------------------------
     ' Returns any cookies from the cookie cache that match the specified
     ' domain and path. Expired cookies are not returned.
@@ -594,9 +825,7 @@ function __DdUrlTransfer_builder()
     '  - Value (string) Value of the cookie
     '  - Expires (roDateTime) Cookie expiration date, if any
     ' ----------------------------------------------------------------
-    instance.GetCookies = function(domain as string, path as string) as object
-        return m.roUrlTransfer.GetCookies(domain, path)
-    end function
+    instance.GetCookies = __DdUrlTransfer_method_GetCookies
     ' ----------------------------------------------------------------
     ' Adds the specified cookies to the cookie cache.
     ' @param cookies (object) An Array of AssociativeArrays, where each
@@ -611,114 +840,33 @@ function __DdUrlTransfer_builder()
     '
     ' @return (boolean) A flag indicating whether the cookies were successfully added to the cache.
     ' ----------------------------------------------------------------
-    instance.AddCookies = function(cookies as object) as boolean
-        return m.roUrlTransfer.AddCookies(cookies)
-    end function
+    instance.AddCookies = __DdUrlTransfer_method_AddCookies
     ' ----------------------------------------------------------------
     ' Removes all cookies from the cookie cache.
     ' ----------------------------------------------------------------
-    instance.ClearCookies = sub()
-        m.roUrlTransfer.ClearCookies()
-    end sub
+    instance.ClearCookies = __DdUrlTransfer_method_ClearCookies
     ' ----------------------------------------------------------------
     ' (Internal) generates a trace and span id and update the request
     ' headers
     ' ----------------------------------------------------------------
-    instance._traceRequest = sub()
-        sessionId = m.global.datadogRumContext?.sessionId
-        isSampledIn = m._isSampledIn(sessionId)
-        headerTypes = getTracedHeaderTypes(m.roUrlTransfer.GetUrl(), m.tracingHeaderTypes)
-        if (headerTypes.count() > 0)
-            ddLogInfo("Tracing request to " + m.roUrlTransfer.GetUrl() + " with headers " + FormatJson(headerTypes))
-            if (isSampledIn)
-                ddLogInfo("Request trace is sampled in")
-                m._addSampledInHeaders(headerTypes, sessionId)
-            else if (m.traceContextInjection = "all")
-                ddLogInfo("Request trace is sampled out")
-                m._addSampledOutHeaders(headerTypes)
-            else
-                ddLogInfo("Request trace is sampled out, but no header is added.")
-            end if
-        else
-            ddLogInfo("Not tracing request to " + m.roUrlTransfer.GetUrl() + ", no tracing header for that host")
-            m.traceId = invalid
-            m.spanId = invalid
-            m._deleteTracingHeaders()
-        end if
-        m._applyHeaders()
-    end sub
+    instance._traceRequest = __DdUrlTransfer_method__traceRequest
     ' ----------------------------------------------------------------
     ' (Internal) decides if the current trace is sampled in.
     ' Uses session ID (deterministic) when available, random fallback otherwise.
     ' ----------------------------------------------------------------
-    instance._isSampledIn = function(sessionId as dynamic) as boolean
-        if (m.traceSampleRate >= 100)
-            return true
-        end if
-        if (m.traceSampleRate <= 0)
-            return false
-        end if
-        if (sessionId <> invalid and sessionId.len() > 0)
-            seed& = m._parseUuidLastSegment(sessionId)
-            return m._isDeterministicSampledIn(seed&, m.traceSampleRate)
-        end if
-        ' Fallback: no session — use random (same as legacy behavior)
-        return Rnd(100) <= m.traceSampleRate
-    end function
+    instance._isSampledIn = __DdUrlTransfer_method__isSampledIn
     ' ----------------------------------------------------------------
     ' (Internal) extracts the last segment of a UUID as a LongInteger seed.
     ' UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (last segment = 12 hex chars = 48 bits)
     ' Assumes last segment is exactly 12 hex chars (standard UUID v4 format).
     ' ----------------------------------------------------------------
-    instance._parseUuidLastSegment = function(uuid as string) as longinteger
-        parts = uuid.split("-")
-        if (parts.count() < 5)
-            return 0&
-        end if
-        seg = parts[4] ' 12 hex chars
-        highBits& = val(Left(seg, 6), 16) ' upper 24 bits
-        lowBits& = val(Right(seg, 6), 16) ' lower 24 bits
-        return highBits& * 16777216& + lowBits& ' 16^6 = 0x1000000
-    end function
+    instance._parseUuidLastSegment = __DdUrlTransfer_method__parseUuidLastSegment
     ' ----------------------------------------------------------------
     ' (Internal) Knuth multiplicative hash — matches Android DeterministicSampler
     ' / iOS DeterministicSampler.
     ' Returns true if seed hashes into the sampled bucket for the given sampleRate (0-100).
     ' ----------------------------------------------------------------
-    instance._isDeterministicSampledIn = function(seed& as longinteger, sampleRate as double) as boolean
-        ' Knuth multiplicative hash — matches Android DeterministicSampler / iOS DeterministicSampler.
-        ' KNUTH = 1111111111111111111 split into 16-bit chunks to avoid BrightScript's
-        ' LongInteger * LongInteger overflow: large products use double arithmetic
-        ' instead of wrapping at 64 bits, producing wrong results.
-        ' Each partial product s_i * k_j <= 65535^2 < 2^32 — no overflow.
-        k0& = 29127& ' bits  0-15 of 1111111111111111111
-        k1& = 11204& ' bits 16-31
-        k2& = 30123& ' bits 32-47
-        k3& = 3947& ' bits 48-63
-        s0& = seed& AND 65535&
-        s1& = (seed& >> 16&) AND 65535&
-        s2& = (seed& >> 32&) AND 65535&
-        s3& = (seed& >> 48&) AND 65535&
-        c0& = s0& * k0&
-        c1& = s0& * k1& + s1& * k0&
-        c2& = s0& * k2& + s1& * k1& + s2& * k0&
-        c3& = s0& * k3& + s1& * k2& + s2& * k1& + s3& * k0&
-        carry& = c0& >> 16&
-        r0& = c0& AND 65535&
-        sum1& = c1& + carry&
-        r1& = sum1& AND 65535&
-        carry& = sum1& >> 16&
-        sum2& = c2& + carry&
-        r2& = sum2& AND 65535&
-        carry& = sum2& >> 16&
-        r3& = (c3& + carry&) AND 65535&
-        ' Build the unsigned 64-bit hash as a double directly from the 16-bit digits.
-        ' All inputs are non-negative, so no sign correction is needed.
-        hashDouble# = CDbl(r3&) * 281474976710656.0 + CDbl(r2&) * 4294967296.0 + CDbl(r1&) * 65536.0 + CDbl(r0&)
-        MAX_UINT64# = 1.8446744073709552e+19 ' 2^64
-        threshold# = MAX_UINT64# * sampleRate / 100.0#
-        return hashDouble# < threshold#
-    end function
+    instance._isDeterministicSampledIn = __DdUrlTransfer_method__isDeterministicSampledIn
     ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
     ' matching the given types. A single trace/span id is generated and
@@ -726,136 +874,30 @@ function __DdUrlTransfer_builder()
     ' whatever propagation format the downstream service relies on.
     ' @param headerTypes (array) the list of header types to use
     ' ----------------------------------------------------------------
-    instance._addSampledInHeaders = sub(headerTypes as object, sessionId as dynamic)
-        m._deleteTracingHeaders()
-        if (sessionId <> invalid and sessionId.len() > 0)
-            m.AddHeader("baggage", "session.id=" + sessionId)
-        end if
-        ' A single trace context is shared by every propagation format.
-        traceContext = generateTraceContext()
-        m.traceId = invalid
-        m.spanId = invalid
-        for each headerType in headerTypes
-            m._addSampledInHeadersForType(headerType, traceContext)
-        end for
-    end sub
+    instance._addSampledInHeaders = __DdUrlTransfer_method__addSampledInHeaders
     ' ----------------------------------------------------------------
     ' (Internal) adds the headers for a single propagation format using
     ' the provided shared trace context.
     ' @param headerType (TracingHeaderType) the header type to use
     ' @param traceContext (object) the shared trace context (see generateTraceContext)
     ' ----------------------------------------------------------------
-    instance._addSampledInHeadersForType = sub(headerType as object, traceContext as object)
-        if (headerType = "datadog")
-            m.traceId = traceContext.traceIdFullHex
-            m.spanId = traceContext.spanIdDec
-            ' Datadog uses a complex system for compatibility purposes
-            m.AddHeader("x-datadog-trace-id", traceContext.traceIdLowDec)
-            m.AddHeader("x-datadog-tags", "_dd.p.tid=" + traceContext.traceIdHighHex)
-            m.AddHeader("x-datadog-parent-id", traceContext.spanIdDec)
-            m.AddHeader("x-datadog-sampling-priority", "1")
-            m.AddHeader("x-datadog-origin", "rum")
-        else if (headerType = "b3")
-            m.traceId = traceContext.traceIdFullHex
-            m.spanId = traceContext.spanIdDec
-            hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
-            hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
-            b3 = hexTraceId + "-" + hexSpanId + "-1"
-            m.AddHeader("b3", b3)
-        else if (headerType = "b3multi")
-            m.traceId = traceContext.traceIdFullHex
-            m.spanId = traceContext.spanIdDec
-            m.AddHeader("X-B3-TraceId", padLeft(traceContext.traceIdFullHex, 32, "0"))
-            m.AddHeader("X-B3-SpanId", padLeft(traceContext.spanIdHex, 16, "0"))
-            m.AddHeader("X-B3-Sampled", "1")
-        else if (headerType = "tracecontext")
-            m.traceId = traceContext.traceIdFullHex
-            m.spanId = traceContext.spanIdDec
-            hexTraceId = padLeft(traceContext.traceIdFullHex, 32, "0")
-            hexSpanId = padLeft(traceContext.spanIdHex, 16, "0")
-            traceparent = "00-" + hexTraceId + "-" + hexSpanId + "-01"
-            m.AddHeader("traceparent", traceparent)
-            usrId = m.global.datadogUserInfo.id
-            if (usrId <> invalid)
-                usrIdByteArray = CreateObject("roByteArray")
-                usrIdByteArray.FromAsciiString(usrId)
-                usrIdBase64 = usrIdByteArray.ToBase64String().Replace("=", "~")
-                tracestate = "dd=s:1;o:rum;p:" + hexSpanId + ";t.usr.id:" + usrIdBase64
-            else
-                tracestate = "dd=s:1;o:rum;p:" + hexSpanId
-            end if
-            m.AddHeader("tracestate", tracestate)
-        else
-            ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
-        end if
-    end sub
+    instance._addSampledInHeadersForType = __DdUrlTransfer_method__addSampledInHeadersForType
     ' ----------------------------------------------------------------
     ' (Internal) adds the relevant headers for distributed tracing,
     ' matching the given types, to sample this request out
     ' @param headerTypes (array) the list of header types to use
     ' ----------------------------------------------------------------
-    instance._addSampledOutHeaders = sub(headerTypes as object)
-        m._deleteTracingHeaders()
-        m.traceId = invalid
-        m.spanId = invalid
-        for each headerType in headerTypes
-            if (headerType = "datadog")
-                m.AddHeader("x-datadog-sampling-priority", "0")
-            else if (headerType = "b3")
-                m.AddHeader("b3", "0")
-            else if (headerType = "b3multi")
-                m.AddHeader("X-B3-Sampled", "0")
-            else if (headerType = "tracecontext")
-                m.AddHeader("traceparent", "00-" + padLeft("", 32, "0") + "-" + padLeft("", 16, "0") + "-00")
-            else
-                ddLogWarning("Cannot trace request, header type is unknown: " + headerType)
-            end if
-        end for
-    end sub
+    instance._addSampledOutHeaders = __DdUrlTransfer_method__addSampledOutHeaders
     ' ----------------------------------------------------------------
     ' (Internal) delete the tracing headers to avoid duplicated value
     ' when the ddUrlTransfer is used for more than one request.
     ' ----------------------------------------------------------------
-    instance._deleteTracingHeaders = sub()
-        baggageHeader = m.GetHeader("baggage")
-        m.headers.Delete("baggage")
-        for each item in baggageHeader
-            if (Left(item, 11) <> "session.id=")
-                m.AddHeader("baggage", item)
-            end if
-        end for
-        m.headers.Delete("x-datadog-trace-id")
-        m.headers.Delete("x-datadog-parent-id")
-        m.headers.Delete("x-datadog-sampling-priority")
-        m.headers.Delete("x-datadog-origin")
-        m.headers.Delete("x-datadog-tags")
-        m.headers.Delete("b3")
-        m.headers.Delete("X-B3-TraceId")
-        m.headers.Delete("X-B3-SpanId")
-        m.headers.Delete("X-B3-Sampled")
-        m.headers.Delete("traceparent")
-        m.headers.Delete("tracestate")
-    end sub
+    instance._deleteTracingHeaders = __DdUrlTransfer_method__deleteTracingHeaders
     ' ----------------------------------------------------------------
     ' (Internal) applies the headers recorded in the ddUrlTransfer
     ' to the underlying roUrlTransfer component.
     ' ----------------------------------------------------------------
-    instance._applyHeaders = sub()
-        currentHeaders = m.headers
-        headerMap = {}
-        for each key in currentHeaders
-            value = ""
-            for each headerValue in currentHeaders[key]
-                if (value.Len() > 0)
-                    value = value + "," + headerValue
-                else
-                    value = headerValue
-                end if
-            end for
-            headerMap[key] = value
-        end for
-        m.roUrlTransfer.SetHeaders(headerMap)
-    end sub
+    instance._applyHeaders = __DdUrlTransfer_method__applyHeaders
     return instance
 end function
 function DdUrlTransfer(global as object)

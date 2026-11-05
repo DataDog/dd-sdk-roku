@@ -45,10 +45,10 @@
     "packageRootDir": "dist"
   },
   "devDependencies": {
-    "@rokucommunity/bslint": "0.8.39",
-    "brighterscript": "0.69.13",
-    "cspell": "8.17.5",
-    "ropm": "0.11.4"
+    "@rokucommunity/bslint": "0.8.47",
+    "brighterscript": "0.73.8",
+    "cspell": "10.4.0",
+    "ropm": "0.11.11"
   },
   "overrides": {
     "lodash": "^4.18.1",
