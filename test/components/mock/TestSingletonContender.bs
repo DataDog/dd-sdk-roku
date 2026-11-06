@@ -1,0 +1,42 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/datadogSdk.brs"
+
+sub init()
+    m.top.functionName = "publishCandidate"
+end sub
+
+sub publishCandidate()
+    try
+        gate = m.top.gate
+        port = CreateObject("roMessagePort")
+        gate.observeFieldScoped("released", port)
+        m.top.ready = true
+        if (not gate.released)
+            wait(5000, port)
+        end if
+        if (not gate.released)
+            m.top.failure = "Timed out waiting for publication barrier"
+        else
+            candidate = m.top.candidate
+            published = datadogroku_publishGlobalSingleton(m.top.scope, "owner", candidate)
+            m.top.published = published
+            if (candidate.isSameNode(published))
+                ownerPort = CreateObject("roMessagePort")
+                candidate.observeFieldScoped("started", ownerPort)
+                candidate.control = "RUN"
+                if (not candidate.started)
+                    wait(5000, ownerPort)
+                end if
+                if (not candidate.started)
+                    m.top.failure = "Published candidate did not start"
+                end if
+            end if
+        end if
+    catch error
+        m.top.failure = error.message
+    end try
+    m.top.done = true
+end sub
