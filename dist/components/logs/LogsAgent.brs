@@ -2,6 +2,7 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 'import "pkg:/source/datadogSdk.bs"
+'import "pkg:/source/immutableRecords.bs"
 'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/timeUtils.bs"
 'import "pkg:/source/logs/logStatus.bs"
@@ -211,6 +212,7 @@ sub setupIfNeeded()
     m.osVersion = fields.osVersion
     m.osVersionMajor = fields.osVersionMajor
     m.site = fields.site
+    storageScope = immutableRecordScope(CreateObject("roAppInfo").GetID(), getIntakeUrl(m.site, "logs"), m.uploader.clientToken, "")
     ' 2. Configure writer
     if (m.writer = invalid) 'skipped in tests (mock pre-injected)
         ddLogVerbose("Creating WriterTask")
@@ -219,6 +221,7 @@ sub setupIfNeeded()
     end if
     m.writer.setFields({
         trackType: "logs"
+        storageScope: storageScope
         payloadSeparator: ","
     })
     ' 3. Register our track on the shared uploader
@@ -226,6 +229,8 @@ sub setupIfNeeded()
     trackInfo = {
         url: getIntakeUrl(m.site, "logs")
         trackType: "logs"
+        storageScope: storageScope
+        payloadSeparator: ","
         payloadPrefix: "["
         payloadPostfix: "]"
         contentType: "application/json"

@@ -4,6 +4,7 @@
 'import "pkg:/source/rum/rumRawEvents.bs"
 'import "pkg:/source/rum/rumHelper.bs"
 'import "pkg:/source/datadogSdk.bs"
+'import "pkg:/source/immutableRecords.bs"
 'import "pkg:/source/internalLogger.bs"
 ' *****************************************************************
 ' * RumAgent: a background component listening for internal events
@@ -121,11 +122,14 @@ sub setup()
         m.telemetryScope = CreateObject("roSGNode", "RumTelemetryScope")
         m.top.telemetryScope = m.telemetryScope
     end if
+    storageScope = immutableRecordScope(CreateObject("roAppInfo").GetID(), getIntakeUrl(m.site, "rum"), m.uploader.clientToken, m.applicationId)
     ' 3. Register our track on the shared uploader
     trackId = "rum_" + m.top.threadInfo().node.address
     trackInfo = {
         url: getIntakeUrl(m.site, "rum")
         trackType: "rum"
+        storageScope: storageScope
+        payloadSeparator: chr(10)
         payloadPrefix: ""
         payloadPostfix: ""
         contentType: "text/plain;charset=UTF-8"
@@ -143,6 +147,7 @@ sub setup()
     end if
     m.writer.setFields({
         trackType: "rum"
+        storageScope: storageScope
         payloadSeparator: chr(10)
     })
     ' 5. One-time launch-side effects
