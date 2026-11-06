@@ -24,6 +24,8 @@ end function
 ' ----------------------------------------------------------------
 function mkDirs(path as string) as boolean
     ddLogVerbose("mkDirs(" + path + ")")
+    ' Never enqueue telemetry here: its writer may hit this same storage failure.
+    ' Keep diagnostics local and let callers handle the Boolean failure result.
     fileSystem = CreateObject("roFileSystem")
     ' Early exist, dir already exists
     if (fileSystem.Exists(path))
@@ -35,13 +37,6 @@ function mkDirs(path as string) as boolean
     if (not dirPath.IsValid())
         message = "Can't make directory, path is invalid: " + path
         ddLogWarning(message)
-        if (m.global.datadogRumAgent <> invalid)
-            m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
-                number: 0
-                message: message
-                backtrace: []
-            })
-        end if
         return false
     end if
     folderData = dirPath.Split()
@@ -55,13 +50,6 @@ function mkDirs(path as string) as boolean
     if (not CreateDirectory(path))
         message = "Failed to create directory " + path
         ddLogWarning(message)
-        if (m.global.datadogRumAgent <> invalid)
-            m.global.datadogRumAgent.callfunc("addErrorTelemetry", {
-                number: 0
-                message: message
-                backtrace: []
-            })
-        end if
         return false
     end if
     return true
