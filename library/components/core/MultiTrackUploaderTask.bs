@@ -23,6 +23,17 @@ sub init()
 end sub
 
 ' ----------------------------------------------------------------
+' Registers one track without replacing concurrent registrations from other agents.
+' Public callFunc runs on the render thread; the worker receives the tracks event.
+' Keep all network/filesystem work in the uploader loop, outside this function.
+' ----------------------------------------------------------------
+sub registerTrack(trackId as string, trackInfo as object)
+    tracks = m.top.tracks ?? {}
+    tracks[trackId] = trackInfo
+    m.top.tracks = tracks
+end sub
+
+' ----------------------------------------------------------------
 ' Main uploader loop
 ' ----------------------------------------------------------------
 sub uploaderLoop()

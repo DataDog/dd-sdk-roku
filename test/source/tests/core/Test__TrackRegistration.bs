@@ -1,0 +1,119 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+function TestSuite__TrackRegistration() as object
+    this = BaseTestSuite()
+    this.Name = "TrackRegistration"
+    this.addTest("WhenConcurrentRegistration_ThenEveryTrackSurvives", TrackRegistrationTest__Concurrent, TrackRegistrationTest__SetUp, TrackRegistrationTest__TearDown)
+    this.addTest("WhenReplaceTrack_ThenOtherTracksSurvive", TrackRegistrationTest__Replace, TrackRegistrationTest__SetUp, TrackRegistrationTest__TearDown)
+    this.addTest("WhenWorkerRunning_ThenRegistrationReachesWorker", TrackRegistrationTest__Running, TrackRegistrationTest__SetUp, TrackRegistrationTest__TearDown)
+    this.waitForFlag = TrackRegistrationTest__WaitForFlag
+    return this
+end function
+
+sub TrackRegistrationTest__SetUp()
+    m.testSuite.workers = []
+    m.testSuite.uploader = CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask")
+    m.testSuite.port = CreateObject("roMessagePort")
+    m.testSuite.folderPath = ""
+end sub
+
+sub TrackRegistrationTest__TearDown()
+    for each worker in m.testSuite.workers
+        worker.control = "STOP"
+    end for
+    m.testSuite.uploader.control = "STOP"
+    if (m.testSuite.folderPath <> "")
+        CreateObject("roFileSystem").Delete(m.testSuite.folderPath)
+    end if
+end sub
+
+sub TrackRegistrationTest__WaitForFlag(node as object, fieldName as string)
+    timer = CreateObject("roTimespan")
+    while (not node.getField(fieldName) and timer.TotalMilliseconds() < 5000)
+        wait(50, m.port)
+    end while
+    Assert.that(node.getField(fieldName)).isEqualTo(true, "Timed out waiting for " + fieldName)
+end sub
+
+function TrackRegistrationTest__Concurrent() as string
+    gate = CreateObject("roSGNode", "Task")
+    gate.addField("released", "boolean", false)
+    for i = 0 to 7
+        worker = CreateObject("roSGNode", "TestTrackRegistration")
+        m.workers.Push(worker)
+        trackType = "rum"
+        if (i mod 2 = 1)
+            trackType = "logs"
+        end if
+        worker.setFields({ uploader: m.uploader, gate: gate, trackId: i.toStr(), trackInfo: { trackType: trackType, marker: i } })
+        worker.observeFieldScoped("ready", m.port)
+        worker.observeFieldScoped("done", m.port)
+        worker.control = "RUN"
+    end for
+    for each worker in m.workers
+        m.waitForFlag(worker, "ready")
+    end for
+    gate.released = true
+    for each worker in m.workers
+        m.waitForFlag(worker, "done")
+        Assert.that(worker.failure).isEqualTo("")
+    end for
+    tracks = m.uploader.tracks
+    Assert.that(tracks).hasSize(8)
+    for each worker in m.workers
+        Assert.that(tracks[worker.trackId]).isEqualTo(worker.trackInfo)
+    end for
+    return ""
+end function
+
+function TrackRegistrationTest__Replace() as string
+    m.uploader@.registerTrack("rum", { trackType: "rum", marker: 1 })
+    m.uploader@.registerTrack("logs", { trackType: "logs", marker: 2 })
+    m.uploader@.registerTrack("rum", { trackType: "rum", marker: 3 })
+    tracks = m.uploader.tracks
+    Assert.that(tracks).hasSize(2)
+    Assert.that(tracks.rum.marker).isEqualTo(3)
+    Assert.that(tracks.logs.marker).isEqualTo(2)
+    return ""
+end function
+
+function TrackRegistrationTest__Running() as string
+    trackType = "registration_" + CreateObject("roDeviceInfo").GetRandomUUID()
+    m.folderPath = datadogroku_trackFolderPath(trackType)
+    datadogroku_mkDirs(m.folderPath)
+    filePath = m.folderPath + "/1"
+    Assert.that(WriteAsciiFile(filePath, "retained-event")).isTrue()
+    network = CreateObject("roSGNode", "MockNetworkClient")
+    network@.stubCall("postFromFile", {}, 503)
+    m.uploader.setFields({ waitPeriodMs: 10, networkClient: network, clientToken: "test" })
+    ' Observe an upload from the initial snapshot before registering another track.
+    m.uploader@.registerTrack("initial-track", {
+        trackType: trackType, url: "https://example.invalid/initial", contentType: "text/plain",
+        payloadPrefix: "", payloadPostfix: ""
+    })
+    m.uploader.control = "RUN"
+    TrackRegistrationTest__WaitForUpload(network, filePath, "https://example.invalid/initial")
+    m.uploader@.registerTrack("new-track", {
+        trackType: trackType, url: "https://example.invalid/registered", contentType: "text/plain",
+        payloadPrefix: "", payloadPostfix: ""
+    })
+    TrackRegistrationTest__WaitForUpload(network, filePath, "https://example.invalid/registered")
+    Assert.that(ReadAsciiFile(filePath)).isEqualTo("retained-event")
+    return ""
+end function
+
+sub TrackRegistrationTest__WaitForUpload(network as object, filePath as string, url as string)
+    timer = CreateObject("roTimespan")
+    port = CreateObject("roMessagePort")
+    calls = []
+    while (timer.TotalMilliseconds() < 5000)
+        calls = network@.captureFunctionCalls("postFromFile", { filePath: filePath, url: url })
+        if (calls <> invalid and calls.count() > 0)
+            exit while
+        end if
+        wait(20, port)
+    end while
+    Assert.that(calls).isNotInvalid().isNotEmpty()
+end sub

@@ -5,7 +5,9 @@ This product includes software developed at Datadog (https://www.datadoghq.com/)
 Copyright 2022-Today Datadog, Inc.
 -->
 <component name="MockUploaderTask" extends="MockNode">
+    <script type="text/brightscript" uri="pkg:/components/mock/MockUploaderTask.bs" />
     <interface>
+        <function name="registerTrack" />
         <!-- Task -->
         <field id="control" type="string" />
         <!-- MultiTrackUploader -->

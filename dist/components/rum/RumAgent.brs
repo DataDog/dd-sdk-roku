@@ -123,15 +123,7 @@ sub setup()
     end if
     ' 3. Register our track on the shared uploader
     trackId = "rum_" + m.top.threadInfo().node.address
-    tracks = (function(m)
-            __bsConsequent = m.uploader.tracks
-            if __bsConsequent <> invalid then
-                return __bsConsequent
-            else
-                return {}
-            end if
-        end function)(m)
-    tracks[trackId] = {
+    trackInfo = {
         url: getIntakeUrl(m.site, "rum")
         trackType: "rum"
         payloadPrefix: ""
@@ -142,9 +134,7 @@ sub setup()
             ddtags: "sdk_version:" + sdkVersion() + ",env:" + m.env
         }
     }
-    m.uploader.setFields({
-        tracks: tracks
-    })
+    m.uploader.callfunc("registerTrack", trackId, trackInfo)
     ' 4. Configure writer
     if (m.writer = invalid) 'skipped in tests (mock pre-injected)
         ddLogVerbose("Creating WriterTask")
