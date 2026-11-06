@@ -20,10 +20,59 @@ function TestSuite__FileUtils() as object
     this.addTest("WhenAppendAsciiFile_ThenAppendsToExistingFile", FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToExistingFile)
     this.addTest("WhenAppendAsciiFile_ThenAppendsToEmptyFile", FileUtilsTest__WhenAppendAsciiFile_ThenAppendsToEmptyFile)
 
+    this.addTest("WhenDeleteFileMissing_ThenCleanupComplete", FileUtilsTest__WhenDeleteFileMissing_ThenCleanupComplete)
+    this.addTest("WhenDeleteFileExists_ThenRemoveOnlyThatFile", FileUtilsTest__WhenDeleteFileExists_ThenRemoveOnlyThatFile)
+    this.addTest("WhenDeleteFileReadOnly_ThenReportFailure", FileUtilsTest__WhenDeleteFileReadOnly_ThenReportFailure)
+    this.addTest("WhenDeletePathIsDirectory_ThenPreserveContents", FileUtilsTest__WhenDeletePathIsDirectory_ThenPreserveContents)
+
     this.addTest("WhenStrToLong_ThenReturnsLong", FileUtilsTest__WhenStrToLong_ThenReturnsLong)
     this.addTest("WhenStrToLongOnString_ThenReturnsLong", FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong)
 
     return this
+end function
+
+function FileUtilsTest__WhenDeleteFileMissing_ThenCleanupComplete() as string
+    path = "tmp:/" + CreateObject("roDeviceInfo").GetRandomUUID()
+    Assume.that(path).doesNotExist()
+    Assert.that(datadogroku_deleteFileIfPresent(path)).isTrue()
+    Assert.that(path).doesNotExist()
+    return ""
+end function
+
+function FileUtilsTest__WhenDeleteFileExists_ThenRemoveOnlyThatFile() as string
+    path = "tmp:/" + CreateObject("roDeviceInfo").GetRandomUUID()
+    neighbor = path + "-other"
+    Assume.that(WriteAsciiFile(path, "batch")).isTrue()
+    Assume.that(WriteAsciiFile(neighbor, "keep")).isTrue()
+    Assert.that(datadogroku_deleteFileIfPresent(path)).isTrue()
+    Assert.that(path).doesNotExist()
+    Assert.that(ReadAsciiFile(neighbor)).isEqualTo("keep")
+    ' A second cleanup of the same path is also complete.
+    Assert.that(datadogroku_deleteFileIfPresent(path)).isTrue()
+    DeleteFile(neighbor)
+    return ""
+end function
+
+function FileUtilsTest__WhenDeleteFileReadOnly_ThenReportFailure() as string
+    ' pkg is read-only: this must remain a real cleanup failure, not success.
+    path = "pkg:/manifest"
+    before = ReadAsciiFile(path)
+    Assume.that(path).exists()
+    Assert.that(datadogroku_deleteFileIfPresent(path)).isFalse()
+    Assert.that(ReadAsciiFile(path)).isEqualTo(before)
+    return ""
+end function
+
+function FileUtilsTest__WhenDeletePathIsDirectory_ThenPreserveContents() as string
+    path = "tmp:/" + CreateObject("roDeviceInfo").GetRandomUUID()
+    Assume.that(CreateDirectory(path)).isTrue()
+    child = path + "/keep"
+    Assume.that(WriteAsciiFile(child, "keep")).isTrue()
+    Assert.that(datadogroku_deleteFileIfPresent(path)).isFalse()
+    Assert.that(ReadAsciiFile(child)).isEqualTo("keep")
+    DeleteFile(child)
+    DeleteDirectory(path)
+    return ""
 end function
 
 '----------------------------------------------------------------
