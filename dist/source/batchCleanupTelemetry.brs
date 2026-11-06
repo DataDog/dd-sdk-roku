@@ -1,0 +1,33 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' One budget per uploader, shared across filenames and tracks. The injected
+' elapsed-time clock makes boundary tests deterministic without waiting a minute.
+function newBatchCleanupTelemetryBudget(clock = invalid as object) as object
+    if (clock = invalid)
+        clock = CreateObject("roTimespan")
+    end if
+    return {
+        clock: clock
+        hasReported: false
+        suppressedCount: 0
+        ' -1 means suppress; otherwise return the count since the previous report.
+        nextReport: function() as integer
+            elapsedMs = m.clock.TotalMilliseconds()
+            if (m.hasReported and elapsedMs >= 0 and elapsedMs < 60000)
+                ' Saturate rather than overflowing during a prolonged failure storm.
+                if (m.suppressedCount < 2147483647)
+                    m.suppressedCount++
+                end if
+                return -1
+            end if
+            suppressed = m.suppressedCount
+            m.suppressedCount = 0
+            m.hasReported = true
+            ' Restart after a report, also recovering from elapsed counter wrap.
+            m.clock.Mark()
+            return suppressed
+        end function
+    }
+end function

@@ -5,6 +5,7 @@
 'import "pkg:/source/internalLogger.bs"
 'import "pkg:/source/fileUtils.bs"
 'import "pkg:/source/timeUtils.bs"
+'import "pkg:/source/batchCleanupTelemetry.bs"
 ' *****************************************************************
 ' * MultiTrackUploaderTask: a background loop checking for files available for upload;
 ' * When a file is ready, it is uploaded, and upon success deleted from disk.
@@ -265,15 +266,35 @@ sub handleResponse(requestId as string, responseCode as integer, filePath as str
             ddLogWarning(message)
             datadogRumAgent = m.global.datadogRumAgent
             if (datadogRumAgent <> invalid)
-                datadogRumAgent.callfunc("addErrorTelemetry", {
-                    number: 0
-                    message: message
-                    backtrace: []
-                })
+                error = nextBatchCleanupError(filePath)
+                if (error <> invalid)
+                    datadogRumAgent.callfunc("addErrorTelemetry", error)
+                end if
             end if
         end if
     end if
 end sub
+
+' Limit new cleanup telemetry, without changing uploads or file disposition.
+' Already-persisted telemetry may still be retransmitted by the upload path.
+function nextBatchCleanupError(filePath as string) as dynamic
+    if (m.cleanupTelemetryBudget = invalid)
+        m.cleanupTelemetryBudget = newBatchCleanupTelemetryBudget()
+    end if
+    suppressed = m.cleanupTelemetryBudget.nextReport()
+    if (suppressed < 0)
+        return invalid
+    end if
+    message = "Unable to delete batch file at " + filePath
+    if (suppressed > 0)
+        message += "; suppressed at least " + suppressed.toStr() + " additional cleanup errors since previous report"
+    end if
+    return {
+        number: 0
+        message: message
+        backtrace: []
+    }
+end function
 
 ' ----------------------------------------------------------------
 ' Sets the internal network client from the top node's field,
