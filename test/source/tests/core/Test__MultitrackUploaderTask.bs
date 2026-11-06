@@ -25,6 +25,8 @@ function TestSuite__MultiTrackUploaderTask() as object
     this.addTest("WhenInit_UploadsExistingFile_504", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_504, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_507", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_507, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_UploadsExistingFile_5xx", MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_5xx, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+    this.addTest("WhenTransportFails_ThenPreserveBatch", MultiTrackUploaderTaskTest__WhenTransportFails_ThenPreserveBatch, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+    this.addTest("WhenResponseIsUnknown_ThenPreserveBatch", MultiTrackUploaderTaskTest__WhenResponseIsUnknown_ThenPreserveBatch, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
 
     this.addTest("WhenInit_IgnoreRecentFile", MultiTrackUploaderTaskTest__WhenInit_IgnoreRecentFile, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
     this.addTest("WhenInit_IgnoreLastEventFile", MultiTrackUploaderTaskTest__WhenInit_IgnoreLastEventFile, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
@@ -97,8 +99,13 @@ end function
 '  Then: the file is uploaded and deleted
 '----------------------------------------------------------------
 function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_2xx() as string
-    responseCode = IG_GetOneOf([200, 201, IG_GetIntegerInRange(203, 299)])
-    return m.testUploader(responseCode, false)
+    for each responseCode in [200, 201, 204, 299]
+        result = m.testUploader(responseCode, false)
+        if (result <> "")
+            return result
+        end if
+    end for
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -213,11 +220,43 @@ end function
 '----------------------------------------------------------------
 ' Given: an uploader and an uploadable file, unknown server error (5xx)
 '  When: waiting for the loop to run
-'  Then: the file is uploaded and discarded
+'  Then: the file is uploaded and kept for retry
 '----------------------------------------------------------------
 function MultiTrackUploaderTaskTest__WhenInit_UploadsExistingFile_5xx() as string
-    responseCode = IG_GetOneOf([501, 505, 506, IG_GetIntegerInRange(508, 599)])
-    return m.testUploader(responseCode, false)
+    for each responseCode in [501, 505, 506, 508, 599]
+        result = m.testUploader(responseCode, true)
+        if (result <> "")
+            return result
+        end if
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' A failed transport is not an acknowledgement of the batch.
+' Cover DNS, connection, timeout, certificate, and absent response codes.
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenTransportFails_ThenPreserveBatch() as string
+    for each responseCode in [-6, -7, -28, -60, 0]
+        result = m.testUploader(responseCode, true)
+        if (result <> "")
+            return result
+        end if
+    end for
+    return ""
+end function
+
+'----------------------------------------------------------------
+' Informational, redirect, and out-of-range results must not discard data.
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenResponseIsUnknown_ThenPreserveBatch() as string
+    for each responseCode in [100, 199, 300, 302, 399, 600, 999]
+        result = m.testUploader(responseCode, true)
+        if (result <> "")
+            return result
+        end if
+    end for
+    return ""
 end function
 
 '----------------------------------------------------------------
@@ -328,20 +367,37 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
     expectedCallArgs = { filePath: filePath, headers: expectedHeaders, payloadPrefix: m.fakePrefix, payloadPostfix: m.fakePostfix }
     m.mockNetworkClient@.stubCall("postFromFile", expectedCallArgs, statusCode)
     datadogroku_mkDirs(folderPath)
-    WriteAsciiFile(filePath, IG_GetString(128))
+    expectedContent = IG_GetString(128)
+    Assume.that(WriteAsciiFile(filePath, expectedContent)).isTrue()
     datadogroku_ddLogInfo("Wrote data at " + filePath)
 
-    ' When
-    sleep(75)
+    ' Wait for the actual outcome, allowing slower devices time to run the Task.
+    fileSystem = CreateObject("roFileSystem")
+    timer = CreateObject("roTimespan")
+    timer.Mark()
+    while (timer.TotalMilliseconds() < 1000)
+        sleep(10)
+        calls = m.mockNetworkClient@.captureFunctionCalls("postFromFile", expectedCallArgs)
+        if (calls <> invalid and calls.count() > 0)
+            if (keepFile and calls.count() > 1)
+                exit while
+            else if (not keepFile and not fileSystem.Exists(filePath))
+                exit while
+            end if
+        end if
+    end while
 
     ' Then
-    calls = m.mockNetworkClient@.captureFunctionCalls("postFromFile", expectedCallArgs)
+    if (calls = invalid or calls.count() = 0)
+        DeleteFile(filePath)
+        return "No upload observed for response code " + statusCode.toStr()
+    end if
     firstCall = calls[0]
-    Assert.that(calls).isNotInvalid()
     Assert.that(firstCall.url).hasSubstring(expectedBaseUrl)
 
     if (keepFile)
         Assert.that(filePath).exists()
+        Assert.that(ReadAsciiFile(filePath)).isEqualTo(expectedContent)
         Assert.that(calls.count()).isGreaterThan(1)
     else
         Assert.that(filePath).doesNotExist()
@@ -353,6 +409,8 @@ function __testUploader(statusCode as integer, keepFile as boolean) as string
         Assert.that(firstCall.url).hasSubstring(key + "=" + escaper.Escape(m.fakeQueryParams[key]))
     end for
 
+    ' Keep table cases independent; retained batches have already been checked above.
+    DeleteFile(filePath)
     return ""
 end function
 
