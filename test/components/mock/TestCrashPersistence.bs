@@ -22,3 +22,10 @@ sub configureFailure(failWrite as integer)
         end function
     }
 end sub
+
+sub configureSnapshotCleanupFailure(_unused as dynamic)
+    m.snapshotIO = datadogroku_newViewSnapshotIO()
+    m.snapshotIO.remove = function(_path as string) as boolean
+        return false
+    end function
+end sub

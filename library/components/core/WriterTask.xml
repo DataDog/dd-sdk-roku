@@ -11,6 +11,8 @@ Copyright 2022-Today Datadog, Inc.
     <interface>
         <field id="trackType" type="string" />
         <field id="storageScope" type="string" />
+        <field id="instanceId" type="string" />
+        <field id="snapshotEvent" type="assocarray" alwaysNotify="true" />
         <field id="payloadSeparator" type="string" value="" />
         <field id="maxBatchSize" type="integer" value="16384" /> <!-- 16Kb -->
 

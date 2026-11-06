@@ -581,15 +581,13 @@ sub sendViewUpdate(context as object, writer as object)
     jsonEvent = FormatJson(viewEvent)
     writer.writeEvent = jsonEvent
     if (m.instanceId <> invalid and m.instanceId <> "")
-        path = lastViewEventFilePath(m.instanceId)
-        DeleteFile(path)
         if (rumContext.sessionState = "tracked")
-            ddLogVerbose("Keeping track of the last known view into " + path)
             viewEvent._dd.lastEvent = true
-            jsonEvent = FormatJson(viewEvent)
-            WriteAsciiFile(path, jsonEvent)
+            writer.snapshotEvent = viewEvent
         else
-            ddLogInfo("Session not tracked, clear last known view")
+            writer.snapshotEvent = {
+                cleared: true
+            }
         end if
     else
         ddLogWarning("Invalid or empty instance id... ignoring for now")

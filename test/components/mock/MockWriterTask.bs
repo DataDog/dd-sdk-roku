@@ -11,6 +11,7 @@
 ' ----------------------------------------------------------------
 sub init()
     m.top.observeField("writeEvent", "onWriteEvent")
+    m.top.observeField("snapshotEvent", "onSnapshotEvent")
 end sub
 
 ' ----------------------------------------------------------------
@@ -18,4 +19,8 @@ end sub
 ' ----------------------------------------------------------------
 sub onWriteEvent()
     recordFieldUpdate("writeEvent", m.top.writeEvent)
+end sub
+
+sub onSnapshotEvent()
+    recordFieldUpdate("snapshotEvent", m.top.snapshotEvent)
 end sub

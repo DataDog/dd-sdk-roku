@@ -146,6 +146,7 @@ sub setup()
         m.top.writer = m.writer
     end if
     m.writer.setFields({
+        instanceId: m.instanceId
         trackType: "rum"
         storageScope: storageScope
         payloadSeparator: chr(10)
