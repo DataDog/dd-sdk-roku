@@ -2,6 +2,8 @@
 ' This product includes software developed at Datadog (https://www.datadoghq.com/).
 ' Copyright 2022-Today Datadog, Inc.
 'import "pkg:/source/fileUtils.bs"
+'import "pkg:/source/immutableRecords.bs"
+'import "pkg:/source/rum/crashStorage.bs"
 ' *****************************************************************
 ' * RumCrashReporterTask : a node capable of writing data to a file on disk
 ' *****************************************************************
@@ -55,12 +57,13 @@ sub sendCrashReport()
         if (filePath = currentSessionlastViewEventFilePath)
             ddLogVerbose("Ignoring current session file: " + filename)
         else if (filename.Left(10) = "_last_view")
+            completed = not keep
             if (keep)
-                ddLogVerbose("Found last view file " + filePath)
-                sendCrashReportFromViewEventFile(filePath)
+                completed = sendCrashReportFromViewEventFile(filePath)
             end if
-            ddLogVerbose("Deleting file " + filePath)
-            DeleteFile(filePath)
+            if (completed)
+                deleteFileIfPresent(filePath)
+            end if
         end if
     end for
     ddLogVerbose("RumCrashReporterTask, all checks done")
@@ -70,19 +73,28 @@ end sub
 ' Sends a crash report linked to the view stored in the given path
 ' @param filepath (string) the path to the file holding the last known view event
 ' ----------------------------------------------------------------
-sub sendCrashReportFromViewEventFile(filepath as string)
+function sendCrashReportFromViewEventFile(filepath as string) as boolean
     ddLogVerbose("Reading file " + filepath)
-    lastViewEventJson = ReadAsciiFile(filepath)
-    if (lastViewEventJson = "" or lastViewEventJson = invalid)
-        ddLogWarning("A crash was detected but the last known view is empty, ignoring")
-        return
+    bytes = CreateObject("roByteArray")
+    if (not bytes.ReadFile(filepath))
+        return false
     end if
-    ddLogVerbose("Parsing event from " + filepath)
+    lastViewEventJson = bytes.ToAsciiString()
     lastViewEvent = ParseJson(lastViewEventJson)
-    if (lastViewEvent = invalid or lastViewEvent._dd = invalid or lastViewEvent.view = invalid or lastViewEvent.date = invalid)
-        ddLogError("A crash was detected but the last view event is invalid")
-        ddLogError(lastViewEventJson)
-        return
+    if (not isRecoverableCrashView(lastViewEvent))
+        ddLogWarning("Unable to recover invalid last view snapshot")
+        return false
+    end if
+    return persistCrashReportFromView(lastViewEvent)
+end function
+
+function persistCrashReportFromView(lastViewEvent as object) as boolean
+    if (m.top.writer = invalid)
+        return false
+    end if
+    scope = m.top.writer.storageScope
+    if (not isRecordHex(scope, 64))
+        return false
     end if
     timeSpentNs& = ((function(lastViewEvent)
             __bsConsequent = lastViewEvent.view.time_spent
@@ -134,8 +146,12 @@ sub sendCrashReportFromViewEventFile(filepath as string)
         }
     }
     ddLogInfo("RumCrashReporterTask, writing crash")
-    m.top.writer.writeEvent = FormatJson(crashEvent)
-    sleep(50)
+    ' Already on a Task thread: a checked synchronous write is the acknowledgement.
+    folder = trackFolderPath("rum")
+    first = writeImmutableRecord(folder, scope, FormatJson(crashEvent), m.crashRecordIO)
+    if (first.status <> "verified")
+        return false
+    end if
     lastViewEvent._dd.document_version = ((function(lastViewEvent)
             __bsConsequent = lastViewEvent._dd.document_version
             if __bsConsequent <> invalid then
@@ -159,5 +175,6 @@ sub sendCrashReportFromViewEventFile(filepath as string)
     }
     lastViewEvent.view.time_spent = timeSpentNs&
     ddLogInfo("RumCrashReporterTask, writing view update")
-    m.top.writer.writeEvent = FormatJson(lastViewEvent)
-end sub
+    second = writeImmutableRecord(folder, scope, FormatJson(lastViewEvent), m.crashRecordIO)
+    return second.status = "verified"
+end function

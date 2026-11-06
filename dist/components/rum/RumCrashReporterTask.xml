@@ -12,5 +12,7 @@
     <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
     <script type="text/brightscript" uri="pkg:/source/rum/rumHelper.brs" />
+    <script type="text/brightscript" uri="pkg:/source/rum/crashStorage.brs" />
+    <script type="text/brightscript" uri="pkg:/source/immutableRecords.brs" />
     <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
 </component>

@@ -1,0 +1,24 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+sub configureFailure(failWrite as integer)
+    m.crashRecordIO = {
+        delegate: datadogroku_newImmutableRecordIO(),
+        failWrite: failWrite,
+        writes: 0,
+        exists: function(path as string) as boolean
+            return m.delegate.exists(path)
+        end function,
+        read: function(path as string, byteCount as integer) as dynamic
+            return m.delegate.read(path, byteCount)
+        end function,
+        write: function(path as string, bytes as object) as boolean
+            m.writes++
+            if (m.writes = m.failWrite)
+                return false
+            end if
+            return m.delegate.write(path, bytes)
+        end function
+    }
+end sub
