@@ -10,6 +10,7 @@ function TestSuite__ImmutableUploads() as object
     this.addTest("WhenEventExceedsTarget_ThenSendItAlone", ImmutableUploadsTest__Oversized, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
     this.addTest("WhenRecordCountLimit_ThenSplitWithoutLosingRecords", ImmutableUploadsTest__CountLimit, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
     this.addTest("WhenByteLimit_ThenSplitWithoutLosingRecords", ImmutableUploadsTest__ByteLimit, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
+    this.addTest("WhenCleanupFails_ThenDoNotReplayAndPauseAtCapacity", ImmutableUploadsTest__CleanupFailure, ImmutableUploadsTest__SetUp, ImmutableUploadsTest__TearDown)
     this.waitForCalls = ImmutableUploadsTest__WaitForCalls
     return this
 end function
@@ -140,3 +141,48 @@ function ImmutableUploadsTest__ByteLimit() as string
     Assert.that(ListDir(m.folder)).hasSize(2)
     return ""
 end function
+
+function ImmutableUploadsTest__CleanupFailure() as string
+    ' Replace the not-started production fixture with a failure-injected subclass.
+    m.uploader = CreateObject("roSGNode", "TestRecordCleanupUploader")
+    m.uploader@.configureCleanup(0)
+    m.network@.stubCall("postPayload", {}, 202)
+    m.uploader.setFields({ waitPeriodMs: 10, networkClient: m.network, clientToken: "test" })
+    m.uploader@.registerTrack("test", {
+        trackType: m.trackType, url: "https://example.invalid", contentType: "application/json",
+        payloadPrefix: "[", payloadPostfix: "]", payloadSeparator: ",", storageScope: m.scope
+    })
+    for i = 1 to 3
+        result = datadogroku_writeImmutableRecord(m.folder, m.scope, FormatJson({ id: i }))
+        Assert.that(result.status).isEqualTo("verified")
+    end for
+    m.uploader.control = "RUN"
+    m.waitForCalls(1)
+    ImmutableUploadsTest__WaitForDeletes(m.uploader, 2)
+    m.uploader.elapsedMs = 1000
+    ImmutableUploadsTest__WaitForDeletes(m.uploader, 4)
+    calls = m.network@.captureFunctionCalls("postPayload", {})
+    Assert.that(calls).hasSize(1)
+    Assert.that(ParseJson(calls[0].payload)).hasSize(2)
+    Assert.that(ListDir(m.folder)).hasSize(3)
+    m.uploader.allowCleanup = true
+    m.uploader.elapsedMs = 3000
+    calls = m.waitForCalls(2)
+    ids = {}
+    for each call in calls
+        for each event in ParseJson(call.payload)
+            Assert.that(ids.DoesExist(event.id.toStr())).isFalse()
+            ids[event.id.toStr()] = true
+        end for
+    end for
+    Assert.that(ids).hasSize(3)
+    return ""
+end function
+
+sub ImmutableUploadsTest__WaitForDeletes(uploader as object, minimum as integer)
+    timer = CreateObject("roTimespan")
+    while (uploader.cleanupResultCount < minimum and timer.TotalMilliseconds() < 5000)
+        sleep(10)
+    end while
+    Assert.that(uploader.cleanupResultCount >= minimum).isTrue("Timed out waiting for cleanup bookkeeping")
+end sub

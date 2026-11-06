@@ -9,6 +9,7 @@
     </interface>
     <script type="text/brightscript" uri="pkg:/components/core/MultiTrackUploaderTask.brs" />
     <script type="text/brightscript" uri="pkg:/source/timeUtils.brs" />
+    <script type="text/brightscript" uri="pkg:/source/recordCompletion.brs" />
     <script type="text/brightscript" uri="pkg:/source/internalLogger.brs" />
     <script type="text/brightscript" uri="pkg:/source/immutableRecords.brs" />
     <script type="text/brightscript" uri="pkg:/source/fileUtils.brs" />
