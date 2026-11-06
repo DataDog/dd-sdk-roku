@@ -28,6 +28,8 @@ function TestSuite__FileUtils() as object
     this.addTest("WhenStrToLong_ThenReturnsLong", FileUtilsTest__WhenStrToLong_ThenReturnsLong)
     this.addTest("WhenStrToLongOnString_ThenReturnsLong", FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong)
 
+    this.addTest("WhenParseLegacyBatchTimestamp_ThenValidateWholeName", FileUtilsTest__ParseLegacyBatchTimestamp)
+
     return this
 end function
 
@@ -258,6 +260,22 @@ function FileUtilsTest__WhenStrToLongOnString_ThenReturnsLong() as string
 
         ' Then
         Assert.that(crashed).isFalse()
+    end for
+    return ""
+end function
+
+function FileUtilsTest__ParseLegacyBatchTimestamp() as string
+    Assert.that(datadogroku_parseLegacyBatchTimestamp("0001")).isEqualTo(1&)
+    Assert.that(datadogroku_parseLegacyBatchTimestamp("1760000000000")).isEqualTo(1760000000000&)
+    maximum& = datadogroku_parseLegacyBatchTimestamp("9223372036854745807")
+    Assert.that(maximum& + 30000&).isEqualTo(9223372036854775807&)
+    for each filename in ["0", "1", "0001", "1760000000000", "9223372036854745807"]
+        parsed = datadogroku_parseLegacyBatchTimestamp(filename)
+        Assert.that(parsed).isNotInvalid()
+        Assert.that(parsed).isEqualTo(datadogroku_strToLong(filename))
+    end for
+    for each filename in ["", "-1", "+1", "1.0", "1e3", " 1", "1 ", "1x", "x1", "_last_view_1", "_batch_1", "1/2", "9223372036854745808", "9223372036854775807", "10000000000000000000"]
+        Assert.that(datadogroku_parseLegacyBatchTimestamp(filename)).isInvalid(filename)
     end for
     return ""
 end function

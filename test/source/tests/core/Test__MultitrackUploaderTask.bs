@@ -38,6 +38,8 @@ function TestSuite__MultiTrackUploaderTask() as object
 
     this.testUploader = __testUploader
 
+    this.addTest("WhenUnknownFilename_ThenPreserveWithoutUpload", MultiTrackUploaderTaskTest__UnknownFilename, MultiTrackUploaderTaskTest__SetUp, MultiTrackUploaderTaskTest__TearDown)
+
     return this
 end function
 
@@ -476,3 +478,29 @@ function MultiTrackUploaderTaskTest__WhenInit_WithoutControlRun_ThenDoesNotUploa
     return result
 end function
 
+
+function MultiTrackUploaderTaskTest__UnknownFilename() as string
+    folderPath = datadogroku_trackFolderPath(m.fakeTrackType)
+    datadogroku_mkDirs(folderPath)
+    unknownPath = folderPath + "/1x"
+    validPath = folderPath + "/1"
+    Assert.that(WriteAsciiFile(unknownPath, "preserve-unknown")).isTrue()
+    Assert.that(WriteAsciiFile(validPath, "known-batch")).isTrue()
+    m.mockNetworkClient@.stubCall("postFromFile", {}, 503)
+    timer = CreateObject("roTimespan")
+    calls = []
+    while (timer.TotalMilliseconds() < 5000)
+        calls = m.mockNetworkClient@.captureFunctionCalls("postFromFile", { filePath: validPath })
+        if (calls <> invalid and calls.count() > 1)
+            exit while
+        end if
+        sleep(10)
+    end while
+    Assert.that(calls).isNotInvalid()
+    Assert.that(calls.count()).isGreaterThan(1)
+    Assert.that(ReadAsciiFile(unknownPath)).isEqualTo("preserve-unknown")
+    result = m.mockNetworkClient@.assertFunctionCalled("postFromFile", { filePath: unknownPath }, 0)
+    DeleteFile(unknownPath)
+    DeleteFile(validPath)
+    return result
+end function
