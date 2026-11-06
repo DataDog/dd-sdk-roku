@@ -1,0 +1,145 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+import "pkg:/source/roku_modules/datadogroku/immutableRecords.brs"
+
+function TestSuite__ImmutableRecords() as object
+    this = BaseTestSuite()
+    this.Name = "ImmutableRecords"
+    this.addTest("WhenRecordComplete_ThenRecoverExactSnapshot", ImmutableRecordsTest__Complete)
+    this.addTest("WhenWriteFailsPartially_ThenPreserveWithoutRetry", ImmutableRecordsTest__Partial)
+    this.addTest("WhenVerificationFails_ThenRecoverAfterRestart", ImmutableRecordsTest__Verification)
+    this.addTest("WhenRecordChanges_ThenRejectLengthOrDigestMismatch", ImmutableRecordsTest__Corruption)
+    this.addTest("WhenScopeOrNameInvalid_ThenNeverRead", ImmutableRecordsTest__Names)
+    this.addTest("WhenRealFileWritten_ThenReadExactUTF8", ImmutableRecordsTest__Disk)
+    return this
+end function
+
+function ImmutableRecordsTest__IO() as object
+    return {
+        data: invalid,
+        writeCount: 0,
+        readCount: 0,
+        writeOK: true,
+        failRead: false,
+        partial: false,
+        exists: function(_path as string) as boolean
+            return m.data <> invalid
+        end function,
+        write: function(_path as string, bytes as object) as boolean
+            m.writeCount++
+            m.data = CreateObject("roByteArray")
+            m.data.Append(bytes)
+            if (m.partial)
+                m.data.Pop()
+            end if
+            return m.writeOK
+        end function,
+        read: function(_path as string, _byteCount as integer) as dynamic
+            m.readCount++
+            if (m.failRead)
+                return invalid
+            end if
+            return m.data
+        end function
+    }
+end function
+
+function ImmutableRecordsTest__Scope() as string
+    return datadogroku_immutableRecordScope("test-channel", "https://example.invalid/rum", "test-token", "test-app")
+end function
+
+function ImmutableRecordsTest__Complete() as string
+    io = ImmutableRecordsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    event = FormatJson({ id: "event-1", text: Chr(233) })
+    written = datadogroku_writeImmutableRecord("tmp:", scope, event, io)
+    Assert.that(written.status).isEqualTo("verified")
+    recovered = datadogroku_readImmutableRecord("tmp:", written.filename, scope, io)
+    Assert.that(recovered.payload).isEqualTo(event)
+    Assert.that(io.writeCount).isEqualTo(1)
+    Assert.that(io.readCount).isEqualTo(2)
+    ' A returned snapshot is not affected by a subsequent filesystem change.
+    io.data = invalid
+    Assert.that(recovered.payload).isEqualTo(event)
+    return ""
+end function
+
+function ImmutableRecordsTest__Partial() as string
+    scope = ImmutableRecordsTest__Scope()
+    for each writeOK in [false, true]
+        io = ImmutableRecordsTest__IO()
+        io.partial = true
+        io.writeOK = writeOK
+        written = datadogroku_writeImmutableRecord("tmp:", scope, "complete-event", io)
+        expected = "write_failed"
+        if (writeOK)
+            expected = "verification_failed"
+        end if
+        Assert.that(written.status).isEqualTo(expected)
+        Assert.that(io.data.Count()).isEqualTo(13)
+        Assert.that(datadogroku_readImmutableRecord("tmp:", written.filename, scope, io)).isInvalid()
+        Assert.that(io.writeCount).isEqualTo(1)
+    end for
+    return ""
+end function
+
+function ImmutableRecordsTest__Verification() as string
+    uncertain = ImmutableRecordsTest__IO()
+    uncertain.writeOK = false
+    scope = ImmutableRecordsTest__Scope()
+    complete = datadogroku_writeImmutableRecord("tmp:", scope, "complete-despite-failure", uncertain)
+    Assert.that(complete.status).isEqualTo("write_failed")
+    recoveredComplete = datadogroku_readImmutableRecord("tmp:", complete.filename, scope, uncertain)
+    Assert.that(recoveredComplete.payload).isEqualTo("complete-despite-failure")
+    Assert.that(uncertain.writeCount).isEqualTo(1)
+    io = ImmutableRecordsTest__IO()
+    io.failRead = true
+    scope = ImmutableRecordsTest__Scope()
+    written = datadogroku_writeImmutableRecord("tmp:", scope, "recover-after-exit", io)
+    Assert.that(written.status).isEqualTo("verification_failed")
+    io.failRead = false
+    recovered = datadogroku_readImmutableRecord("tmp:", written.filename, scope, io)
+    Assert.that(recovered.payload).isEqualTo("recover-after-exit")
+    again = datadogroku_writeImmutableRecord("tmp:", scope, "recover-after-exit", io, recovered.id)
+    Assert.that(again.status).isEqualTo("collision")
+    Assert.that(io.writeCount).isEqualTo(1)
+    return ""
+end function
+
+function ImmutableRecordsTest__Corruption() as string
+    io = ImmutableRecordsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    written = datadogroku_writeImmutableRecord("tmp:", scope, "payload", io)
+    io.data[0] = 0
+    Assert.that(datadogroku_readImmutableRecord("tmp:", written.filename, scope, io)).isInvalid()
+    io.data.FromAsciiString("payload-extra")
+    Assert.that(datadogroku_readImmutableRecord("tmp:", written.filename, scope, io)).isInvalid()
+    return ""
+end function
+
+function ImmutableRecordsTest__Names() as string
+    io = ImmutableRecordsTest__IO()
+    scope = ImmutableRecordsTest__Scope()
+    written = datadogroku_writeImmutableRecord("tmp:", scope, "event", io)
+    io.readCount = 0
+    otherScope = datadogroku_immutableRecordScope("other-channel", "https://example.invalid/rum", "test-token", "test-app")
+    Assert.that(datadogroku_readImmutableRecord("tmp:", written.filename, otherScope, io)).isInvalid()
+    for each name in ["1", "_last_view_1", "_dd2", written.filename + "_extra", written.filename.Replace("_5_", "_-5_"), written.filename.Replace("_5_", "_2147483647_")]
+        Assert.that(datadogroku_parseImmutableRecordName(name)).isInvalid(name)
+    end for
+    Assert.that(io.readCount).isEqualTo(0)
+    return ""
+end function
+
+function ImmutableRecordsTest__Disk() as string
+    scope = ImmutableRecordsTest__Scope()
+    event = FormatJson({ text: Chr(233), id: "disk-record" })
+    written = datadogroku_writeImmutableRecord("tmp:", scope, event)
+    Assert.that(written.status).isEqualTo("verified")
+    recovered = datadogroku_readImmutableRecord("tmp:", written.filename, scope)
+    Assert.that(recovered.payload).isEqualTo(event)
+    DeleteFile("tmp:/" + written.filename)
+    return ""
+end function
