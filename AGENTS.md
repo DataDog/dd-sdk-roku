@@ -1,6 +1,6 @@
 # AGENTS.md
 
-<!-- cspell:ignore logrendezvous sideloaded -->
+<!-- cspell:ignore logrendezvous sideloaded ENOENT worktrees renderable -->
 
 Guidance for AI coding agents working in the Datadog SDK for Roku (`dd-sdk-roku`).
 
@@ -46,6 +46,10 @@ Run `npm ci` first if `node_modules` is missing.
 | `npm run sca-test` / `npm run sca-sample` | Roku Static Channel Analysis; needs `ROKU_SCA` and Java 21 | Only if configured |
 | `npm test` / `npm run sample` | Build, upload to `ROKU_DEV_TARGET`, and telnet to port 8085 | **No, never** |
 
+Without a local `node_modules`, `npx --no-install` silently uses a parent directory's tool versions, so run `npm ci` first.
+
+**Troubleshooting.** If `npm run lint` or `./tools/roku/build.sh` fails with `ENOENT … library/package.json` and the path in the error contains `***`, the checkout path has a UUID-like segment (common for agent worktrees). npm 11.x redacts it in the `npm ls --json` output that ropm parses and then opens; `npm ci` does not fix it. Run the checks in a copy whose path has no UUID-like segment: copy the tree without `node_modules`, run `git init && git add -A && git commit -m tmp` (so `check-dist` has a `HEAD`), `npm ci`, then `npm run lint` / `npm run check-dist`. Report that validation ran in a copy.
+
 ## Before You Finish
 
 1. Run `npm run lint` and make it pass. Fix spelling in prose first; add a genuine term to `cspell.json` `words` only when needed, keeping the list sorted.
@@ -72,9 +76,9 @@ Run `npm ci` first if `node_modules` is missing.
 
 ### Threading
 
-- **Ownership.** Every node has an owner thread. A node created in a Task thread is owned by that thread until it is assigned to a field of, or appended as a child of, a node owned by another thread; ownership then moves to that node's owner. For example, `RumAgent.setup()` runs inside `rumAgentLoop`, creates the scopes and the writer there, and stores them in `m.top.*` fields. The customer-facing `RumAgent` and `LogsAgent` nodes are Render-owned.
-- **Task loops.** A Task node runs its `functionName` loop (`rumAgentLoop`, `writerLoop`, `uploaderLoop`, `sendCrashReport`) on a Task thread. The Task node's `m` is cloned when the thread starts, and a message port created in `init()` only reaches the first thread launched, so never re-RUN these Tasks.
-- **Observers.** Callback observers (`observeField`/`observeFieldScoped(field, "callbackName")`) on fields of a Render-owned node run on the Render thread; `LogsAgent` uses these on `m.global` in `setupIfNeeded()`. Port observers (`observeFieldScoped(field, m.port)`) post `roSGNodeEvent`s to the port, handled by whichever thread `wait()`s on it: for `RumAgent`, `WriterTask`, and `MultiTrackUploaderTask` (see their `init()`), that is their Task loop.
+- **Ownership.** Every node has an owner thread, usually the Render thread. A Task thread can own non-renderable `Node` / `ContentNode` objects (and whole trees of them) that it creates. Task nodes are always Render-owned, even when created in a Task thread. Renderable (`Group`-derived) nodes need a rendezvous to be created and used from a Task thread. A Task-owned node changes owner when it is assigned to a field of, or appended as a child of, a node owned by another thread; ownership then moves to that node's owner. For example, `RumAgent.setup()` runs inside `rumAgentLoop`, creates the Node-derived `RumApplicationScope` and `RumTelemetryScope` there, and stores them in `m.top.rumScope` / `m.top.telemetryScope`, which moves them to the Render thread. `WriterTask` is a Task node, so it is Render-owned from creation. The customer-facing `RumAgent` and `LogsAgent` nodes are Render-owned.
+- **Task loops.** A Task node runs its `functionName` loop (`rumAgentLoop`, `writerLoop`, `uploaderLoop`, `sendCrashReport`) on a Task thread. The Task node's `m` is cloned when the thread starts, and a message port created in `init()` only reaches the first thread launched. `RumAgent` and `WriterTask` create their port in `init()`, so never re-RUN them. `MultiTrackUploaderTask` creates its port inside `uploaderLoop()`.
+- **Observers.** Callback observers (`observeField`/`observeFieldScoped(field, "callbackName")`) on fields of a Render-owned node run on the Render thread; `LogsAgent` uses these on `m.global` in `setupIfNeeded()`. Port observers (`observeFieldScoped(field, m.port)`) post `roSGNodeEvent`s to the port, handled by whichever thread `wait()`s on it. For `RumAgent` and `WriterTask` (set up in `init()`) and `MultiTrackUploaderTask` (set up in `uploaderLoop()`), that is their Task loop.
 - **Event pattern.** `RumAgent`'s `callfunc` interface functions (for example `startView`) run on the Render thread and only build an event and set the matching field (`m.top.startView = …`). `rumAgentLoop` receives it on the Task thread through its port observer. Keep interface functions that thin; do the processing in the loop.
 - **Never block the Render thread:** the app is killed after 10 seconds (3 seconds for sideloaded apps). Network and file I/O belong in a Task thread.
 - See [Reviewing for Rendezvous](#reviewing-for-rendezvous).
@@ -112,9 +116,9 @@ Run `npm ci` first if `node_modules` is missing.
 
 Background ([Roku threads doc](https://developer.roku.com/dev/docs/threads)): every operation a non-Render thread invokes on a Render-owned node is a **rendezvous**, a synchronous round trip that waits for the Render thread. Rendezvous slow down both the Task thread and the app UI. Review `.bs` diffs with this checklist:
 
-1. **Count the dots on nodes in Task-thread code.** `x.y.z` on a Render-owned node is one rendezvous per dot. Every field get or set is a separate rendezvous.
-2. **`m.top` in a Task thread rendezvouses.** Task nodes are owned by the Render thread, so reading or setting `m.top.<field>` from the `functionName` loop (`rumAgentLoop`, `writerLoop`, `uploaderLoop`, `sendCrashReport`) is a rendezvous each time.
-3. **`m.global` always rendezvouses off the Render thread.** Watch reads of `datadogContext`, `datadogUserInfo`, `datadogRumContext`, `datadogVerbosity`, and similar fields inside loops.
+1. **Count node field operations, not dots.** In Task-thread code, each get or set of a field on a Render-owned node is one rendezvous. `x.y.z` costs one per dot only while each step reads a field of a node; a dot into an associative array returned by a field is a local lookup. Reading `m.top` / `m.global` from the component's `m` is not itself a rendezvous; the field access on them is. For example, `m.global.datadogRumContext?.sessionId` in `DdUrlTransfer.bs` is one rendezvous (the `datadogRumContext` read), then a local lookup.
+2. **`m.top.<field>` access in a Task thread rendezvouses.** Task nodes are owned by the Render thread, so each read or set of `m.top.<field>` from the `functionName` loop (`rumAgentLoop`, `writerLoop`, `uploaderLoop`, `sendCrashReport`) is a rendezvous.
+3. **`m.global.<field>` access rendezvouses off the Render thread.** Watch reads of `datadogContext`, `datadogUserInfo`, `datadogRumContext`, `datadogVerbosity`, and similar fields inside loops.
 4. **`callfunc` / `@.` on a Render-owned node from a Task thread** rendezvouses and runs the function on the Render thread, so heavy work there blocks the UI.
 5. **Expect caching.** Values that rarely change (configuration, site, tokens) should be read once into a local variable or `m`. Repeated reads inside a loop or per event are a red flag.
 6. **Expect batching.** Several gets or sets on the same node should use `getFields()` / `setFields()` or a single associative array field, not one call per field. Build a whole array, associative array, or node tree and hand it over once.

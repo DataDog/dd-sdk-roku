@@ -158,8 +158,7 @@ For example, here's how to do a `GetToString` call:
 ```brightscript
     ddUrlTransfer = datadogroku_DdUrlTransfer(m.global)
     ddUrlTransfer.SetUrl(url)
-    ddUrlTransfer.EnablePeerVerification(false)
-    ddUrlTransfer.EnableHostVerification(false)
+    ddUrlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt")
     result = ddUrlTransfer.GetToString()
 ```
 
