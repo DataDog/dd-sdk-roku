@@ -133,7 +133,7 @@ requests must:
 
  - Have a stated goal and detailed description of the changes made;
  - Include thorough test coverage and documentation, where applicable;
- - Pass all code quality checks (lint, spell check, license headers, `dist/` check, static channel analysis) on CI, and the unit tests on a Roku device (run manually by a project member);
+ - Pass all code quality checks (lint, spell check, license headers, `dist/` check, static channel analysis) on CI, and the unit tests (`npm test`) on a Roku device, since CI cannot run them;
  - Receive at least one approval from a project member with push permissions.
 
 Make sure that your code is clean and readable, that your commits are small and

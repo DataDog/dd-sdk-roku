@@ -1,5 +1,7 @@
 # AGENTS.md
 
+<!-- cspell:ignore logrendezvous sideloaded -->
+
 Guidance for AI coding agents working in the Datadog SDK for Roku (`dd-sdk-roku`).
 
 ## Start Here
@@ -64,19 +66,23 @@ Run `npm ci` first if `node_modules` is missing.
 ### Public API
 
 - Public entry points are `datadogroku_initialize`, `datadogroku_DdUrlTransfer`, the `callfunc` interfaces of `RumAgent` and `LogsAgent` (reached through `m.global.datadogRumAgent` and `m.global.datadogLogsAgent`), and the global fields in `library/globals.md`.
+- A new or changed `callfunc` API needs both the `.bs` sub and a `<function name="…"/>` entry (plus any `<field>`) in the component's `.xml` `<interface>`, for example `library/components/rum/RumAgent.xml`.
 - Keep the public API backward compatible. A new or changed public function or field needs a README update.
 - Do not edit `CHANGELOG.md` in feature PRs; it is updated at release time.
 
 ### Threading
 
-- Task nodes run their `functionName` loop on a Task thread; their `init()` and any observers on their fields run on the Render thread.
-- Interface functions invoked with `callfunc` run on the thread that owns the node, which is the Render thread for every SDK node.
-- Never block the Render thread: the app is killed after 10 seconds (3 seconds for development builds). Network and file I/O belong in a Task thread.
+- **Ownership.** Every node has an owner thread. A node created in a Task thread is owned by that thread until it is assigned to a field of, or appended as a child of, a node owned by another thread; ownership then moves to that node's owner. For example, `RumAgent.setup()` runs inside `rumAgentLoop`, creates the scopes and the writer there, and stores them in `m.top.*` fields. The customer-facing `RumAgent` and `LogsAgent` nodes are Render-owned.
+- **Task loops.** A Task node runs its `functionName` loop (`rumAgentLoop`, `writerLoop`, `uploaderLoop`, `sendCrashReport`) on a Task thread. The Task node's `m` is cloned when the thread starts, and a message port created in `init()` only reaches the first thread launched, so never re-RUN these Tasks.
+- **Observers.** Callback observers (`observeField`/`observeFieldScoped(field, "callbackName")`) on fields of a Render-owned node run on the Render thread; `LogsAgent` uses these on `m.global` in `setupIfNeeded()`. Port observers (`observeFieldScoped(field, m.port)`) post `roSGNodeEvent`s to the port, handled by whichever thread `wait()`s on it: for `RumAgent`, `WriterTask`, and `MultiTrackUploaderTask` (see their `init()`), that is their Task loop.
+- **Event pattern.** `RumAgent`'s `callfunc` interface functions (for example `startView`) run on the Render thread and only build an event and set the matching field (`m.top.startView = …`). `rumAgentLoop` receives it on the Task thread through its port observer. Keep interface functions that thin; do the processing in the loop.
+- **Never block the Render thread:** the app is killed after 10 seconds (3 seconds for sideloaded apps). Network and file I/O belong in a Task thread.
 - See [Reviewing for Rendezvous](#reviewing-for-rendezvous).
 
 ### Logging and Errors
 
-- Use the internal logger (`library/source/internalLogger.bs`), gated by the `datadogVerbosity` global field. Do not add bare `print` calls in the library.
+- Use the internal logger in `library/source/internalLogger.bs` (`ddLogVerbose`, `ddLogInfo`, `ddLogWarning`, `ddLogError`, `ddLogThread`), gated by the `datadogVerbosity` global field. Do not add bare `print` calls elsewhere in the library.
+- Report SDK-internal errors as telemetry through `datadogRumAgent@.addErrorTelemetry` (see `fileUtils.bs`, `MultiTrackUploaderTask.bs`). Use it on error paths only: off the Render thread it costs a rendezvous.
 - The SDK must never crash the host channel. Guard against `invalid` inputs from customer code.
 
 ### Static Analysis
@@ -86,15 +92,16 @@ Run `npm ci` first if `node_modules` is missing.
 
 ### Code Style
 
-- Every source file starts with the 3-line Apache license header (copy it from `sample/source/main.bs`).
+- Every source file starts with the 3-line Apache license header. Copy it from an existing file of the same type (`.bs` uses `'` comments, `.xml` uses `<!-- -->`).
 - Follow the style of the surrounding file. Prefer small, focused functions.
 
 ## Testing
 
 - **Unit tests and the sample app only run on a real Roku device in developer mode.** No agent can reach one. Do not try to run `npm test`, `npm run sample`, or `tools/roku/install.sh`, and never claim they ran.
-- You can still write and update tests. Add them under `test/source/tests/` as `Test__*.bs`, using the helpers in `test/source/asserts` and `test/source/mock`.
-- `npm run lint` compiles the test channel, so it is the check that your tests at least build.
-- CI job `test:roku` is manual because it needs a device; a maintainer runs it.
+- CI does not run the unit tests either: `test:roku` is manual and needs a device. Tell the user that a human has to run `npm test` on a Roku device.
+- You can still write and update tests under `test/source/tests/` as `Test__*.bs`, using the helpers in `test/source/asserts` and `test/source/mock`.
+- **Register new tests.** Tests are not discovered by file name. `import` a new test file in `test/components/TestRunner.bs` and add its `TestSuite__<Name>` function to `Runner.SetFunctions([...])`, otherwise it never runs.
+- **Tests run on `dist/`.** The test and sample channels use the built `dist/`, which ropm copies into their `roku_modules/datadogroku` (`test/package.json` depends on `"datadog-roku": "../"`, and the root `ropm.packageRootDir` is `dist`). Library changes need a rebuilt `dist/` before tests see them; `npm run lint` does that, and also checks that the test channel compiles.
 
 ## Sample App Config
 
@@ -112,13 +119,14 @@ Background ([Roku threads doc](https://developer.roku.com/dev/docs/threads)): ev
 5. **Expect caching.** Values that rarely change (configuration, site, tokens) should be read once into a local variable or `m`. Repeated reads inside a loop or per event are a red flag.
 6. **Expect batching.** Several gets or sets on the same node should use `getFields()` / `setFields()` or a single associative array field, not one call per field. Build a whole array, associative array, or node tree and hand it over once.
 7. **No visual (Group) nodes in a Task thread.** Every field access on them needs a rendezvous.
-8. **Observers on Task-node fields run on the Render thread.** Keep those callbacks short; long work in them blocks the UI.
+8. **Callback observers run on the Render thread.** An `observeField(field, "callbackName")` on a Render-owned node (including a Task node or `m.global`) runs the callback on the Render thread; keep it short. Port observers (`observeFieldScoped(field, m.port)`) are handled by the thread that `wait()`s on the port.
 9. **Non-node work is free of rendezvous.** `roUrlTransfer`, `ParseJson`, `FormatJson`, and file I/O in a Task thread are fine; the issue is only node and field access.
-10. **Watch customer-facing hot paths.** Customer code calls `m.global.datadogRumAgent.callfunc(...)`, `m.global.datadogLogsAgent.callfunc(...)`, and `datadogroku_DdUrlTransfer` from any thread, often per frame or per request. Changes there multiply.
+10. **Flag ownership transfers.** In Task-thread code, `m.top.<field> = node`, `m.global.<field> = node`, or `appendChild` onto a Render-owned parent moves a Task-created node to the Render thread. From then on, every field access or `@.` call on it from the Task thread is a rendezvous, and the `@.` call runs on the Render thread. Flag new assignments like this.
+11. **Watch customer-facing hot paths.** Customer code calls `m.global.datadogRumAgent.callfunc(...)`, `m.global.datadogLogsAgent.callfunc(...)`, and `datadogroku_DdUrlTransfer` from any thread, often per frame or per request. Changes there multiply.
 
 Precedent: CHANGELOG 1.5.0 ([#146](https://github.com/DataDog/dd-sdk-roku/pull/146), [#149](https://github.com/DataDog/dd-sdk-roku/pull/149), [#150](https://github.com/DataDog/dd-sdk-roku/pull/150), [#153](https://github.com/DataDog/dd-sdk-roku/pull/153)) cached fields and batched writes to cut rendezvous.
 
-The rendezvous logging command on the SceneGraph debug port (8080) measures rendezvous on a device. It is for humans with a device; agents should flag suspected costs in review instead.
+The `logrendezvous` command on the SceneGraph debug server (port 8080) measures rendezvous on a device. It is for humans with a device; agents should flag suspected costs in review instead.
 
 ## Branches and Commits
 
