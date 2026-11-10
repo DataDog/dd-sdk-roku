@@ -2,8 +2,6 @@
 
 > A client-side Roku library to interact with Datadog.
 
-**NOTE** This library is still in early Developer Preview.
-
 ## Getting Started
 
 ### Setup with ROPM (recommended)
@@ -19,7 +17,7 @@ ropm install datadog-roku
 If your project does not use `ROPM`, install the library manually by downloading the [Roku SDK][5] zip archive, 
 and unzipping it in your project's root folder.
 
-Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your project.
+Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and `source` folders of your project.
 
 ### Configure Datadog
 
@@ -31,6 +29,7 @@ sub RunUserInterface(args as dynamic)
     screen = CreateObject("roSGScreen")
     scene = screen.CreateScene("MyScene")
     screen.show()
+    globalNode = screen.getGlobalNode()
 
     ' Setup Datadog
     datadogroku_initialize({
@@ -187,7 +186,10 @@ sub performRequest()
 
     m.port = CreateObject("roMessagePort")
     request = CreateObject("roUrlTransfer")
-    ' setup the node url, headers, …
+    request.SetMessagePort(m.port)
+    requestUrl = "https://example.com/api" ' replace with your URL
+    request.SetUrl(requestUrl)
+    ' setup the request headers, …
 
     timer = CreateObject("roTimespan")
     timer.Mark()
@@ -273,7 +275,7 @@ The following attributes are **optional**, but you should provide **at least one
 To identify user sessions, use the `datadogUserInfo` global field, after initializing the SDK, for example:
 
 ```brightscript
-    m.global.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com"})
+    m.global.setField("datadogUserInfo", { id: "42", name: "Abcd Efg", email: "abcd.efg@example.com"})
 ```
 
 ### Track custom global attributes
@@ -310,7 +312,7 @@ The following code snippet illustrates the `logInfo` function, but all functions
 To see internal messages and warnings about how the SDK is behaving,  enable the SDK verbosity to see debug information when you connect to your device with telnet on port `8085`.
 
 ```brightscript
-        m.global.addFields({
+    m.global.addFields({
         datadogVerbosity: 3 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose; 5 = internals
     })
 ```
@@ -321,7 +323,7 @@ Navigate to the [RUM Explorer][2]. In the side bar, select your application and 
 
 ## Looking up your Logs
 
-Navigate to the [Log Explorer][3]. In the side bar, select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
+Navigate to the [Log Explorer][3] to search and filter the logs sent by your channel.
 
 ## Contributing
 
