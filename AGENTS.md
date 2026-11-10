@@ -48,7 +48,7 @@ Run `npm ci` first if `node_modules` is missing.
 
 Without a local `node_modules`, `npx --no-install` silently uses a parent directory's tool versions, so run `npm ci` first.
 
-**Troubleshooting.** If `npm run lint` or `./tools/roku/build.sh` fails with `ENOENT … library/package.json` and the path in the error contains `***`, the checkout path has a UUID-like segment (common for agent worktrees). npm 11.x redacts it in the `npm ls --json` output that ropm parses and then opens; `npm ci` does not fix it. Run the checks in a copy whose path has no UUID-like segment: copy the tree without `node_modules`, run `git init && git add -A && git commit -m tmp` (so `check-dist` has a `HEAD`), `npm ci`, then `npm run lint` / `npm run check-dist`. Report that validation ran in a copy.
+**Troubleshooting.** If `npm run lint` or `./tools/roku/build.sh` fails with `ENOENT … library/package.json` and the path in the error contains `***`, the checkout path has a UUID-like segment (common for agent worktrees). npm 11.x redacts it in the `npm ls --json` output that ropm parses and then opens; `npm ci` does not fix it. Run the checks in a copy: create a new, empty directory outside the checkout whose path has no UUID-like segment, copy the tree into it with `rsync -a --exclude .git --exclude node_modules ./ <new-dir>/` (exclude `.git`: in a worktree it points at the real repository, so commits in the copy would land on your branch), then `cd <new-dir> && git init && git add -A && git commit -m tmp` (so `check-dist` has a `HEAD`), `npm ci`, and `npm run lint` / `npm run check-dist`. Report that validation ran in a copy.
 
 ## Before You Finish
 
