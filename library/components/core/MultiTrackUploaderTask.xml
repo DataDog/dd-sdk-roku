@@ -10,6 +10,8 @@ Copyright 2022-Today Datadog, Inc.
 
     <interface>
         <field id="tracks" type="assocarray" />
+        <!-- Write {id, info} to add/replace a single track; merged atomically into `tracks` -->
+        <field id="registerTrack" type="assocarray" alwaysNotify="true" onChange="onRegisterTrack" />
         <field id="waitPeriodMs" type="integer" value="5000" />
         <field id="networkClient" type="node" />
         <field id="clientToken" type="string" />
