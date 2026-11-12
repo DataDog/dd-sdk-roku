@@ -2,8 +2,6 @@
 
 > A client-side Roku library to interact with Datadog.
 
-**NOTE** This library is still in early Developer Preview.
-
 ## Getting Started
 
 ### Setup with ROPM (recommended)
@@ -19,7 +17,7 @@ ropm install datadog-roku
 If your project does not use `ROPM`, install the library manually by downloading the [Roku SDK][5] zip archive, 
 and unzipping it in your project's root folder.
 
-Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and ` source` folders of your project.
+Make sure you have a `roku_modules/datadogroku` subfolder in both the `components` and `source` folders of your project.
 
 ### Configure Datadog
 
@@ -31,6 +29,7 @@ sub RunUserInterface(args as dynamic)
     screen = CreateObject("roSGScreen")
     scene = screen.CreateScene("MyScene")
     screen.show()
+    globalNode = screen.getGlobalNode()
 
     ' Setup Datadog
     datadogroku_initialize({
@@ -54,7 +53,7 @@ The `configuration` object passed to `datadogroku_initialize` supports the follo
 | applicationId            | String            | Yes      | The application ID used in RUM events.                                                                                                                                                                                                                           |
 | site                     | String            | Yes      | The site to send data to: `"us1"`, `"us3"`, `"us5"`, `"eu1"`, `"ap1"`, `"ap2"`, `"uk1"`, or `"staging"`.                                                                                                                                                                |
 | env                      | String            | Yes      | The name of the environment to report in logs and RUM events.                                                                                                                                                                                                          |
-| sessionSampleRate        | Integer           | Yes      | The percentage of sessions to keep and send to Datadog, as an integer between 0 and 100 (default is 100).                                                                                                                                                             |
+| sessionSampleRate        | Integer           | No       | The percentage of sessions to keep and send to Datadog, as an integer between 0 and 100 (default is 100).                                                                                                                                                             |
 | service                  | String            | No       | The name of the service to report in logs and RUM events (defaults to the channel's title from the manifest).                                                                                                                                                        |
 | version                  | String            | No       | The version of the channel to report in logs and RUM events (defaults to the channel's version from the manifest).                                                                                                                                                    |
 | traceSampleRate          | Double            | No       | The rate of traces to keep when instrumenting network requests, as a number between 0 and 100 (default is 100).                                                                                                                                                       |
@@ -159,8 +158,7 @@ For example, here's how to do a `GetToString` call:
 ```brightscript
     ddUrlTransfer = datadogroku_DdUrlTransfer(m.global)
     ddUrlTransfer.SetUrl(url)
-    ddUrlTransfer.EnablePeerVerification(false)
-    ddUrlTransfer.EnableHostVerification(false)
+    ddUrlTransfer.SetCertificatesFile("common:/certs/ca-bundle.crt")
     result = ddUrlTransfer.GetToString()
 ```
 
@@ -180,14 +178,18 @@ For example, here's how to do a `GetToString` call:
     result = ddUrlTransfer.GetToString()
 ```
 
-For **asynchronous request**, there's no automatic instrumentation yet, meaning you need to track the resource manually. The following code snippet shows how to report the request as a RUM Resource:
+For **asynchronous requests**, there's no automatic instrumentation yet, so you need to track each resource manually. The following code snippet shows how to report the request as a RUM Resource:
 
 ```brightscript
 sub performRequest()
 
     m.port = CreateObject("roMessagePort")
     request = CreateObject("roUrlTransfer")
-    ' setup the node url, headers, …
+    request.SetMessagePort(m.port)
+    requestUrl = "https://example.com/api" ' replace with your URL
+    request.SetUrl(requestUrl)
+    request.SetCertificatesFile("common:/certs/ca-bundle.crt")
+    ' setup the request headers, …
 
     timer = CreateObject("roTimespan")
     timer.Mark()
@@ -273,7 +275,7 @@ The following attributes are **optional**, but you should provide **at least one
 To identify user sessions, use the `datadogUserInfo` global field, after initializing the SDK, for example:
 
 ```brightscript
-    m.global.setField("datadogUserInfo", { id: 42, name: "Abcd Efg", email: "abcd.efg@example.com"})
+    m.global.setField("datadogUserInfo", { id: "42", name: "Abcd Efg", email: "abcd.efg@example.com"})
 ```
 
 ### Track custom global attributes
@@ -310,18 +312,18 @@ The following code snippet illustrates the `logInfo` function, but all functions
 To see internal messages and warnings about how the SDK is behaving,  enable the SDK verbosity to see debug information when you connect to your device with telnet on port `8085`.
 
 ```brightscript
-        m.global.addFields({
+    m.global.addFields({
         datadogVerbosity: 3 ' 0 = none; 1 = error; 2 = warning; 3 = info; 4 = verbose; 5 = internals
     })
 ```
 
 ## Looking up your RUM events
 
-Navigate to the [RUM Explorer][2]. In the side bar, select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
+Navigate to the [RUM Explorer][2]. In the side bar, select your application and explore Sessions, Views, Actions, Errors, and Resources.
 
 ## Looking up your Logs
 
-Navigate to the [Log Explorer][3]. In the side bar, select your application and explore Sessions, Views, Actions, Errors, Resources, and Long Tasks.
+Navigate to the [Log Explorer][3] to search and filter the logs sent by your channel.
 
 ## Contributing
 

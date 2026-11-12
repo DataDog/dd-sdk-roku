@@ -32,13 +32,19 @@ cp .env.template .env
 The whole project is covered by a set of static analysis tools, which can be launched via `npm` :
 - [Brighterscript](https://npmjs.org/package/brighterscript) transpilation to Brightscript and packaging for the `sample` and `test` channels;
 - [BSLint](https://www.npmjs.com/package/@rokucommunity/bslint) for linting rules;
-- [Static Channel Analysis](http://devtools.web.roku.com/#static-channel-analysis-tool) ensuring we follow Roku official guidelines.
+- [Static Channel Analysis](http://devtools.web.roku.com/#static-channel-analysis-tool) ensuring we follow Roku official guidelines;
+- [CSpell](https://cspell.org/) spell checking over the whole repository (run as part of `npm run lint`);
+- a license header check (`./tools/copyright/check_copyright.sh`);
+- a check that the generated `dist/` folder is up to date (`npm run check-dist`).
 
 ```shell script
 npm run lint
 npm run sca-test
 npm run sca-sample
+npm run check-dist
 ```
+
+The `dist/` folder is generated from the `library/` sources and is committed. Whenever you change `library/`, regenerate it with `./tools/roku/build.sh library` and commit the result, otherwise the CI `check-dist` job fails.
 
 ### Running the tests
 
@@ -65,7 +71,7 @@ npm run sample
 Many great ideas for new features come from the community, and we'd be happy to
 consider yours!
 
-To share your request, you can open an [issue](https://github.com/DataDog/dd-sdk-roku/issues/new?labels=enhancement&template=feature_request.md) 
+To share your request, you can open an [issue](https://github.com/DataDog/dd-sdk-roku/issues/new?labels=enhancement&template=FeatureRequest.yml) 
 with the details about what you'd like to see. At a minimum, please provide:
 
  - The goal of the new feature;
@@ -80,7 +86,7 @@ or UI, contact our support team via https://docs.datadoghq.com/help/ for direct,
 faster assistance.
 
 You may submit bug reports concerning the Datadog SDK for Roku by 
-[opening a Github issue](https://github.com/DataDog/dd-sdk-roku/issues/new?labels=bug&template=bug_report.md).
+[opening a Github issue](https://github.com/DataDog/dd-sdk-roku/issues/new?labels=bug&template=BugReport.yml).
 At a minimum, please provide:
 
  - A description of the problem;
@@ -127,7 +133,7 @@ requests must:
 
  - Have a stated goal and detailed description of the changes made;
  - Include thorough test coverage and documentation, where applicable;
- - Pass all tests and code quality checks (linting/coverage/benchmarks) on CI;
+ - Pass all code quality checks (lint, spell check, license headers, `dist/` check, static channel analysis) on CI, and the unit tests (`npm test`) on a Roku device, since CI cannot run them;
  - Receive at least one approval from a project member with push permissions.
 
 Make sure that your code is clean and readable, that your commits are small and
