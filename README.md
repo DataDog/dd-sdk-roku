@@ -178,7 +178,7 @@ For example, here's how to do a `GetToString` call:
     result = ddUrlTransfer.GetToString()
 ```
 
-For **asynchronous request**, there's no automatic instrumentation yet, meaning you need to track the resource manually. The following code snippet shows how to report the request as a RUM Resource:
+For **asynchronous requests**, there's no automatic instrumentation yet, so you need to track each resource manually. The following code snippet shows how to report the request as a RUM Resource:
 
 ```brightscript
 sub performRequest()
