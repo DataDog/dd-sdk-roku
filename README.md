@@ -188,6 +188,7 @@ sub performRequest()
     request.SetMessagePort(m.port)
     requestUrl = "https://example.com/api" ' replace with your URL
     request.SetUrl(requestUrl)
+    request.SetCertificatesFile("common:/certs/ca-bundle.crt")
     ' setup the request headers, …
 
     timer = CreateObject("roTimespan")
