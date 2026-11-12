@@ -1,0 +1,14 @@
+' Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
+' This product includes software developed at Datadog (https://www.datadoghq.com/).
+' Copyright 2022-Today Datadog, Inc.
+
+' Mirrors MultiTrackUploaderTask's registerTrack merge so agents' registrations land in `tracks`.
+sub onRegisterTrack()
+    registration = m.top.registerTrack
+    if (registration = invalid or registration.id = invalid or registration.info = invalid)
+        return
+    end if
+    tracks = m.top.tracks ?? {}
+    tracks[registration.id] = registration.info
+    m.top.tracks = tracks
+end sub
