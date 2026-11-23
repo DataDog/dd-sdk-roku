@@ -64,6 +64,7 @@ Without a local `node_modules`, `npx --no-install` silently uses a parent direct
 - **Skip `.brs` files in review.** Use them only to map a device stack trace or line number back to the `.bs` source.
 - **Regenerate and commit `dist/` before pushing** whenever `library/` changes. CI `analysis:check-dist` fails otherwise.
 - `.xml` files under `library/components/` are hand-written sources, not generated.
+- **`brighterscript` is pinned to `0.69.13` on purpose.** From 0.70.0, `bsc` compiles class methods to named functions, and ropm then prefixes their declarations and references differently ([rokucommunity/ropm#148](https://github.com/rokucommunity/ropm/issues/148)). That breaks `DdUrlTransfer`, the SDK's only class, for every consumer that installs the SDK with ropm. Don't bump it until ropm#148 is fixed. To try a newer version: bump it, run `npm run lint` (expect no `BS1001: Cannot find name 'datadogroku___DdUrlTransfer_method_*'` errors), regenerate and commit `dist/` so `npm run check-dist` passes, and have someone run the `DdUrlTransfer` tests on a device (`npm test`). Lint alone only proves the names resolve; the original breakage was found on a device.
 
 ## Code Conventions
 
