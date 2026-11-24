@@ -40,7 +40,7 @@ Run `npm ci` first if `node_modules` is missing.
 | Command | What it does | Agent can run? |
 | --- | --- | --- |
 | `./tools/roku/build.sh library` | Compile `library/` into `dist/` | Yes |
-| `npm run lint` | `bsc` + `bslint` build of library, test, and sample, then `cspell` on the whole repo (Markdown included) | Yes |
+| `npm run lint` | `bsc` + `bslint` build of library, test, and sample, then a `bsc`-only check of the SDK copy ropm installs into the test app (`test/bsconfig.validate.json`), then `cspell` on the whole repo (Markdown included) | Yes |
 | `npm run check-dist` | Rebuild `dist/` and fail if it differs from `HEAD` (it runs `git add dist`) | Yes |
 | `./tools/copyright/check_copyright.sh` | Check license headers | Yes |
 | `npm run sca-test` / `npm run sca-sample` | Roku Static Channel Analysis; needs `ROKU_SCA` and Java 21 | Only if configured |
@@ -106,7 +106,7 @@ Without a local `node_modules`, `npx --no-install` silently uses a parent direct
 - CI does not run the unit tests either: `test:roku` is manual and needs a device. Tell the user that a human has to run `npm test` on a Roku device.
 - You can still write and update tests under `test/source/tests/` as `Test__*.bs`, using the helpers in `test/source/asserts` and `test/source/mock`.
 - **Register new tests.** Tests are not discovered by file name. `import` a new test file in `test/components/TestRunner.bs` and add its `TestSuite__<Name>` function to `Runner.SetFunctions([...])`, otherwise it never runs.
-- **Tests run on `dist/`.** The test and sample channels use the built `dist/`, which ropm copies into their `roku_modules/datadogroku` (`test/package.json` depends on `"datadog-roku": "../"`, and the root `ropm.packageRootDir` is `dist`). Library changes need a rebuilt `dist/` before tests see them; `npm run lint` does that, and also checks that the test channel compiles.
+- **Tests run on `dist/`.** The test and sample channels use the built `dist/`, which ropm copies into their `roku_modules/datadogroku` (`test/package.json` depends on `"datadog-roku": "../"`, and the root `ropm.packageRootDir` is `dist`). Library changes need a rebuilt `dist/` before tests see them; `npm run lint` does that, and also checks that the test channel compiles. The regular test and sample builds filter diagnostics under `roku_modules`, so errors in the installed SDK copy (such as `BS1001: Cannot find name 'datadogroku_…'`) only show up in the `test/bsconfig.validate.json` step of `npm run lint`. Fix the cause in `library/` or the toolchain; don't add a `roku_modules` filter to that config.
 
 ## Sample App Config
 
