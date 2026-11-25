@@ -1,0 +1,11 @@
+{
+    "comment": "Checks the SDK copy that ropm installs into the unit test app, with bsc only: no bslint plugin and no roku_modules filter. npm run lint runs it after building the test app. extends replaces diagnosticFilters rather than merging them, so keep the non roku_modules entries in sync with bsconfig.json.",
+    "extends": "bsconfig.json",
+    "plugins": [],
+    "createPackage": false,
+    "copyToStaging": false,
+    "diagnosticFilters": [
+        { "src": "components/roku_modules/**/*.xml", "codes": [1009] },
+        "source/testFramework/*.brs"
+    ]
+}

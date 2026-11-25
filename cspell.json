@@ -21,6 +21,7 @@
         "awscli",
         "brighterscript",
         "brightscript",
+        "bsconfig",
         "bslint",
         "cachefs",
         "callfunc",
