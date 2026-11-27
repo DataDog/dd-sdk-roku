@@ -34,6 +34,9 @@ function TestSuite__MultiTrackUploaderTask() as object
     ' callers assigning clientToken, causing the loop to cache an empty token and emit 403s.
     this.addTest("WhenInit_WithoutControlRun_ThenDoesNotUpload", MultiTrackUploaderTaskTest__WhenInit_WithoutControlRun_ThenDoesNotUpload)
 
+    ' Regression for issue #237: concurrent track registrations must not overwrite each other.
+    this.addTest("WhenRegisterTrack_Twice_ThenBothTracksKept", MultiTrackUploaderTaskTest__WhenRegisterTrack_Twice_ThenBothTracksKept)
+
     this.testUploader = __testUploader
 
     return this
@@ -276,16 +279,14 @@ function MultiTrackUploaderTaskTest__WhenInit_UploadFilesFromMultipleTracks() as
     fakePrefix2 = IG_GetString(3)
     fakePostfix2 = IG_GetString(3)
     fakeContentType2 = IG_GetString(16)
-    tracks = m.testedTask.tracks
-    tracks[IG_GetString(8)] = {
+    m.testedTask.registerTrack = { id: IG_GetString(8), info: {
         trackType: fakeTrack2,
         url: fakeUrl2,
         payloadPrefix: fakePrefix2,
         payloadPostfix: fakePostfix2,
         contentType: fakeContentType2,
         queryParams: {}
-    }
-    m.testedTask.tracks = tracks
+    } }
     folderPath1 = datadogroku_trackFolderPath(m.fakeTrackType)
     folderPath2 = datadogroku_trackFolderPath(fakeTrack2)
     filePath1 = folderPath1 + "/" + IG_GetInteger(65536).toStr()
@@ -418,3 +419,29 @@ function MultiTrackUploaderTaskTest__WhenInit_WithoutControlRun_ThenDoesNotUploa
     return result
 end function
 
+
+'----------------------------------------------------------------
+' Regression for issue #237.
+' Given: a MultiTrackUploaderTask with no tracks
+'  When: two tracks are registered one after the other through registerTrack
+'  Then: both tracks are present in `tracks`
+'----------------------------------------------------------------
+function MultiTrackUploaderTaskTest__WhenRegisterTrack_Twice_ThenBothTracksKept() as string
+    ' Given
+    task = CreateObject("roSGNode", "datadogroku_MultiTrackUploaderTask")
+    fakeId1 = "rum_" + IG_GetString(8)
+    fakeId2 = "logs_" + IG_GetString(8)
+    fakeType1 = IG_GetString(10)
+    fakeType2 = IG_GetString(10)
+
+    ' When
+    task.registerTrack = { id: fakeId1, info: { trackType: fakeType1 } }
+    task.registerTrack = { id: fakeId2, info: { trackType: fakeType2 } }
+
+    ' Then
+    tracks = task.tracks
+    Assert.that(tracks).isNotInvalid().containsKey(fakeId1).containsKey(fakeId2)
+    Assert.that(tracks[fakeId1].trackType).isEqualTo(fakeType1)
+    Assert.that(tracks[fakeId2].trackType).isEqualTo(fakeType2)
+    return ""
+end function

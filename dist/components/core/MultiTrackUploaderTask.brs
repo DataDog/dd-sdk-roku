@@ -43,6 +43,28 @@ sub uploaderLoop()
 end sub
 
 ' ----------------------------------------------------------------
+' Merges a single track registration ({id, info}) into `tracks`.
+' Runs as the field's onChange callback on the uploader's owning thread, so concurrent
+' registrations from different agents are serialized and never overwrite each other.
+' ----------------------------------------------------------------
+sub onRegisterTrack()
+    registration = m.top.registerTrack
+    if (registration = invalid or registration.id = invalid or registration.info = invalid)
+        return
+    end if
+    tracks = (function(m)
+            __bsConsequent = m.top.tracks
+            if __bsConsequent <> invalid then
+                return __bsConsequent
+            else
+                return {}
+            end if
+        end function)(m)
+    tracks[registration.id] = registration.info
+    m.top.tracks = tracks
+end sub
+
+' ----------------------------------------------------------------
 ' Drain any queued port messages and refresh local caches accordingly.
 ' @param msg (dynamic) the first message returned by wait(), or invalid on timeout
 ' ----------------------------------------------------------------

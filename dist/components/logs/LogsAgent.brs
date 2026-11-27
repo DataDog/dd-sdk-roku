@@ -223,26 +223,20 @@ sub setupIfNeeded()
     })
     ' 3. Register our track on the shared uploader
     trackId = "logs_" + m.top.threadInfo().node.address
-    tracks = (function(m)
-            __bsConsequent = m.uploader.tracks
-            if __bsConsequent <> invalid then
-                return __bsConsequent
-            else
-                return {}
-            end if
-        end function)(m)
-    tracks[trackId] = {
-        url: getIntakeUrl(m.site, "logs")
-        trackType: "logs"
-        payloadPrefix: "["
-        payloadPostfix: "]"
-        contentType: "application/json"
-        queryParams: {
-            ddsource: agentSource()
-        }
-    }
     m.uploader.setFields({
-        tracks: tracks
+        registerTrack: {
+            id: trackId
+            info: {
+                url: getIntakeUrl(m.site, "logs")
+                trackType: "logs"
+                payloadPrefix: "["
+                payloadPostfix: "]"
+                contentType: "application/json"
+                queryParams: {
+                    ddsource: agentSource()
+                }
+            }
+        }
     })
     ' 4. Cache the global context locally, kept in sync via observers
     m.global.observeFieldScoped("datadogUserInfo", "onUserInfoChanged")
